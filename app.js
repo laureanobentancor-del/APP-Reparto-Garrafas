@@ -205,3 +205,13 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
 }
 
+function reiniciarWhatsApp() {
+        if (confirm("¿Seguro que deseas desvincular WhatsApp y generar un nuevo QR?")) {
+            fetch('/api/whatsapp/reiniciar', { method: 'POST' })
+                .then(res => res.json())
+                .then(() => {
+                    alert("Reiniciando conexión... Espera unos segundos y recarga el QR.");
+                    chequearWhatsApp();
+                });
+        }
+    }

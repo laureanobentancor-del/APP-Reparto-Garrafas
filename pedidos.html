@@ -16,14 +16,18 @@
     <main>
         <h1>Gestión de Pedidos y WhatsApp</h1>
         
-        <div class="panel-whatsapp">
+       <div class="panel-whatsapp">
             <div>
                 <h3>Conexión de WhatsApp</h3>
                 <p id="whatsapp-estado">Verificando estado...</p>
                 <small>Los mensajes de clientes registrados se cargarán solos aquí.</small>
+                <br><br>
+                <button class="btn-accion btn-eliminar" onclick="reiniciarWhatsApp()">🔄 Desvincular / Nuevo QR</button>
             </div>
             <div id="contenedor-qr"></div>
         </div>
+
+
 
         <div class="acciones-superiores">
             <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido Manual</button>
