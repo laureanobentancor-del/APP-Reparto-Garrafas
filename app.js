@@ -15,6 +15,7 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
                             <td>${c.telefono}</td>
                             <td>${c.direccion || '-'}</td>
                             <td>
+                                <button class="btn-accion btn-editar" onclick="editarCliente(${c.id}, '${c.nombre}', '${c.telefono}', '${c.direccion || ''}')">Editar</button>
                                 <button class="btn-accion btn-eliminar" onclick="borrarCliente(${c.id})">Borrar</button>
                             </td>
                         </tr>
@@ -23,28 +24,57 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
             });
     }
 
-    function abrirModalCliente() { document.getElementById('modal-cliente').style.display = 'flex'; }
-    function cerrarModalCliente() { document.getElementById('modal-cliente').style.display = 'none'; }
+    window.abrirModalCliente = function() { 
+        document.getElementById('titulo-modal-cliente').textContent = "Registrar Nuevo Cliente";
+        document.getElementById('form-cliente').reset();
+        document.getElementById('cliente-id').value = "";
+        document.getElementById('modal-cliente').style.display = 'flex'; 
+    }
 
-    document.getElementById('form-cliente')?.addEventListener('submit', (e) => {
+    window.editarCliente = function(id, nombre, telefono, direccion) {
+        document.getElementById('titulo-modal-cliente').textContent = "Editar Cliente";
+        document.getElementById('cliente-id').value = id;
+        document.getElementById('cliente-nombre').value = nombre;
+        document.getElementById('cliente-telefono').value = telefono;
+        document.getElementById('cliente-direccion').value = direccion;
+        document.getElementById('modal-cliente').style.display = 'flex';
+    }
+    
+    window.cerrarModalCliente = function() { 
+        document.getElementById('modal-cliente').style.display = 'none'; 
+    }
+
+    document.getElementById('form-cliente').addEventListener('submit', (e) => {
         e.preventDefault();
+        const id = document.getElementById('cliente-id').value;
         const data = {
             nombre: document.getElementById('cliente-nombre').value,
             telefono: document.getElementById('cliente-telefono').value,
             direccion: document.getElementById('cliente-direccion').value
         };
-        fetch('/api/clientes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        }).then(() => {
-            cerrarModalCliente();
-            document.getElementById('form-cliente').reset();
-            cargarClientes();
-        });
+
+        if (id) {
+            fetch(`/api/clientes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                cerrarModalCliente();
+                cargarClientes();
+            });
+        } else {
+            fetch('/api/clientes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(() => {
+                cerrarModalCliente();
+                cargarClientes();
+            });
+        }
     });
 
-    function borrarCliente(id) {
+    window.borrarCliente = function(id) {
         if (confirm("¿Estás seguro de borrar este cliente?")) {
             fetch(`/api/clientes/${id}`, { method: 'DELETE' }).then(() => cargarClientes());
         }
@@ -81,7 +111,7 @@ if (document.getElementById('cuerpo-tabla-stock')) {
             });
     }
 
-    function abrirModalStock(tipo, llenas, vacias, precio) {
+    window.abrirModalStock = function(tipo, llenas, vacias, precio) {
         document.getElementById('titulo-modal-stock').textContent = "Editar Stock - Garrafa de " + tipo;
         document.getElementById('stock-tipo').value = tipo;
         document.getElementById('stock-llenas').value = llenas;
@@ -90,9 +120,11 @@ if (document.getElementById('cuerpo-tabla-stock')) {
         document.getElementById('modal-stock').style.display = 'flex';
     }
 
-    function cerrarModalStock() { document.getElementById('modal-stock').style.display = 'none'; }
+    window.cerrarModalStock = function() { 
+        document.getElementById('modal-stock').style.display = 'none'; 
+    }
 
-    document.getElementById('form-stock')?.addEventListener('submit', (e) => {
+    document.getElementById('form-stock').addEventListener('submit', (e) => {
         e.preventDefault();
         const tipo = document.getElementById('stock-tipo').value;
         const data = {
@@ -140,7 +172,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         });
     }
 
-    function chequearWhatsApp() {
+    window.chequearWhatsApp = function() {
         fetch('/api/whatsapp/qr').then(res => res.json()).then(data => {
             const txt = document.getElementById('whatsapp-estado');
             const qrDiv = document.getElementById('contenedor-qr');
@@ -157,7 +189,18 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         });
     }
 
-    function abrirModalPedido() {
+    window.reiniciarWhatsApp = function() {
+        if (confirm("¿Seguro que deseas desvincular WhatsApp y generar un nuevo QR?")) {
+            fetch('/api/whatsapp/reiniciar', { method: 'POST' })
+                .then(res => res.json())
+                .then(() => {
+                    alert("Reiniciando conexión... Espera unos segundos y recarga la página.");
+                    chequearWhatsApp();
+                });
+        }
+    }
+
+    window.abrirModalPedido = function() {
         document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
         document.getElementById('form-pedido').reset();
         document.getElementById('pedido-id').value = "";
@@ -170,7 +213,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         });
     }
 
-    function editarPedido(id, tipo, cantidad) {
+    window.editarPedido = function(id, tipo, cantidad) {
         document.getElementById('titulo-modal-pedido').textContent = "Editar Pedido #" + id;
         document.getElementById('pedido-id').value = id;
         document.getElementById('grupo-cliente').style.display = "none";
@@ -179,9 +222,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         document.getElementById('modal-pedido').style.display = "flex";
     }
 
-    function cerrarModalPedido() { document.getElementById('modal-pedido').style.display = 'none'; }
+    window.cerrarModalPedido = function() { document.getElementById('modal-pedido').style.display = 'none'; }
 
-    document.getElementById('form-pedido')?.addEventListener('submit', (e) => {
+    document.getElementById('form-pedido').addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('pedido-id').value;
         const tipo = document.getElementById('pedido-tipo').value;
@@ -193,9 +236,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         }
     });
 
-    function borrarPedido(id) { if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); }
+    window.borrarPedido = function(id) { if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); }
     
-    function cambiarEstado(id, estadoActual) {
+    window.cambiarEstado = function(id, estadoActual) {
         const nuevo = estadoActual === 'Pendiente' ? 'Completado' : 'Pendiente';
         fetch(`/api/pedidos/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevo }) }).then(() => cargarPedidos());
     }
@@ -204,14 +247,3 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     chequearWhatsApp();
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
 }
-
-function reiniciarWhatsApp() {
-        if (confirm("¿Seguro que deseas desvincular WhatsApp y generar un nuevo QR?")) {
-            fetch('/api/whatsapp/reiniciar', { method: 'POST' })
-                .then(res => res.json())
-                .then(() => {
-                    alert("Reiniciando conexión... Espera unos segundos y recarga el QR.");
-                    chequearWhatsApp();
-                });
-        }
-    }

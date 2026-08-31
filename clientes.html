@@ -33,13 +33,16 @@
             </tbody>
         </table>
     </main>
-
-    <!-- Ventana Flotante (Modal) para Nuevo Cliente -->
+    
+<!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
     <div id="modal-cliente" class="modal-fondo" style="display: none;">
         <div class="modal-contenido">
             <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
-            <h2>Registrar Nuevo Cliente</h2>
+            <h2 id="titulo-modal-cliente">Registrar Nuevo Cliente</h2>
             <form id="form-cliente">
+                <!-- Este campo oculto guarda el ID cuando editamos -->
+                <input type="hidden" id="cliente-id">
+                
                 <div class="grupo-form">
                     <label>Nombre:</label>
                     <input type="text" id="cliente-nombre" required>
@@ -56,6 +59,8 @@
             </form>
         </div>
     </div>
+
+
 
     <script src="app.js"></script>
 </body>

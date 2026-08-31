@@ -34,6 +34,16 @@ app.post('/api/clientes', (req, res) => {
         res.json({ id: this.lastID });
     });
 });
+
+app.put('/api/clientes/:id', (req, res) => {
+    const { nombre, telefono, direccion } = req.body;
+    db.run("UPDATE clientes SET nombre = ?, telefono = ?, direccion = ? WHERE id = ?", 
+        [nombre, telefono, direccion, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: "Cliente actualizado" });
+    });
+});
+
 app.delete('/api/clientes/:id', (req, res) => db.run("DELETE FROM clientes WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" })));
 
 app.get('/api/stock', (req, res) => db.all("SELECT * FROM stock", [], (err, rows) => res.json(rows || [])));
