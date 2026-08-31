@@ -16,6 +16,7 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
                             <td>${c.direccion || '-'}</td>
                             <td>
                                 <button class="btn-accion btn-editar" onclick="editarCliente(${c.id}, '${c.nombre}', '${c.telefono}', '${c.direccion || ''}')">Editar</button>
+                                <button class="btn-accion" style="background-color: #3498db; color: white;" onclick="verHistorialCliente(${c.id}, '${c.nombre}')">Historial</button>
                                 <button class="btn-accion btn-eliminar" onclick="borrarCliente(${c.id})">Borrar</button>
                             </td>
                         </tr>
@@ -246,4 +247,35 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     cargarPedidos();
     chequearWhatsApp();
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
+}
+
+
+window.verHistorialCliente = function(clienteId, nombreCliente) {
+    document.getElementById('titulo-historial').textContent = `Historial de Pedidos - ${nombreCliente}`;
+    fetch(`/api/clientes/${clienteId}/pedidos`)
+        .then(res => res.json())
+        .then(pedidos => {
+            const tbody = document.getElementById('cuerpo-tabla-historial');
+            tbody.innerHTML = '';
+            if (pedidos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
+            } else {
+                pedidos.forEach(p => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>#${p.id}</td>
+                            <td>${p.tipo}</td>
+                            <td>${p.cantidad}</td>
+                            <td>$${p.total}</td>
+                            <td><span style="font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('modal-historial').style.display = 'flex';
+        });
+}
+
+window.cerrarModalHistorial = function() {
+    document.getElementById('modal-historial').style.display = 'none';
 }

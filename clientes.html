@@ -61,7 +61,29 @@
         </div>
     </div>
 
-
+<!-- Ventana Flotante para Historial de Pedidos -->
+    <div id="modal-historial" class="modal-fondo" style="display: none;">
+        <div class="modal-contenido" style="max-width: 600px;">
+            <span class="btn-cerrar" onclick="cerrarModalHistorial()">&times;</span>
+            <h2 id="titulo-historial">Historial de Pedidos</h2>
+            <div style="max-height: 350px; overflow-y: auto; margin-top: 15px;">
+                <table class="tabla-datos">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>Tipo</th>
+                            <th>Cant.</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-historial">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
