@@ -173,34 +173,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         });
     }
 
-    window.chequearWhatsApp = function() {
-        fetch('/api/whatsapp/qr').then(res => res.json()).then(data => {
-            const txt = document.getElementById('whatsapp-estado');
-            const qrDiv = document.getElementById('contenedor-qr');
-            if (!txt || !qrDiv) return;
-            if (data.estado === 'Conectado') {
-                txt.textContent = "✅ WhatsApp Conectado";
-                txt.style.color = "#27ae60";
-                qrDiv.innerHTML = "";
-            } else {
-                txt.textContent = "⚠️ Escanea el QR";
-                txt.style.color = "#e67e22";
-                if (data.qr) qrDiv.innerHTML = `<img src="${data.qr}" style="width:140px; height:140px;">`;
-            }
-        });
-    }
-
-    window.reiniciarWhatsApp = function() {
-        if (confirm("¿Seguro que deseas desvincular WhatsApp y generar un nuevo QR?")) {
-            fetch('/api/whatsapp/reiniciar', { method: 'POST' })
-                .then(res => res.json())
-                .then(() => {
-                    alert("Reiniciando conexión... Espera unos segundos y recarga la página.");
-                    chequearWhatsApp();
-                });
-        }
-    }
-
+ 
     window.abrirModalPedido = function() {
         document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
         document.getElementById('form-pedido').reset();
@@ -278,4 +251,43 @@ window.verHistorialCliente = function(clienteId, nombreCliente) {
 
 window.cerrarModalHistorial = function() {
     document.getElementById('modal-historial').style.display = 'none';
+}
+
+// ==========================================
+// LÓGICA DE WHATSAPP (Solo en Inicio)
+// ==========================================
+function chequearWhatsApp() {
+    fetch('/api/whatsapp/qr')
+        .then(res => res.json())
+        .then(data => {
+            const txt = document.getElementById('whatsapp-estado');
+            const qrDiv = document.getElementById('contenedor-qr');
+            if (!txt || !qrDiv) return;
+            if (data.estado === 'Conectado') {
+                txt.textContent = "✅ WhatsApp Conectado";
+                txt.style.color = "#27ae60";
+                qrDiv.innerHTML = "";
+            } else {
+                txt.textContent = "⚠️ Escanea el QR para conectar";
+                txt.style.color = "#e67e22";
+                if (data.qr) qrDiv.innerHTML = `<img src="${data.qr}" style="width:160px; height:160px;">`;
+            }
+        });
+}
+
+window.reiniciarWhatsApp = function() {
+    if (confirm("¿Seguro que deseas desvincular WhatsApp y generar un nuevo QR?")) {
+        fetch('/api/whatsapp/reiniciar', { method: 'POST' })
+            .then(res => res.json())
+            .then(() => {
+                alert("Reiniciando conexión... Espera unos segundos y recarga la página.");
+                chequearWhatsApp();
+            });
+    }
+}
+
+// Ejecuta el chequeo si existe el elemento en la página actual
+if (document.getElementById('whatsapp-estado')) {
+    chequearWhatsApp();
+    setInterval(chequearWhatsApp, 3000);
 }

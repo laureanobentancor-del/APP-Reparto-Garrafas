@@ -2,20 +2,31 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio - Control de Garrafas</title>
+    <title>Gestión de Garrafas - Inicio</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <nav class="menu-principal">
-        <a href="index.html" class="activo">Inicio</a>
-        <a href="clientes.html">Clientes</a>
-        <a href="stock.html">Stock</a>
-        <a href="pedidos.html">Pedidos</a>
-    </nav>
-    <main>
-        <h1>Bienvenido al Sistema de Gestión</h1>
-        <p>Selecciona una opción en el menú superior para administrar tus clientes, el stock de garrafas o los pedidos por WhatsApp.</p>
+    <header>
+        <h1>Panel de Control - Reparto de Garrafas</h1>
+        <nav>
+            <a href="index.html" class="activo">Inicio</a>
+            <a href="pedidos.html">Pedidos</a>
+            <a href="clientes.html">Clientes</a>
+            <a href="stock.html">Stock</a>
+        </nav>
+    </header>
+
+    <main class="contenedor" style="padding: 20px; display: flex; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px;">
+            <h2>Estado de WhatsApp</h2>
+            <p id="whatsapp-estado" style="font-weight: bold; margin: 20px 0; font-size: 16px;">Verificando estado...</p>
+            <div id="contenedor-qr" style="margin: 20px 0; min-height: 160px; display: flex; justify-content: center; align-items: center;">
+                <!-- Aquí se cargará el QR -->
+            </div>
+            <button onclick="reiniciarWhatsApp()" style="background-color: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reiniciar Conexión</button>
+        </div>
     </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
