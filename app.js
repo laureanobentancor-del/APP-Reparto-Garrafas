@@ -23,15 +23,10 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
             });
     }
 
-    function abrirModalCliente() { 
-        document.getElementById('modal-cliente').style.display = 'flex'; 
-    }
-    
-    function cerrarModalCliente() { 
-        document.getElementById('modal-cliente').style.display = 'none'; 
-    }
+    function abrirModalCliente() { document.getElementById('modal-cliente').style.display = 'flex'; }
+    function cerrarModalCliente() { document.getElementById('modal-cliente').style.display = 'none'; }
 
-    document.getElementById('form-cliente').addEventListener('submit', (e) => {
+    document.getElementById('form-cliente')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const data = {
             nombre: document.getElementById('cliente-nombre').value,
@@ -95,11 +90,9 @@ if (document.getElementById('cuerpo-tabla-stock')) {
         document.getElementById('modal-stock').style.display = 'flex';
     }
 
-    function cerrarModalStock() { 
-        document.getElementById('modal-stock').style.display = 'none'; 
-    }
+    function cerrarModalStock() { document.getElementById('modal-stock').style.display = 'none'; }
 
-    document.getElementById('form-stock').addEventListener('submit', (e) => {
+    document.getElementById('form-stock')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const tipo = document.getElementById('stock-tipo').value;
         const data = {
@@ -120,3 +113,95 @@ if (document.getElementById('cuerpo-tabla-stock')) {
 
     cargarStock();
 }
+
+// ==========================================
+// LÓGICA DE PEDIDOS Y WHATSAPP
+// ==========================================
+if (document.getElementById('cuerpo-tabla-pedidos')) {
+    function cargarPedidos() {
+        fetch('/api/pedidos').then(res => res.json()).then(pedidos => {
+            const tbody = document.getElementById('cuerpo-tabla-pedidos');
+            tbody.innerHTML = '';
+            pedidos.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${p.id}</td>
+                        <td><strong>${p.cliente_nombre}</strong><br><small>${p.cliente_telefono}</small></td>
+                        <td>${p.tipo}</td>
+                        <td>${p.cantidad}</td>
+                        <td>$${p.total}</td>
+                        <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                        <td>
+                            <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
+                            <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    function chequearWhatsApp() {
+        fetch('/api/whatsapp/qr').then(res => res.json()).then(data => {
+            const txt = document.getElementById('whatsapp-estado');
+            const qrDiv = document.getElementById('contenedor-qr');
+            if (!txt || !qrDiv) return;
+            if (data.estado === 'Conectado') {
+                txt.textContent = "✅ WhatsApp Conectado";
+                txt.style.color = "#27ae60";
+                qrDiv.innerHTML = "";
+            } else {
+                txt.textContent = "⚠️ Escanea el QR";
+                txt.style.color = "#e67e22";
+                if (data.qr) qrDiv.innerHTML = `<img src="${data.qr}" style="width:140px; height:140px;">`;
+            }
+        });
+    }
+
+    function abrirModalPedido() {
+        document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
+        document.getElementById('form-pedido').reset();
+        document.getElementById('pedido-id').value = "";
+        document.getElementById('grupo-cliente').style.display = "block";
+        fetch('/api/clientes').then(res => res.json()).then(clientes => {
+            const select = document.getElementById('pedido-cliente');
+            select.innerHTML = '';
+            clientes.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nombre} (${c.telefono})</option>`);
+            document.getElementById('modal-pedido').style.display = "flex";
+        });
+    }
+
+    function editarPedido(id, tipo, cantidad) {
+        document.getElementById('titulo-modal-pedido').textContent = "Editar Pedido #" + id;
+        document.getElementById('pedido-id').value = id;
+        document.getElementById('grupo-cliente').style.display = "none";
+        document.getElementById('pedido-tipo').value = tipo;
+        document.getElementById('pedido-cantidad').value = cantidad;
+        document.getElementById('modal-pedido').style.display = "flex";
+    }
+
+    function cerrarModalPedido() { document.getElementById('modal-pedido').style.display = 'none'; }
+
+    document.getElementById('form-pedido')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('pedido-id').value;
+        const tipo = document.getElementById('pedido-tipo').value;
+        const cantidad = document.getElementById('pedido-cantidad').value;
+        if (id) {
+            fetch(`/api/pedidos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo, cantidad }) }).then(() => { cerrarModalPedido(); cargarPedidos(); });
+        } else {
+            fetch('/api/pedidos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cliente_id: document.getElementById('pedido-cliente').value, tipo, cantidad }) }).then(() => { cerrarModalPedido(); cargarPedidos(); });
+        }
+    });
+
+    function borrarPedido(id) { if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); }
+    
+    function cambiarEstado(id, estadoActual) {
+        const nuevo = estadoActual === 'Pendiente' ? 'Completado' : 'Pendiente';
+        fetch(`/api/pedidos/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevo }) }).then(() => cargarPedidos());
+    }
+
+    cargarPedidos();
+    chequearWhatsApp();
+    setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
+}
+
