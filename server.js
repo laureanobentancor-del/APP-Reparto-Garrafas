@@ -11,28 +11,69 @@ const PORT = 3000;
 app.use(express.json()); 
 app.use(express.static(__dirname));
 
+// 1. PRIMERO CREAMOS LA BASE DE DATOS (Esto faltaba poner arriba)
 const db = new sqlite3.Database('./database.db', (err) => {
     if (err) console.error("Error BD:", err.message);
     else console.log("✅ Conectado a SQLite correctamente.");
 });
 
+// 2. LUEGO EJECUTAMOS LAS CREACIONES DE TABLAS Y CONFIGURACIONES
 db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario TEXT UNIQUE,
+        password TEXT,
+        rol TEXT
+    )`);
+
+    // Insertar un administrador por defecto (admin / 1234) si no existe
+    db.get(`SELECT * FROM usuarios WHERE usuario = 'admin'`, (err, row) => {
+        if (!row) {
+            db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES ('admin', '1234', 'admin')`);
+        }
+    });
+
     db.run(`CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, telefono TEXT, direccion TEXT)`);
     db.run(`CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT UNIQUE, llenas INTEGER, vacias INTEGER, precio REAL)`);
     db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('10kg', 0, 0, 0)");
     db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('15kg', 0, 0, 0)");
     db.run(`CREATE TABLE IF NOT EXISTS pedidos (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER, tipo TEXT, cantidad INTEGER, total REAL, estado TEXT DEFAULT 'Pendiente', FOREIGN KEY(cliente_id) REFERENCES clientes(id))`);
 
-    // 🔥 Agrega esta línea para asegurarte de que la columna fecha exista en la base de datos
     db.run(`ALTER TABLE pedidos ADD COLUMN fecha TEXT`, (err) => {
         // Si la columna ya existe, SQLite tirará un error que ignoramos a propósito
     });
 });
 
-// --- RUTAS API ---
+
+// --- RUTAS API DE USUARIOS Y AUTENTICACIÓN ---
+app.post('/api/login', (req, res) => {
+    const { usuario, password } = req.body;
+    db.get(`SELECT * FROM usuarios WHERE usuario = ? AND password = ?`, [usuario, password], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+    });
+});
+
+app.post('/api/usuarios', (req, res) => {
+    const { usuario, password, rol } = req.body;
+    db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`, [usuario, password, rol || 'repartidor'], function(err) {
+        if (err) return res.status(500).json({ error: "El usuario ya existe o hubo un error" });
+        res.json({ id: this.lastID, mensaje: "Usuario creado con éxito" });
+    });
+});
+
+app.get('/api/usuarios', (req, res) => {
+    db.all(`SELECT id, usuario, rol FROM usuarios`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
+
+// --- RUTAS API: CLIENTES ---
 app.get('/api/clientes', (req, res) => {
     db.all("SELECT * FROM clientes", [], (err, rows) => {
-        // En la web SOLO mostramos el celular real (cortamos lo que está después de la coma)
         if (rows) rows.forEach(r => { if(r.telefono) r.telefono = r.telefono.split(',')[0]; });
         res.json(rows || []);
     });
@@ -72,19 +113,18 @@ app.get('/api/clientes/:id/pedidos', (req, res) => {
 
 app.delete('/api/clientes/:id', (req, res) => db.run("DELETE FROM clientes WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" })));
 
+
+// --- RUTAS API: STOCK ---
 app.get('/api/stock', (req, res) => db.all("SELECT * FROM stock", [], (err, rows) => res.json(rows || [])));
 app.put('/api/stock/:tipo', (req, res) => {
     const { llenas, vacias, precio } = req.body;
     db.run("UPDATE stock SET llenas = ?, vacias = ?, precio = ? WHERE tipo = ?", [llenas, vacias, precio, req.params.tipo], () => res.json({ mensaje: "Actualizado" }));
 });
 
-// --- RUTAS API: PEDIDOS (Con control de stock automático) ---
 
-
+// --- RUTAS API: PEDIDOS ---
 app.get('/api/pedidos/filtrar', (req, res) => {
     let { desde, hasta } = req.query;
-    
-    // Si no mandan fecha desde, ponemos una muy lejana; si no mandan hasta, ponemos una muy futura
     if (!desde) desde = '1970-01-01';
     if (!hasta) hasta = '2100-12-31';
 
@@ -102,7 +142,6 @@ app.get('/api/pedidos/filtrar', (req, res) => {
 });
 
 app.get('/api/pedidos/hoy', (req, res) => {
-    // Busca los pedidos cuya fecha coincida con la fecha actual del servidor (YYYY-MM-DD)
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono 
                  FROM pedidos 
                  JOIN clientes ON pedidos.cliente_id = clientes.id 
@@ -111,16 +150,6 @@ app.get('/api/pedidos/hoy', (req, res) => {
     db.all(sql, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
-        res.json(rows || []);
-    });
-});
-
-
-app.get('/api/clientes/:id/pedidos', (req, res) => {
-    const clienteId = req.params.id;
-    const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id WHERE clientes.id = ? ORDER BY pedidos.id DESC`;
-    db.all(sql, [clienteId], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
         res.json(rows || []);
     });
 });
@@ -143,7 +172,6 @@ app.post('/api/pedidos', (req, res) => {
         const total = precio * cantidad;
         
         db.serialize(() => {
-            // Especificamos los campos exactos y usamos DATETIME('now', 'localtime') para la fecha
             db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, fecha) 
                     VALUES (?, ?, ?, ?, 'Pendiente', DATETIME('now', 'localtime'))`, 
                     [cliente_id, tipo, cantidad, total], function(err) {
@@ -160,6 +188,7 @@ app.post('/api/pedidos', (req, res) => {
         });
     });
 });
+
 app.put('/api/pedidos/:id', (req, res) => {
     const { tipo, cantidad } = req.body;
     db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
@@ -167,7 +196,6 @@ app.put('/api/pedidos/:id', (req, res) => {
         db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => res.json({ mensaje: "Editado" }));
     });
 });
-
 
 app.get('/api/pedidos', (req, res) => {
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id ORDER BY pedidos.id DESC`;
@@ -185,6 +213,8 @@ app.put('/api/pedidos/:id/estado', (req, res) => {
 app.delete('/api/pedidos/:id', (req, res) => {
     db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
 });
+
+
 // --- WHATSAPP & QR ---
 let qrCodeActual = "";
 let estadoWhatsApp = "Desconectado";
@@ -224,20 +254,12 @@ async function iniciarWhatsApp() {
             const textoOriginal = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
             const texto = textoOriginal.toLowerCase();
 
-            // 1. Busca por el ID de WhatsApp
             db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
                 if (cliente) {
-                    
-                    // 🔥 NUEVO: Filtro inteligente. Solo toma pedido si el texto menciona garrafa, kilos o números de stock.
                     const esPedido = /(garrafa|10|15|kilo|kg|pedido)/i.test(texto);
-                    
                     if (esPedido) {
                         procesarPedidoCliente(cliente, texto, remoteJid);
-                    } else {
-                        // Si dice "gracias", "hola", "ok", el bot lo ignora silenciosamente
-                        console.log(`💬 Mensaje normal de ${cliente.nombre} (No es pedido): "${textoOriginal}"`);
                     }
-
                 } else {
                     if (!chatsNuevos[idLimpio]) {
                         chatsNuevos[idLimpio] = { paso: 1, pedidoInicial: texto, celular: "" };
@@ -248,7 +270,6 @@ async function iniciarWhatsApp() {
                         if (celularIngresado.length < 6) return await sockGlobal.sendMessage(remoteJid, { text: "Por favor, ingresa solo números." });
                         
                         chatsNuevos[idLimpio].celular = celularIngresado;
-                        
                         const ultimosDigitos = celularIngresado.slice(-7);
                         
                         db.get("SELECT * FROM clientes WHERE telefono LIKE ?", [`%${ultimosDigitos}%`], async (err, clienteExistente) => {
@@ -287,7 +308,6 @@ async function iniciarWhatsApp() {
                 }
             });
         });
-
     } catch (e) {
         console.error("Error WhatsApp:", e);
     }
@@ -313,7 +333,6 @@ function procesarPedidoCliente(cliente, texto, jid) {
 
             const total = (parseFloat(stock.precio) || 0) * cantidad;
             db.serialize(() => {
-                // Especificamos los campos exactos también aquí
                 db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, fecha) 
                         VALUES (?, ?, ?, ?, 'Pendiente', DATETIME('now', 'localtime'))`, 
                         [cliente.id, tipo, cantidad, total], function(err) {
@@ -335,13 +354,13 @@ function procesarPedidoCliente(cliente, texto, jid) {
 }
 
 iniciarWhatsApp();
+
 app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
 
 
 // --- DATOS DE PRUEBA / SIMULACIÓN ---
 db.serialize(() => {
-    // 1. Insertar clientes falsos si no existen
     db.run(`INSERT OR IGNORE INTO clientes (id, nombre, telefono, direccion) VALUES 
         (1, 'Juan Pérez', '5491122334455,1122334455', 'Av. Rivadavia 4500, Caballito'),
         (2, 'María Gómez', '5491199887766,1199887766', 'Belgrano 1230, Centro'),
@@ -349,11 +368,9 @@ db.serialize(() => {
         (4, 'Laura Fernández', '5491133221100,1133221100', 'San Martín 340, Flores'),
         (5, 'Esteban Quito', '5491177889900,1177889900', 'Av. Santa Fe 2100, Palermo')`);
 
-    // 2. Llenar el stock con valores seguros para pruebas
     db.run(`UPDATE stock SET llenas = 50, vacias = 10, precio = 8500 WHERE tipo = '10kg'`);
     db.run(`UPDATE stock SET llenas = 30, vacias = 5, precio = 12000 WHERE tipo = '15kg'`);
 
-    // 3. Insertar pedidos de prueba con diferentes fechas para probar los filtros
     db.run(`INSERT OR IGNORE INTO pedidos (id, cliente_id, tipo, cantidad, total, estado, fecha) VALUES 
         (1, 1, '10kg', 1, 8500, 'Completado', datetime('now', '-5 days', 'localtime')),
         (2, 2, '15kg', 2, 24000, 'Completado', datetime('now', '-3 days', 'localtime')),

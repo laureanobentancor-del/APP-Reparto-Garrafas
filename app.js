@@ -426,3 +426,118 @@ window.limpiarFiltrosFecha = function() {
         })
         .catch(err => console.error("Error al limpiar filtros:", err));
 }
+
+
+document.getElementById('form-login')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const usuario = document.getElementById('login-usuario').value;
+    const password = document.getElementById('login-password').value;
+
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+        } else {
+            // Guardamos la sesión localmente
+            localStorage.setItem('usuarioLogueado', JSON.stringify(data));
+            window.location.href = data.rol === 'admin' ? 'pedidos.html' : 'pedidos.html'; // Redirigir según corresponda
+        }
+    });
+});
+
+// Función para restringir la vista según el rol al cargar cualquier página
+function verificarPermisos() {
+    const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (!user) {
+        // Si no está logueado y no está en la página de login, redirigir
+        if (!window.location.href.includes('login.html')) {
+            window.location.href = 'login.html';
+        }
+        return;
+    }
+
+    // Si es repartidor, ocultamos o bloqueamos el acceso a Stock y configuración de Admin
+    if (user.rol === 'repartidor') {
+        const linkStock = document.getElementById('nav-stock');
+        if (linkStock) linkStock.style.display = 'none'; // Oculta el menú de stock
+        
+        // Si intenta entrar a una página prohibida por URL
+        if (window.location.href.includes('stock.html')) {
+            alert("No tienes permisos para acceder a este apartado.");
+            window.location.href = 'pedidos.html';
+        }
+    }
+}
+
+// Ejecutar al cargar la página
+document.addEventListener("DOMContentLoaded", verificarPermisos);
+
+
+window.crearRepartidor = function(usuario, password) {
+    fetch('/api/usuarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, password, rol: 'repartidor' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje || data.error);
+    });
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Validar sesión al cargar
+    const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
+    if (!user) {
+        if (!window.location.href.includes('login.html')) {
+            window.location.href = 'login.html';
+        }
+        return;
+    }
+
+    // 2. Mostrar el rol en el header
+    const badgeRol = document.getElementById('badge-rol');
+    if (badgeRol) {
+        badgeRol.textContent = user.rol.toUpperCase();
+    }
+});
+
+window.abrirModalPerfil = function() {
+    // Cargar datos guardados previamente si existen en localStorage
+    const datosPerfil = JSON.parse(localStorage.getItem('datosPersonalesPerfil')) || {};
+    document.getElementById('perfil-nombre').value = datosPerfil.nombre || '';
+    document.getElementById('perfil-apellido').value = datosPerfil.apellido || '';
+    document.getElementById('perfil-correo').value = datosPerfil.correo || '';
+    document.getElementById('perfil-edad').value = datosPerfil.edad || '';
+    
+    document.getElementById('modal-perfil').style.display = 'flex';
+}
+
+window.cerrarModalPerfil = function() {
+    document.getElementById('modal-perfil').style.display = 'none';
+}
+
+document.getElementById('form-perfil')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const datos = {
+        nombre: document.getElementById('perfil-nombre').value,
+        apellido: document.getElementById('perfil-apellido').value,
+        correo: document.getElementById('perfil-correo').value,
+        edad: document.getElementById('perfil-edad').value
+    };
+
+    localStorage.setItem('datosPersonalesPerfil', JSON.stringify(datos));
+    alert("Datos de perfil guardados correctamente.");
+    cerrarModalPerfil();
+});
+
+window.cerrarSesion = function() {
+    localStorage.removeItem('usuarioLogueado');
+    window.location.href = 'login.html';
+}
