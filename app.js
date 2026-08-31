@@ -273,18 +273,23 @@ window.verHistorialCliente = function(clienteId, nombreCliente) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
             } else {
                 pedidos.forEach(p => {
-                    const fechaFormateada = p.fecha ? p.fecha.substring(0, 16) : 'Sin fecha';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>#${p.id}</td>
-                            <td>${fechaFormateada}</td>
-                            <td>${p.tipo}</td>
-                            <td>${p.cantidad}</td>
-                            <td>$${p.total}</td>
-                            <td><span style="font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
-                        </tr>
-                    `;
-                });
+            const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
+            const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
+            tbody.innerHTML += `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
+                    <td>${p.tipo}</td>
+                    <td>${p.cantidad}</td>
+                    <td>$${p.total}</td>
+                    <td>${fechaFormateada} ${horaFormateada}</td> <!-- Columna de Fecha -->
+                    <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                    <td>
+                        <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
+                        <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
+                    </td>
+                </tr>`;
+        });
             }
             document.getElementById('modal-historial').style.display = 'flex';
         });
