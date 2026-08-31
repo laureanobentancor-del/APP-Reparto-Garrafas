@@ -64,6 +64,7 @@ app.put('/api/stock/:tipo', (req, res) => {
     db.run("UPDATE stock SET llenas = ?, vacias = ?, precio = ? WHERE tipo = ?", [llenas, vacias, precio, req.params.tipo], () => res.json({ mensaje: "Actualizado" }));
 });
 
+// --- RUTAS API: PEDIDOS (Con control de stock automático) ---
 app.get('/api/pedidos', (req, res) => {
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id ORDER BY pedidos.id DESC`;
     db.all(sql, [], (err, rows) => {
@@ -71,11 +72,40 @@ app.get('/api/pedidos', (req, res) => {
         res.json(rows || []);
     });
 });
+
 app.post('/api/pedidos', (req, res) => {
-    const { cliente_id, tipo, cantidad } = req.body;
-    db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-        const total = stock.precio * cantidad;
-        db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente_id, tipo, cantidad, total], function() { res.json({ id: this.lastID }); });
+    const { cliente_id, tipo } = req.body;
+    // Forzamos que la cantidad sea un número entero (por si viene como texto)
+    const cantidad = parseInt(req.body.cantidad) || 1; 
+
+    db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+        if (!stock) return res.status(400).json({ error: "Stock no encontrado" });
+        
+        // Forzamos conversión a números enteros para evitar que se peguen como texto ("10" + "1" = "1011")
+        const llenasActuales = parseInt(stock.llenas) || 0;
+        const vaciasActuales = parseInt(stock.vacias) || 0;
+        const precio = parseFloat(stock.precio) || 0;
+
+        if (llenasActuales < cantidad) {
+            return res.status(400).json({ error: "No hay suficiente stock de garrafas llenas" });
+        }
+
+        const total = precio * cantidad;
+        
+        db.serialize(() => {
+            db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente_id, tipo, cantidad, total], function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                const pedidoId = this.lastID;
+
+                // Operación matemática real: Resta y suma numérica
+                const nuevasLlenas = llenasActuales - cantidad;
+                const nuevasVacias = vaciasActuales + cantidad;
+
+                db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
+                    res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
+                });
+            });
+        });
     });
 });
 app.put('/api/pedidos/:id', (req, res) => {
@@ -85,9 +115,14 @@ app.put('/api/pedidos/:id', (req, res) => {
         db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => res.json({ mensaje: "Editado" }));
     });
 });
-app.put('/api/pedidos/:id/estado', (req, res) => db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [req.body.estado, req.params.id], () => res.json({ mensaje: "Ok" })));
-app.delete('/api/pedidos/:id', (req, res) => db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" })));
 
+app.put('/api/pedidos/:id/estado', (req, res) => {
+    db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [req.body.estado, req.params.id], () => res.json({ mensaje: "Ok" }));
+});
+
+app.delete('/api/pedidos/:id', (req, res) => {
+    db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
+});
 // --- WHATSAPP & QR ---
 let qrCodeActual = "";
 let estadoWhatsApp = "Desconectado";
@@ -202,15 +237,33 @@ function procesarPedidoCliente(cliente, texto, jid) {
     const match = texto.match(/\d+/);
     if (match && parseInt(match[0]) < 10) cantidad = parseInt(match[0]);
 
-    db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+    db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
         if (stock) {
-            const total = stock.precio * cantidad;
-            db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente.id, tipo, cantidad, total], function(err) {
-                if (!err && sockGlobal && jid) {
-                    sockGlobal.sendMessage(jid, { 
-                        text: `📝 *TICKET DE PEDIDO*\n\nHola ${cliente.nombre}, tomamos tu pedido de:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor para tu domicilio! 🚚💨` 
-                    });
+            const llenasActuales = parseInt(stock.llenas) || 0;
+            const vaciasActuales = parseInt(stock.vacias) || 0;
+            
+            if (llenasActuales < cantidad) {
+                if (sockGlobal && jid) {
+                    sockGlobal.sendMessage(jid, { text: `Hola ${cliente.nombre}, recibimos tu pedido pero no tenemos stock suficiente de garrafas de ${tipo}.` });
                 }
+                return;
+            }
+
+            const total = (parseFloat(stock.precio) || 0) * cantidad;
+            db.serialize(() => {
+                db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente.id, tipo, cantidad, total], function(err) {
+                    if (!err) {
+                        const nuevasLlenas = llenasActuales - cantidad;
+                        const nuevasVacias = vaciasActuales + cantidad;
+                        db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
+                            if (sockGlobal && jid) {
+                                sockGlobal.sendMessage(jid, { 
+                                    text: `📝 *TICKET DE PEDIDO*\n\nHola ${cliente.nombre}, tomamos tu pedido de:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor para tu domicilio! 🚚💨` 
+                                });
+                            }
+                        });
+                    }
+                });
             });
         }
     });
@@ -219,3 +272,6 @@ function procesarPedidoCliente(cliente, texto, jid) {
 iniciarWhatsApp();
 app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
+
+
+
