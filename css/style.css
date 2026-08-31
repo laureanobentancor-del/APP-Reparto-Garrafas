@@ -151,3 +151,63 @@ nav a {
 nav a:hover, nav a.activo {
     background-color: #34495e;
 }
+
+
+/* --- ESTILOS PARA EL BUSCADOR DE CLIENTES --- */
+.contenedor-buscador {
+    margin: 20px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.input-buscador {
+    padding: 10px 15px;
+    width: 100%;
+    max-width: 320px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #ffffff;
+}
+
+.input-buscador:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+
+/* --- CONTENEDOR DE ACCIONES (CLIENTES) --- */
+.header-acciones-clientes {
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between; /* Botón a la izquierda, buscador a la derecha */
+    align-items: center;            /* ¡Esto es clave! Los alinea perfectamente al centro en el mismo eje */
+    width: 100%;
+}
+
+.input-buscador {
+    padding: 10px 15px;
+    width: 100%;
+    max-width: 320px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    margin: 0;                      /* Eliminamos cualquier margen interno que lo desalinee */
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #ffffff;
+}
+
+.header-acciones-clientes {
+    margin: 20px 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-nuevo {
+    margin: 0;
+}

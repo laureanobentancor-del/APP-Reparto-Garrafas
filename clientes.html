@@ -18,7 +18,13 @@
         <h1>Gestión de Clientes</h1>
         <div class="acciones-superiores">
             <button class="btn-nuevo" onclick="abrirModalCliente()">+ Nuevo Cliente</button>
+            <!-- Buscador de Clientes -->
+    <div>
+        <input type="text" id="buscador-cliente" placeholder="🔍 Buscar cliente por nombre..." onkeyup="filtrarClientes()" style="padding: 10px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;">
+    </div>
         </div>
+
+        
 
         <table class="tabla-datos">
             <thead>

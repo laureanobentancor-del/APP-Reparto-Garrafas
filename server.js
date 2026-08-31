@@ -79,6 +79,43 @@ app.put('/api/stock/:tipo', (req, res) => {
 });
 
 // --- RUTAS API: PEDIDOS (Con control de stock automático) ---
+
+
+app.get('/api/pedidos/filtrar', (req, res) => {
+    let { desde, hasta } = req.query;
+    
+    // Si no mandan fecha desde, ponemos una muy lejana; si no mandan hasta, ponemos una muy futura
+    if (!desde) desde = '1970-01-01';
+    if (!hasta) hasta = '2100-12-31';
+
+    const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono 
+                 FROM pedidos 
+                 JOIN clientes ON pedidos.cliente_id = clientes.id 
+                 WHERE DATE(pedidos.fecha) BETWEEN ? AND ? 
+                 ORDER BY pedidos.id DESC`;
+                 
+    db.all(sql, [desde, hasta], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
+        res.json(rows || []);
+    });
+});
+
+app.get('/api/pedidos/hoy', (req, res) => {
+    // Busca los pedidos cuya fecha coincida con la fecha actual del servidor (YYYY-MM-DD)
+    const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono 
+                 FROM pedidos 
+                 JOIN clientes ON pedidos.cliente_id = clientes.id 
+                 WHERE DATE(pedidos.fecha) = DATE('now', 'localtime') 
+                 ORDER BY pedidos.id DESC`;
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
+        res.json(rows || []);
+    });
+});
+
+
 app.get('/api/clientes/:id/pedidos', (req, res) => {
     const clienteId = req.params.id;
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id WHERE clientes.id = ? ORDER BY pedidos.id DESC`;
@@ -302,4 +339,26 @@ app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
 
 
+// --- DATOS DE PRUEBA / SIMULACIÓN ---
+db.serialize(() => {
+    // 1. Insertar clientes falsos si no existen
+    db.run(`INSERT OR IGNORE INTO clientes (id, nombre, telefono, direccion) VALUES 
+        (1, 'Juan Pérez', '5491122334455,1122334455', 'Av. Rivadavia 4500, Caballito'),
+        (2, 'María Gómez', '5491199887766,1199887766', 'Belgrano 1230, Centro'),
+        (3, 'Carlos Alberto Ruiz', '5491144556677,1144556677', 'Av. Corrientes 850, Almagro'),
+        (4, 'Laura Fernández', '5491133221100,1133221100', 'San Martín 340, Flores'),
+        (5, 'Esteban Quito', '5491177889900,1177889900', 'Av. Santa Fe 2100, Palermo')`);
 
+    // 2. Llenar el stock con valores seguros para pruebas
+    db.run(`UPDATE stock SET llenas = 50, vacias = 10, precio = 8500 WHERE tipo = '10kg'`);
+    db.run(`UPDATE stock SET llenas = 30, vacias = 5, precio = 12000 WHERE tipo = '15kg'`);
+
+    // 3. Insertar pedidos de prueba con diferentes fechas para probar los filtros
+    db.run(`INSERT OR IGNORE INTO pedidos (id, cliente_id, tipo, cantidad, total, estado, fecha) VALUES 
+        (1, 1, '10kg', 1, 8500, 'Completado', datetime('now', '-5 days', 'localtime')),
+        (2, 2, '15kg', 2, 24000, 'Completado', datetime('now', '-3 days', 'localtime')),
+        (3, 3, '10kg', 1, 8500, 'Pendiente', datetime('now', '-1 day', 'localtime')),
+        (4, 4, '10kg', 2, 17000, 'Pendiente', datetime('now', 'localtime')),
+        (5, 5, '15kg', 1, 12000, 'Pendiente', datetime('now', 'localtime')),
+        (6, 1, '15kg', 1, 12000, 'Completado', datetime('now', '-2 hours', 'localtime'))`);
+});

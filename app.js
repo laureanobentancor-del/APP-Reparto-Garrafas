@@ -1,4 +1,9 @@
 // ==========================================
+// VARIABLES GLOBALES
+// ==========================================
+let pedidosGlobales = [];
+
+// ==========================================
 // LÓGICA DE CLIENTES
 // ==========================================
 if (document.getElementById('cuerpo-tabla-clientes')) {
@@ -54,25 +59,17 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
             direccion: document.getElementById('cliente-direccion').value
         };
 
-        if (id) {
-            fetch(`/api/clientes/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                cerrarModalCliente();
-                cargarClientes();
-            });
-        } else {
-            fetch('/api/clientes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                cerrarModalCliente();
-                cargarClientes();
-            });
-        }
+        const metodo = id ? 'PUT' : 'POST';
+        const url = id ? `/api/clientes/${id}` : '/api/clientes';
+
+        fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            cerrarModalCliente();
+            cargarClientes();
+        });
     });
 
     window.borrarCliente = function(id) {
@@ -151,29 +148,65 @@ if (document.getElementById('cuerpo-tabla-stock')) {
 // LÓGICA DE PEDIDOS Y WHATSAPP
 // ==========================================
 if (document.getElementById('cuerpo-tabla-pedidos')) {
-    function cargarPedidos() {
-        fetch('/api/pedidos').then(res => res.json()).then(pedidos => {
-            const tbody = document.getElementById('cuerpo-tabla-pedidos');
-            tbody.innerHTML = '';
-            pedidos.forEach(p => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${p.id}</td>
-                        <td><strong>${p.cliente_nombre}</strong><br><small>${p.cliente_telefono}</small></td>
-                        <td>${p.tipo}</td>
-                        <td>${p.cantidad}</td>
-                        <td>$${p.total}</td>
-                        <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
-                        <td>
-                            <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
-                            <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
-                        </td>
-                    </tr>`;
-            });
+    function renderizarPedidos(pedidos) {
+        const tbody = document.getElementById('cuerpo-tabla-pedidos');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        if (pedidos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
+            return;
+        }
+
+        pedidos.forEach(p => {
+            const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
+            const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
+            tbody.innerHTML += `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
+                    <td>${p.tipo}</td>
+                    <td>${p.cantidad}</td>
+                    <td>$${p.total}</td>
+                    <td>${fechaFormateada} ${horaFormateada}</td>
+                    <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                    <td>
+                        <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
+                        <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
+                    </td>
+                </tr>`;
         });
     }
 
- 
+   function cargarPedidos() {
+        // Verificamos si hay un filtro de fechas activo
+        const desde = document.getElementById('filtro-desde')?.value;
+        const hasta = document.getElementById('filtro-hasta')?.value;
+        
+        // Verificamos si el usuario usó recientemente el filtro de "Pedidos de Hoy" 
+        // (guardamos una pequeña bandera global o revisamos si los datos en pantalla coinciden con hoy)
+        const hoy = new Date().toISOString().split('T')[0];
+        
+        fetch('/api/pedidos')
+            .then(res => res.json())
+            .then(pedidos => {
+                pedidosGlobales = pedidos; 
+                
+                // Si hay un rango de fechas activo, mantenemos ese filtro
+                if (desde || hasta) {
+                    aplicarFiltroLocal(desde, hasta);
+                } 
+                // Si la bandera de "hoy" está activa, mantenemos solo los de hoy
+                else if (window.filtroHoyActivo) {
+                    const pedidosHoy = pedidos.filter(p => p.fecha && p.fecha.substring(0, 10) === hoy);
+                    renderizarPedidos(pedidosHoy);
+                } 
+                else {
+                    renderizarPedidos(pedidos);
+                }
+            })
+            .catch(err => console.error("Error al cargar pedidos:", err));
+    }
     window.abrirModalPedido = function() {
         document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
         document.getElementById('form-pedido').reset();
@@ -196,7 +229,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         document.getElementById('modal-pedido').style.display = "flex";
     }
 
-    window.cerrarModalPedido = function() { document.getElementById('modal-pedido').style.display = 'none'; }
+    window.cerrarModalPedido = function() { 
+        document.getElementById('modal-pedido').style.display = 'none'; 
+    }
 
     document.getElementById('form-pedido').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -210,7 +245,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         }
     });
 
-    window.borrarPedido = function(id) { if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); }
+    window.borrarPedido = function(id) { 
+        if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); 
+    }
     
     window.cambiarEstado = function(id, estadoActual) {
         const nuevo = estadoActual === 'Pendiente' ? 'Completado' : 'Pendiente';
@@ -222,6 +259,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
 }
 
+// ==========================================
+// HISTORIAL DE CLIENTES Y MODALES
+// ==========================================
 window.verHistorialCliente = function(clienteId, nombreCliente) {
     document.getElementById('titulo-historial').textContent = `Historial de Pedidos - ${nombreCliente}`;
     fetch(`/api/clientes/${clienteId}/pedidos`)
@@ -233,7 +273,6 @@ window.verHistorialCliente = function(clienteId, nombreCliente) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
             } else {
                 pedidos.forEach(p => {
-                    // Formatear la fecha para que se vea más limpia (Ej: YYYY-MM-DD HH:MM)
                     const fechaFormateada = p.fecha ? p.fecha.substring(0, 16) : 'Sin fecha';
                     tbody.innerHTML += `
                         <tr>
@@ -256,7 +295,7 @@ window.cerrarModalHistorial = function() {
 }
 
 // ==========================================
-// LÓGICA DE WHATSAPP (Solo en Inicio)
+// LÓGICA DE WHATSAPP
 // ==========================================
 function chequearWhatsApp() {
     fetch('/api/whatsapp/qr')
@@ -288,8 +327,97 @@ window.reiniciarWhatsApp = function() {
     }
 }
 
-// Ejecuta el chequeo si existe el elemento en la página actual
 if (document.getElementById('whatsapp-estado')) {
     chequearWhatsApp();
     setInterval(chequearWhatsApp, 3000);
+}
+
+// ==========================================
+// BUSCADORES Y FILTROS (CLIENTES Y PEDIDOS)
+// ==========================================
+window.filtrarClientes = function() {
+    const input = document.getElementById('buscador-cliente');
+    if (!input) return;
+    const filtro = input.value.toLowerCase();
+    const tbody = document.getElementById('cuerpo-tabla-clientes');
+    if (!tbody) return;
+    const filas = tbody.getElementsByTagName('tr');
+
+    for (let i = 0; i < filas.length; i++) {
+        const columnaNombre = filas[i].getElementsByTagName('td')[0];
+        if (columnaNombre) {
+            const textoNombre = columnaNombre.textContent || columnaNombre.innerText;
+            filas[i].style.display = textoNombre.toLowerCase().indexOf(filtro) > -1 ? "" : "none";
+        }
+    }
+}
+
+window.filtrarPedidosHoy = function() {
+    // Activamos la bandera de que estamos viendo solo los de hoy
+    window.filtroHoyActivo = true;
+    
+    // Limpiamos los inputs de fecha para que no interfieran
+    const inputDesde = document.getElementById('filtro-desde');
+    const inputHasta = document.getElementById('filtro-hasta');
+    if (inputDesde) inputDesde.value = '';
+    if (inputHasta) inputHasta.value = '';
+
+    fetch('/api/pedidos/hoy')
+        .then(res => res.json())
+        .then(pedidos => {
+            if (typeof renderizarPedidos === 'function') {
+                renderizarPedidos(pedidos);
+            }
+        })
+        .catch(err => console.error("Error al filtrar pedidos de hoy:", err));
+}
+window.filtrarPedidosPorFecha = function() {
+    const desde = document.getElementById('filtro-desde').value;
+    const hasta = document.getElementById('filtro-hasta').value;
+
+    if (!pedidosGlobales || pedidosGlobales.length === 0) {
+        fetch('/api/pedidos')
+            .then(res => res.json())
+            .then(pedidos => {
+                pedidosGlobales = pedidos;
+                aplicarFiltroLocal(desde, hasta);
+            });
+    } else {
+        aplicarFiltroLocal(desde, hasta);
+    }
+}
+
+function aplicarFiltroLocal(desde, hasta) {
+    let filtrados = pedidosGlobales.filter(p => {
+        if (!p.fecha) return false;
+        const fechaPedido = p.fecha.substring(0, 10);
+
+        if (desde && fechaPedido < desde) return false;
+        if (hasta && fechaPedido > hasta) return false;
+        return true;
+    });
+
+    if (typeof renderizarPedidos === 'function') {
+        renderizarPedidos(filtrados);
+    }
+}
+
+window.limpiarFiltrosFecha = function() {
+    window.filtroHoyActivo = false; // Apagamos la bandera de hoy
+    
+    const inputDesde = document.getElementById('filtro-desde');
+    const inputHasta = document.getElementById('filtro-hasta');
+    
+    if (inputDesde) inputDesde.value = '';
+    if (inputHasta) inputHasta.value = '';
+    
+    fetch('/api/pedidos')
+        .then(res => res.json())
+        .then(pedidos => {
+            pedidosGlobales = pedidos;
+            if (typeof renderizarPedidos === 'function') {
+                renderizarPedidos(pedidos);
+            }
+        })
+        .catch(err => console.error("Error al limpiar filtros:", err));
 }
