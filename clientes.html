@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Control de Garrafas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="menu-principal">
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html" class="activo">Clientes</a>
+        <a href="stock.html">Stock</a>
+    </nav>
+
+    <main>
+        <h1>Gestión de Clientes</h1>
+        <div class="acciones-superiores">
+            <button class="btn-nuevo" onclick="abrirModalCliente()">+ Nuevo Cliente</button>
+        </div>
+
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-clientes">
+                <!-- Se llena con JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Ventana Flotante (Modal) para Nuevo Cliente -->
+    <div id="modal-cliente" class="modal-fondo" style="display: none;">
+        <div class="modal-contenido">
+            <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
+            <h2>Registrar Nuevo Cliente</h2>
+            <form id="form-cliente">
+                <div class="grupo-form">
+                    <label>Nombre:</label>
+                    <input type="text" id="cliente-nombre" required>
+                </div>
+                <div class="grupo-form">
+                    <label>Teléfono:</label>
+                    <input type="text" id="cliente-telefono" required>
+                </div>
+                <div class="grupo-form">
+                    <label>Dirección:</label>
+                    <input type="text" id="cliente-direccion">
+                </div>
+                <button type="submit" class="btn-guardar">Guardar Cliente</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Control de Garrafas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="menu-principal">
+        <a href="clientes.html">Clientes</a>
+        <a href="stock.html">Stock</a>
+        <a href="pedidos.html" class="activo">Pedidos</a>
+    </nav>
+
+    <main>
+        <h1>Gestión de Pedidos y WhatsApp</h1>
+        
+        <div class="panel-whatsapp">
+            <div>
+                <h3>Conexión de WhatsApp</h3>
+                <p id="whatsapp-estado">Verificando estado...</p>
+                <small>Los mensajes de clientes registrados se cargarán solos aquí.</small>
+            </div>
+            <div id="contenedor-qr"></div>
+        </div>
+
+        <div class="acciones-superiores">
+            <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido Manual</button>
+        </div>
+
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Cliente</th>
+                    <th>Garrafa</th>
+                    <th>Cant.</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-pedidos"></tbody>
+        </table>
+    </main>
+
+    <div id="modal-pedido" class="modal-fondo" style="display: none;">
+        <div class="modal-contenido">
+            <span class="btn-cerrar" onclick="cerrarModalPedido()">&times;</span>
+            <h2 id="titulo-modal-pedido">Nuevo Pedido</h2>
+            <form id="form-pedido">
+                <input type="hidden" id="pedido-id">
+                <div class="grupo-form" id="grupo-cliente">
+                    <label>Cliente:</label>
+                    <select id="pedido-cliente" required></select>
+                </div>
+                <div class="grupo-form">
+                    <label>Tipo de Garrafa:</label>
+                    <select id="pedido-tipo" required>
+                        <option value="10kg">Garrafa de 10kg</option>
+                        <option value="15kg">Garrafa de 15kg</option>
+                    </select>
+                </div>
+                <div class="grupo-form">
+                    <label>Cantidad:</label>
+                    <input type="number" id="pedido-cantidad" min="1" value="1" required>
+                </div>
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

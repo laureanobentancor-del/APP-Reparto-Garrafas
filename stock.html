@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock - Control de Garrafas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="menu-principal">
+        <a href="index.html">Inicio</a>
+        <a href="clientes.html">Clientes</a>
+        <a href="stock.html" class="activo">Stock</a>
+    </nav>
+
+    <main>
+        <h1>Control de Stock y Precios</h1>
+        
+        <table class="tabla-datos">
+            <thead>
+                <tr>
+                    <th>Tipo de Garrafa</th>
+                    <th>Garrafas Llenas</th>
+                    <th>Garrafas Vacías</th>
+                    <th>Precio Unitario ($)</th>
+                    <th>Total Físico en Depósito</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-stock">
+                <!-- Se llena con JavaScript -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Ventana Flotante (Modal) para Editar Stock -->
+    <div id="modal-stock" class="modal-fondo" style="display:none;">
+        <div class="modal-contenido">
+            <span class="btn-cerrar" onclick="cerrarModalStock()">&times;</span>
+            <h2 id="titulo-modal-stock">Actualizar Stock</h2>
+            <form id="form-stock">
+                <input type="hidden" id="stock-tipo">
+                
+                <div class="grupo-form">
+                    <label>Garrafas Llenas:</label>
+                    <input type="number" id="stock-llenas" min="0" required>
+                </div>
+                
+                <div class="grupo-form">
+                    <label>Garrafas Vacías:</label>
+                    <input type="number" id="stock-vacias" min="0" required>
+                </div>
+                
+                <div class="grupo-form">
+                    <label>Precio Unitario ($):</label>
+                    <input type="number" id="stock-precio" step="0.01" min="0" required>
+                </div>
+                
+                <button type="submit" class="btn-guardar">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
