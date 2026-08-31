@@ -3,7 +3,6 @@ const sqlite3 = require('sqlite3').verbose();
 const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const QRCode = require('qrcode');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -25,8 +24,15 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS pedidos (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER, tipo TEXT, cantidad INTEGER, total REAL, estado TEXT DEFAULT 'Pendiente', FOREIGN KEY(cliente_id) REFERENCES clientes(id))`);
 });
 
-// APIs Clientes y Stock
-app.get('/api/clientes', (req, res) => db.all("SELECT * FROM clientes", [], (err, rows) => res.json(rows || [])));
+// --- RUTAS API ---
+app.get('/api/clientes', (req, res) => {
+    db.all("SELECT * FROM clientes", [], (err, rows) => {
+        // En la web SOLO mostramos el celular real (cortamos lo que está después de la coma)
+        if (rows) rows.forEach(r => { if(r.telefono) r.telefono = r.telefono.split(',')[0]; });
+        res.json(rows || []);
+    });
+});
+
 app.post('/api/clientes', (req, res) => {
     const { nombre, telefono, direccion } = req.body;
     db.run("INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)", [nombre, telefono, direccion], function(err) {
@@ -37,10 +43,16 @@ app.post('/api/clientes', (req, res) => {
 
 app.put('/api/clientes/:id', (req, res) => {
     const { nombre, telefono, direccion } = req.body;
-    db.run("UPDATE clientes SET nombre = ?, telefono = ?, direccion = ? WHERE id = ?", 
-        [nombre, telefono, direccion, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ mensaje: "Cliente actualizado" });
+    db.get("SELECT telefono FROM clientes WHERE id = ?", [req.params.id], (err, row) => {
+        let telefonoFinal = telefono;
+        if (row && row.telefono && row.telefono.includes(',')) {
+            const partes = row.telefono.split(',');
+            partes[0] = telefono; 
+            telefonoFinal = partes.join(',');
+        }
+        db.run("UPDATE clientes SET nombre = ?, telefono = ?, direccion = ? WHERE id = ?", 
+            [nombre, telefonoFinal, direccion, req.params.id], () => res.json({ mensaje: "Actualizado" })
+        );
     });
 });
 
@@ -52,19 +64,18 @@ app.put('/api/stock/:tipo', (req, res) => {
     db.run("UPDATE stock SET llenas = ?, vacias = ?, precio = ? WHERE tipo = ?", [llenas, vacias, precio, req.params.tipo], () => res.json({ mensaje: "Actualizado" }));
 });
 
-// APIs Pedidos
 app.get('/api/pedidos', (req, res) => {
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id ORDER BY pedidos.id DESC`;
-    db.all(sql, [], (err, rows) => res.json(rows || []));
+    db.all(sql, [], (err, rows) => {
+        if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
+        res.json(rows || []);
+    });
 });
 app.post('/api/pedidos', (req, res) => {
     const { cliente_id, tipo, cantidad } = req.body;
     db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-        if (!stock) return res.status(400).json({ error: "Stock no encontrado" });
         const total = stock.precio * cantidad;
-        db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente_id, tipo, cantidad, total], function(err) {
-            res.json({ id: this.lastID });
-        });
+        db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente_id, tipo, cantidad, total], function() { res.json({ id: this.lastID }); });
     });
 });
 app.put('/api/pedidos/:id', (req, res) => {
@@ -81,26 +92,14 @@ app.delete('/api/pedidos/:id', (req, res) => db.run("DELETE FROM pedidos WHERE i
 let qrCodeActual = "";
 let estadoWhatsApp = "Desconectado";
 let sockGlobal = null;
+let chatsNuevos = {}; 
 
 app.get('/api/whatsapp/qr', (req, res) => res.json({ estado: estadoWhatsApp, qr: qrCodeActual }));
-
-// Botón para reiniciar/desvincular WhatsApp
 app.post('/api/whatsapp/reiniciar', async (req, res) => {
-    try {
-        if (sockGlobal) {
-            await sockGlobal.logout().catch(() => {});
-            sockGlobal.end(undefined);
-        }
-        if (fs.existsSync('./auth_info_baileys')) {
-            fs.rmSync('./auth_info_baileys', { recursive: true, force: true });
-        }
-        estadoWhatsApp = "Desconectado";
-        qrCodeActual = "";
-        iniciarWhatsApp();
-        res.json({ mensaje: "WhatsApp reiniciado" });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
+    if (sockGlobal) { await sockGlobal.logout().catch(() => {}); sockGlobal.end(undefined); }
+    const fs = require('fs');
+    if (fs.existsSync('./auth_info_baileys')) fs.rmSync('./auth_info_baileys', { recursive: true, force: true });
+    estadoWhatsApp = "Desconectado"; qrCodeActual = ""; iniciarWhatsApp(); res.json({ mensaje: "Ok" });
 });
 
 async function iniciarWhatsApp() {
@@ -112,96 +111,111 @@ async function iniciarWhatsApp() {
         sock.ev.on('creds.update', saveCreds);
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
-            if (qr) {
-                qrCodeActual = await QRCode.toDataURL(qr);
-                estadoWhatsApp = "Esperando escaneo";
-            }
-            if (connection === 'close') {
-                estadoWhatsApp = "Desconectado";
-                qrCodeActual = "";
-                const code = lastDisconnect.error?.output?.statusCode;
-                if (code !== DisconnectReason.loggedOut) {
-                    iniciarWhatsApp();
-                }
-            } else if (connection === 'open') {
-                estadoWhatsApp = "Conectado";
-                qrCodeActual = "";
-            }
+            if (qr) { qrCodeActual = await QRCode.toDataURL(qr); estadoWhatsApp = "Esperando escaneo"; }
+            if (connection === 'close' && lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) iniciarWhatsApp();
+            else if (connection === 'open') { estadoWhatsApp = "Conectado"; qrCodeActual = ""; }
         });
-       sock.ev.on('messages.upsert', async (m) => {
+
+        sock.ev.on('messages.upsert', async (m) => {
             const msg = m.messages[0];
             if (!msg.message || msg.key.fromMe) return;
 
             let remoteJid = msg.key.remoteJid;
-            if (remoteJid.includes('@g.us')) return;
+            if (remoteJid.includes('@g.us')) return; 
             
             let idLimpio = remoteJid.split('@')[0].replace(/\D/g, '');
-            const texto = (msg.message.conversation || msg.message.extendedTextMessage?.text || '').toLowerCase();
+            const textoOriginal = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+            const texto = textoOriginal.toLowerCase();
 
-            console.log(`📩 Mensaje recibido -> ID/Tel: [${idLimpio}] | Texto: "${texto}"`);
-
-            // Buscamos si el número existe en la base de datos (comparando los últimos 8 u 10 dígitos para evitar problemas de características o prefijos como el 9)
-            const query = `SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ? OR ? LIKE '%' || telefono || '%'`;
-            
-            db.get(query, [`%${idLimpio}%`, idLimpio], (err, cliente) => {
+            // 1. Busca por el ID de WhatsApp
+            db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
                 if (cliente) {
-                    console.log(`✅ ¡Cliente reconocido! Asociado a: ${cliente.nombre}`);
                     
-                    // Opcional: Si el teléfono guardado era corto y ahora entró el LID completo, 
-                    // podemos actualizar el registro para que guarde este ID definitivo y nunca más falle.
-                    if (cliente.telefono.length < idLimpio.length) {
-                        db.run("UPDATE clientes SET telefono = ? WHERE id = ?", [idLimpio, cliente.id]);
+                    // 🔥 NUEVO: Filtro inteligente. Solo toma pedido si el texto menciona garrafa, kilos o números de stock.
+                    const esPedido = /(garrafa|10|15|kilo|kg|pedido)/i.test(texto);
+                    
+                    if (esPedido) {
+                        procesarPedidoCliente(cliente, texto, remoteJid);
+                    } else {
+                        // Si dice "gracias", "hola", "ok", el bot lo ignora silenciosamente
+                        console.log(`💬 Mensaje normal de ${cliente.nombre} (No es pedido): "${textoOriginal}"`);
                     }
 
-                    procesarPedidoCliente(cliente, texto);
                 } else {
-                    console.log(`⚠️ El número [${idLimpio}] no coincide con ningún cliente registrado manualmente.`);
-                    console.log(`💡 Sugerencia: Registra este número (${idLimpio}) en la sección Clientes de tu web.`);
+                    if (!chatsNuevos[idLimpio]) {
+                        chatsNuevos[idLimpio] = { paso: 1, pedidoInicial: texto, celular: "" };
+                        await sockGlobal.sendMessage(remoteJid, { text: "¡Hola! 👋 Veo que es la primera vez que nos escribes desde este número.\n\nPara tomar tu pedido, ¿me podrías decir tu *número de celular* (con código de área)?" });
+                    } 
+                    else if (chatsNuevos[idLimpio].paso === 1) {
+                        const celularIngresado = textoOriginal.replace(/\D/g, '');
+                        if (celularIngresado.length < 6) return await sockGlobal.sendMessage(remoteJid, { text: "Por favor, ingresa solo números." });
+                        
+                        chatsNuevos[idLimpio].celular = celularIngresado;
+                        
+                        const ultimosDigitos = celularIngresado.slice(-7);
+                        
+                        db.get("SELECT * FROM clientes WHERE telefono LIKE ?", [`%${ultimosDigitos}%`], async (err, clienteExistente) => {
+                            if (clienteExistente) {
+                                const nuevoTelefono = clienteExistente.telefono + "," + idLimpio;
+                                db.run("UPDATE clientes SET telefono = ? WHERE id = ?", [nuevoTelefono, clienteExistente.id], () => {
+                                    sockGlobal.sendMessage(remoteJid, { text: `¡Hola de nuevo ${clienteExistente.nombre}! Encontramos tus datos. ✅` });
+                                    procesarPedidoCliente(clienteExistente, chatsNuevos[idLimpio].pedidoInicial, remoteJid);
+                                    delete chatsNuevos[idLimpio];
+                                });
+                            } else {
+                                chatsNuevos[idLimpio].paso = 2;
+                                await sockGlobal.sendMessage(remoteJid, { text: "¡Gracias! 😊 Ahora dime tu *Nombre y Apellido*:" });
+                            }
+                        });
+                    }
+                    else if (chatsNuevos[idLimpio].paso === 2) {
+                        chatsNuevos[idLimpio].nombre = textoOriginal;
+                        chatsNuevos[idLimpio].paso = 3;
+                        await sockGlobal.sendMessage(remoteJid, { text: `Perfecto ${textoOriginal}. Por último, dime tu *Dirección exacta* (calle, número, barrio):` });
+                    } 
+                    else if (chatsNuevos[idLimpio].paso === 3) {
+                        const { nombre, celular, pedidoInicial } = chatsNuevos[idLimpio];
+                        const direccion = textoOriginal;
+                        const telefonoGuardado = celular + "," + idLimpio; 
+                        
+                        db.run("INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)", [nombre, telefonoGuardado, direccion], function(err) {
+                            if (!err) {
+                                const nuevoCliente = { id: this.lastID, nombre: nombre, telefono: telefonoGuardado };
+                                sockGlobal.sendMessage(remoteJid, { text: "¡Listo! Ya registré tus datos en el sistema. ✅" });
+                                procesarPedidoCliente(nuevoCliente, pedidoInicial, remoteJid);
+                                delete chatsNuevos[idLimpio];
+                            }
+                        });
+                    }
                 }
             });
         });
 
-        function procesarPedidoCliente(cliente, texto) {
-            let tipo = texto.includes("15") ? "15kg" : "10kg";
-            let cantidad = 1;
-            const match = texto.match(/\d+/);
-            if (match && parseInt(match[0]) < 10) cantidad = parseInt(match[0]);
-
-            db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-                if (stock) {
-                    const total = stock.precio * cantidad;
-                    db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente.id, tipo, cantidad, total], function(err) {
-                        if (!err) console.log(`🚀 ¡Pedido #${this.lastID} creado automáticamente para ${cliente.nombre}!`);
-                    });
-                }
-            });
-        }
-
-        // Función auxiliar para procesar y guardar el pedido
-        function procesarPedidoCliente(cliente, texto) {
-            console.log(`✅ Cliente asociado: ${cliente.nombre}`);
-            let tipo = texto.includes("15") ? "15kg" : "10kg";
-            let cantidad = 1;
-            const match = texto.match(/\d+/);
-            if (match && parseInt(match[0]) < 10) cantidad = parseInt(match[0]);
-
-            db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-                if (stock) {
-                    const total = stock.precio * cantidad;
-                    db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente.id, tipo, cantidad, total], function(err) {
-                        if (!err) console.log(`🚀 ¡Pedido #${this.lastID} creado automáticamente para ${cliente.nombre} (${tipo} x${cantidad})!`);
-                    });
-                } else {
-                    console.log(`❌ No se encontró precio para el tipo de garrafa: ${tipo}`);
-                }
-            });
-        }
-       
     } catch (e) {
         console.error("Error WhatsApp:", e);
     }
 }
-iniciarWhatsApp();
 
+function procesarPedidoCliente(cliente, texto, jid) {
+    let tipo = texto.includes("15") ? "15kg" : "10kg";
+    let cantidad = 1;
+    const match = texto.match(/\d+/);
+    if (match && parseInt(match[0]) < 10) cantidad = parseInt(match[0]);
+
+    db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+        if (stock) {
+            const total = stock.precio * cantidad;
+            db.run("INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado) VALUES (?, ?, ?, ?, 'Pendiente')", [cliente.id, tipo, cantidad, total], function(err) {
+                if (!err && sockGlobal && jid) {
+                    sockGlobal.sendMessage(jid, { 
+                        text: `📝 *TICKET DE PEDIDO*\n\nHola ${cliente.nombre}, tomamos tu pedido de:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor para tu domicilio! 🚚💨` 
+                    });
+                }
+            });
+        }
+    });
+}
+
+iniciarWhatsApp();
 app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
