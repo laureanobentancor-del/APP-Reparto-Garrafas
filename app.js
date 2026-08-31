@@ -222,7 +222,6 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
 }
 
-
 window.verHistorialCliente = function(clienteId, nombreCliente) {
     document.getElementById('titulo-historial').textContent = `Historial de Pedidos - ${nombreCliente}`;
     fetch(`/api/clientes/${clienteId}/pedidos`)
@@ -231,12 +230,15 @@ window.verHistorialCliente = function(clienteId, nombreCliente) {
             const tbody = document.getElementById('cuerpo-tabla-historial');
             tbody.innerHTML = '';
             if (pedidos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
             } else {
                 pedidos.forEach(p => {
+                    // Formatear la fecha para que se vea más limpia (Ej: YYYY-MM-DD HH:MM)
+                    const fechaFormateada = p.fecha ? p.fecha.substring(0, 16) : 'Sin fecha';
                     tbody.innerHTML += `
                         <tr>
                             <td>#${p.id}</td>
+                            <td>${fechaFormateada}</td>
                             <td>${p.tipo}</td>
                             <td>${p.cantidad}</td>
                             <td>$${p.total}</td>
