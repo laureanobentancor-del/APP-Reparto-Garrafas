@@ -8,7 +8,6 @@
 </head>
 <body>
     
-
     <main>
         <h1>Gestión de Clientes</h1>
         <div class="acciones-superiores">
@@ -62,30 +61,37 @@
         </div>
     </div>
 
-<!-- Ventana Flotante para Historial de Pedidos -->
-    <div id="modal-historial" class="modal-fondo" style="display: none;">
-        <div class="modal-contenido" style="max-width: 650px;">
-            <span class="btn-cerrar" onclick="cerrarModalHistorial()">&times;</span>
-            <h2 id="titulo-historial">Historial de Pedidos</h2>
-            <div style="max-height: 350px; overflow-y: auto; margin-top: 15px;">
-                <table class="tabla-datos">
-                    <thead>
-                        <tr>
-                            <th>#ID</th>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Cant.</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpo-tabla-historial">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
+<!-- Modal de Historial -->
+<div id="modal-historial" class="modal-fondo" style="display: none;">
+    <div class="modal-caja" style="max-width: 800px;">
+        <!-- Cabecera corregida con el título a la izquierda y la cruz a la derecha -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 id="titulo-historial" style="margin: 0; color: #2c3e50;">Historial de Pedidos</h3>
+            <button onclick="cerrarModalHistorial()" style="background: none; border: none; font-size: 22px; cursor: pointer; font-weight: bold; color: #7f8c8d;">&times;</button>
+        </div>
+        
+        <div class="tabla-contenedor-scroll" style="max-height: 350px; overflow-y: auto;">
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Fecha / Hora</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-historial"></tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+            <button type="button" onclick="cerrarModalHistorial()" class="btn-cancelar" style="padding: 8px 16px;">Cerrar</button>
         </div>
     </div>
+</div>
     <script src="app.js"></script>
     <script src="header.js"></script> 
 </body>

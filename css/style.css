@@ -1,3 +1,4 @@
+/* --- CONFIGURACIÓN GENERAL --- */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f7f6;
@@ -5,25 +6,7 @@ body {
     padding: 20px;
 }
 
-.menu-principal {
-    background: #2c3e50;
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
-
-.menu-principal a {
-    color: white;
-    text-decoration: none;
-    margin-right: 20px;
-    font-size: 16px;
-}
-
-.menu-principal a.activo {
-    color: #3498db;
-    font-weight: bold;
-}
-
+/* --- ACCIONES Y BOTONES --- */
 .acciones-superiores {
     margin-bottom: 15px;
 }
@@ -36,8 +19,20 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    margin: 0;
 }
 
+.btn-accion {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    color: white;
+}
+.btn-editar { background: #f39c12; }
+.btn-eliminar { background: #c0392b; }
+
+/* --- TABLAS DE DATOS --- */
 .tabla-datos {
     width: 100%;
     border-collapse: collapse;
@@ -58,50 +53,35 @@ body {
     color: white;
 }
 
-.btn-accion {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    color: white;
-}
-.btn-editar { background: #f39c12; }
-.btn-eliminar { background: #c0392b; }
-
-/* Modales */
-.modal-fondo {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
+/* --- BUSCADORES Y FILTROS --- */
+.contenedor-buscador, .header-acciones-clientes {
+    margin: 20px 0;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
-.modal-contenido {
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
-    width: 320px;
-    position: relative;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+.input-buscador {
+    padding: 10px 15px;
+    width: 100%;
+    max-width: 320px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    margin: 0;
+    background-color: #ffffff;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.btn-cerrar {
-    position: absolute;
-    top: 10px; right: 15px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #7f8c8d;
+.input-buscador:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
-.grupo-form { margin-bottom: 15px; }
-.grupo-form label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-.grupo-form input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-.btn-guardar { width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-
-
+/* --- PANEL DE WHATSAPP --- */
 .panel-whatsapp {
     background: white;
     padding: 15px 20px;
@@ -112,6 +92,7 @@ body {
     align-items: center;
     margin-bottom: 20px;
 }
+
 #contenedor-qr img {
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -119,103 +100,8 @@ body {
     background: #fff;
 }
 
-header {
-    background-color: #2c3e50;
-    color: white;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between; /* Separa los elementos: título a la izquierda, menú a la derecha */
-    align-items: center;            /* Los centra verticalmente */
-    width: 100%;
-    box-sizing: border-box;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 22px;
-}
-
-nav {
-    display: flex;
-    gap: 10px; /* Espacio entre cada botón del menú */
-}
-
-nav a {
-    color: white;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: background 0.3s;
-}
-
-nav a:hover, nav a.activo {
-    background-color: #34495e;
-}
-
-
-/* --- ESTILOS PARA EL BUSCADOR DE CLIENTES --- */
-.contenedor-buscador {
-    margin: 20px 0;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.input-buscador {
-    padding: 10px 15px;
-    width: 100%;
-    max-width: 320px;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    background-color: #ffffff;
-}
-
-.input-buscador:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-
-/* --- CONTENEDOR DE ACCIONES (CLIENTES) --- */
-.header-acciones-clientes {
-    margin: 20px 0;
-    display: flex;
-    justify-content: space-between; /* Botón a la izquierda, buscador a la derecha */
-    align-items: center;            /* ¡Esto es clave! Los alinea perfectamente al centro en el mismo eje */
-    width: 100%;
-}
-
-.input-buscador {
-    padding: 10px 15px;
-    width: 100%;
-    max-width: 320px;
-    border: 1px solid #bdc3c7;
-    border-radius: 6px;
-    font-size: 14px;
-    outline: none;
-    margin: 0;                      /* Eliminamos cualquier margen interno que lo desalinee */
-    transition: border-color 0.3s, box-shadow 0.3s;
-    background-color: #ffffff;
-}
-
-.header-acciones-clientes {
-    margin: 20px 0;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-}
-
-.btn-nuevo {
-    margin: 0;
-}
-
-
 /* --- ESTILOS DE LOGIN --- */
 .login-body {
-    font-family: Arial, sans-serif;
     background-color: #f4f6f9;
     margin: 0;
     padding: 0;
@@ -270,3 +156,304 @@ nav a:hover, nav a.activo {
 .form-group input:focus {
     border-color: #27ae60;
 }
+
+/* --- HEADER MODULAR Y NAVEGACIÓN --- */
+.app-header {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 100;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header-nav-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.header-logo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.header-nav {
+    display: flex;
+    gap: 5px;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    background: #34495e;
+}
+
+.header-user-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-rol-badge {
+    font-size: 13px;
+    color: #bdc3c7;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.header-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #3498db;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    border: 2px solid #ecf0f1;
+    overflow: hidden;
+}
+
+.header-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 48px;
+    background: white;
+    color: #333;
+    width: 220px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+    z-index: 2000;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-item.cerrar-sesion {
+    color: #e74c3c;
+}
+
+/* --- MODALES Y FORMULARIOS --- */
+.modal-fondo {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-caja, .modal-contenido {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 650px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.modal-caja-pequena {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.btn-cerrar-modal, .btn-cerrar {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+.modal-acciones-superior {
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+.btn-nuevo-usuario {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.form-nuevo-usuario {
+    display: none;
+    background: #f4f6f9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+}
+
+.form-nuevo-usuario h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.form-grupo-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-grupo-inputs input, .form-grupo select, .form-grupo-select select, .grupo-form input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.form-grupo-select, .grupo-form {
+    margin-bottom: 15px;
+}
+
+.form-grupo-select label, .grupo-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #34495e;
+    font-size: 13px;
+}
+
+.form-botones-flex, .form-botones-footer {
+    display: flex;
+    gap: 10px;
+    text-align: right;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.btn-guardar {
+    padding: 10px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+}
+
+.btn-cancelar {
+    padding: 8px 16px;
+    background: #bdc3c7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* --- TABLAS DE PERFILES --- */
+.tabla-contenedor-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.tabla-perfiles {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.tabla-perfiles thead tr {
+    background: #f4f6f9;
+    border-bottom: 2px solid #ddd;
+}
+
+.tabla-perfiles th {
+    padding: 10px;
+}
+
+.fila-tabla-perfil {
+    border-bottom: 1px solid #eee;
+}
+
+.fila-tabla-perfil td {
+    padding: 10px;
+}
+
+.btn-accion-tabla {
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-bloquear {
+    background: #f39c12;
+    margin-right: 5px;
+}
+
+.btn-desbloquear {
+    background: #27ae60;
+    margin-right: 5px;
+}
+
+.btn-borrar {
+    background: #e74c3c;
+}
+
+/* --- UTILIDADES DE TEXTO --- */
+.text-center { text-align: center; }
+.font-bold { font-weight: bold; }
+.text-uppercase { text-transform: uppercase; }
+.text-muted { color: #555; font-size: 12px; }
+.text-danger { color: #e74c3c; font-size: 11px; margin-left: 5px; }
+.p-15 { padding: 15px; }

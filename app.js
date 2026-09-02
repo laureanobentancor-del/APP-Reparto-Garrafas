@@ -154,7 +154,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         tbody.innerHTML = '';
         
         if (pedidos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
             return;
         }
 
@@ -178,35 +178,34 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         });
     }
 
-   function cargarPedidos() {
-        // Verificamos si hay un filtro de fechas activo
+    function cargarPedidos() {
         const desde = document.getElementById('filtro-desde')?.value;
         const hasta = document.getElementById('filtro-hasta')?.value;
         
-        // Verificamos si el usuario usó recientemente el filtro de "Pedidos de Hoy" 
-        // (guardamos una pequeña bandera global o revisamos si los datos en pantalla coinciden con hoy)
-        const hoy = new Date().toISOString().split('T')[0];
+        // Obtenemos la fecha local exacta en formato YYYY-MM-DD evadiendo el desfase UTC
+        const fechaLocal = new Date();
+        const anio = fechaLocal.getFullYear();
+        const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+        const dia = String(fechaLocal.getDate()).padStart(2, '0');
+        const hoy = `${anio}-${mes}-${dia}`;
         
         fetch('/api/pedidos')
             .then(res => res.json())
             .then(pedidos => {
                 pedidosGlobales = pedidos; 
                 
-                // Si hay un rango de fechas activo, mantenemos ese filtro
-                if (desde || hasta) {
-                    aplicarFiltroLocal(desde, hasta);
-                } 
-                // Si la bandera de "hoy" está activa, mantenemos solo los de hoy
-                else if (window.filtroHoyActivo) {
+                if (window.filtroHoyActivo) {
                     const pedidosHoy = pedidos.filter(p => p.fecha && p.fecha.substring(0, 10) === hoy);
                     renderizarPedidos(pedidosHoy);
-                } 
-                else {
+                } else if (desde || hasta) {
+                    aplicarFiltroLocal(desde, hasta);
+                } else {
                     renderizarPedidos(pedidos);
                 }
             })
             .catch(err => console.error("Error al cargar pedidos:", err));
     }
+
     window.abrirModalPedido = function() {
         document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
         document.getElementById('form-pedido').reset();
@@ -260,7 +259,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
 }
 
 // ==========================================
-// HISTORIAL DE CLIENTES Y MODALES
+// HISTORIAL DE CLIENTES Y MODALES (7 Columnas - Solo Lectura)
 // ==========================================
 window.verHistorialCliente = function(clienteId, nombreCliente) {
     document.getElementById('titulo-historial').textContent = `Historial de Pedidos - ${nombreCliente}`;
@@ -270,26 +269,22 @@ window.verHistorialCliente = function(clienteId, nombreCliente) {
             const tbody = document.getElementById('cuerpo-tabla-historial');
             tbody.innerHTML = '';
             if (pedidos.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Este cliente no tiene pedidos registrados.</td></tr>`;
             } else {
                 pedidos.forEach(p => {
-            const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
-            const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
-            tbody.innerHTML += `
-                <tr>
-                    <td>#${p.id}</td>
-                    <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
-                    <td>${p.tipo}</td>
-                    <td>${p.cantidad}</td>
-                    <td>$${p.total}</td>
-                    <td>${fechaFormateada} ${horaFormateada}</td> <!-- Columna de Fecha -->
-                    <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
-                    <td>
-                        <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
-                        <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
-                    </td>
-                </tr>`;
-        });
+                    const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
+                    const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>#${p.id}</td>
+                            <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
+                            <td>${p.tipo}</td>
+                            <td>${p.cantidad}</td>
+                            <td>$${p.total}</td>
+                            <td>${fechaFormateada} ${horaFormateada}</td>
+                            <td><span style="font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                        </tr>`;
+                });
             }
             document.getElementById('modal-historial').style.display = 'flex';
         });
@@ -316,9 +311,12 @@ function chequearWhatsApp() {
             } else {
                 txt.textContent = "⚠️ Escanea el QR para conectar";
                 txt.style.color = "#e67e22";
-                if (data.qr) qrDiv.innerHTML = `<img src="${data.qr}" style="width:160px; height:160px;">`;
+                if (data.qr) {
+                    qrDiv.innerHTML = `<img src="${data.qr}" style="width:160px; height:160px;">`;
+                }
             }
-        });
+        })
+        .catch(err => console.error("Error al chequear WhatsApp:", err));
 }
 
 window.reiniciarWhatsApp = function() {
@@ -328,7 +326,8 @@ window.reiniciarWhatsApp = function() {
             .then(() => {
                 alert("Reiniciando conexión... Espera unos segundos y recarga la página.");
                 chequearWhatsApp();
-            });
+            })
+            .catch(err => console.error("Error al reiniciar WhatsApp:", err));
     }
 }
 
@@ -338,7 +337,7 @@ if (document.getElementById('whatsapp-estado')) {
 }
 
 // ==========================================
-// BUSCADORES Y FILTROS (CLIENTES Y PEDIDOS)
+// BUSCADORES Y FILTROS
 // ==========================================
 window.filtrarClientes = function() {
     const input = document.getElementById('buscador-cliente');
@@ -358,10 +357,7 @@ window.filtrarClientes = function() {
 }
 
 window.filtrarPedidosHoy = function() {
-    // Activamos la bandera de que estamos viendo solo los de hoy
     window.filtroHoyActivo = true;
-    
-    // Limpiamos los inputs de fecha para que no interfieran
     const inputDesde = document.getElementById('filtro-desde');
     const inputHasta = document.getElementById('filtro-hasta');
     if (inputDesde) inputDesde.value = '';
@@ -376,7 +372,9 @@ window.filtrarPedidosHoy = function() {
         })
         .catch(err => console.error("Error al filtrar pedidos de hoy:", err));
 }
+
 window.filtrarPedidosPorFecha = function() {
+    window.filtroHoyActivo = false;
     const desde = document.getElementById('filtro-desde').value;
     const hasta = document.getElementById('filtro-hasta').value;
 
@@ -396,7 +394,6 @@ function aplicarFiltroLocal(desde, hasta) {
     let filtrados = pedidosGlobales.filter(p => {
         if (!p.fecha) return false;
         const fechaPedido = p.fecha.substring(0, 10);
-
         if (desde && fechaPedido < desde) return false;
         if (hasta && fechaPedido > hasta) return false;
         return true;
@@ -408,8 +405,7 @@ function aplicarFiltroLocal(desde, hasta) {
 }
 
 window.limpiarFiltrosFecha = function() {
-    window.filtroHoyActivo = false; // Apagamos la bandera de hoy
-    
+    window.filtroHoyActivo = false;
     const inputDesde = document.getElementById('filtro-desde');
     const inputHasta = document.getElementById('filtro-hasta');
     
@@ -427,46 +423,49 @@ window.limpiarFiltrosFecha = function() {
         .catch(err => console.error("Error al limpiar filtros:", err));
 }
 
+// ==========================================
+// AUTENTICACIÓN Y PERMISOS
+// ==========================================
+const formLogin = document.getElementById('form-login');
+if (formLogin) {
+    formLogin.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('login-usuario').value;
+        const password = document.getElementById('login-password').value;
 
-document.getElementById('form-login')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const usuario = document.getElementById('login-usuario').value;
-    const password = document.getElementById('login-password').value;
-
-    fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            // Guardamos la sesión localmente
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario, password })
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Error al iniciar sesión");
+            return data;
+        })
+        .then(data => {
             localStorage.setItem('usuarioLogueado', JSON.stringify(data));
-            window.location.href = data.rol === 'admin' ? 'pedidos.html' : 'pedidos.html'; // Redirigir según corresponda
-        }
+            window.location.href = 'pedidos.html';
+        })
+        .catch(err => {
+            alert(err.message);
+        });
     });
-});
+}
 
-// Función para restringir la vista según el rol al cargar cualquier página
 function verificarPermisos() {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
     if (!user) {
-        // Si no está logueado y no está en la página de login, redirigir
         if (!window.location.href.includes('login.html')) {
             window.location.href = 'login.html';
         }
         return;
     }
 
-    // Si es repartidor, ocultamos o bloqueamos el acceso a Stock y configuración de Admin
     if (user.rol === 'repartidor') {
         const linkStock = document.getElementById('nav-stock');
-        if (linkStock) linkStock.style.display = 'none'; // Oculta el menú de stock
+        if (linkStock) linkStock.style.display = 'none';
         
-        // Si intenta entrar a una página prohibida por URL
         if (window.location.href.includes('stock.html')) {
             alert("No tienes permisos para acceder a este apartado.");
             window.location.href = 'pedidos.html';
@@ -474,68 +473,7 @@ function verificarPermisos() {
     }
 }
 
-// Ejecutar al cargar la página
 document.addEventListener("DOMContentLoaded", verificarPermisos);
-
-
-window.crearRepartidor = function(usuario, password) {
-    fetch('/api/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario, password, rol: 'repartidor' })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensaje || data.error);
-    });
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    // 1. Validar sesión al cargar
-    const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
-    if (!user) {
-        if (!window.location.href.includes('login.html')) {
-            window.location.href = 'login.html';
-        }
-        return;
-    }
-
-    // 2. Mostrar el rol en el header
-    const badgeRol = document.getElementById('badge-rol');
-    if (badgeRol) {
-        badgeRol.textContent = user.rol.toUpperCase();
-    }
-});
-
-window.abrirModalPerfil = function() {
-    // Cargar datos guardados previamente si existen en localStorage
-    const datosPerfil = JSON.parse(localStorage.getItem('datosPersonalesPerfil')) || {};
-    document.getElementById('perfil-nombre').value = datosPerfil.nombre || '';
-    document.getElementById('perfil-apellido').value = datosPerfil.apellido || '';
-    document.getElementById('perfil-correo').value = datosPerfil.correo || '';
-    document.getElementById('perfil-edad').value = datosPerfil.edad || '';
-    
-    document.getElementById('modal-perfil').style.display = 'flex';
-}
-
-window.cerrarModalPerfil = function() {
-    document.getElementById('modal-perfil').style.display = 'none';
-}
-
-document.getElementById('form-perfil')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const datos = {
-        nombre: document.getElementById('perfil-nombre').value,
-        apellido: document.getElementById('perfil-apellido').value,
-        correo: document.getElementById('perfil-correo').value,
-        edad: document.getElementById('perfil-edad').value
-    };
-
-    localStorage.setItem('datosPersonalesPerfil', JSON.stringify(datos));
-    alert("Datos de perfil guardados correctamente.");
-    cerrarModalPerfil();
-});
 
 window.cerrarSesion = function() {
     localStorage.removeItem('usuarioLogueado');

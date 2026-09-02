@@ -359,6 +359,15 @@ app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
 
 
+app.put('/api/usuarios/:id/bloquear', (req, res) => {
+    const { bloqueado } = req.body;
+    db.run(`UPDATE usuarios SET bloqueado = ? WHERE id = ?`, [bloqueado, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: "Estado de bloqueo actualizado con éxito" });
+    });
+});
+
+
 // --- DATOS DE PRUEBA / SIMULACIÓN ---
 db.serialize(() => {
     db.run(`INSERT OR IGNORE INTO clientes (id, nombre, telefono, direccion) VALUES 
@@ -378,4 +387,79 @@ db.serialize(() => {
         (4, 4, '10kg', 2, 17000, 'Pendiente', datetime('now', 'localtime')),
         (5, 5, '15kg', 1, 12000, 'Pendiente', datetime('now', 'localtime')),
         (6, 1, '15kg', 1, 12000, 'Completado', datetime('now', '-2 hours', 'localtime'))`);
+});
+
+
+
+// En la sección de creación de tablas de server.js
+db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT UNIQUE,
+    password TEXT,
+    rol TEXT,
+    bloqueado INTEGER DEFAULT 0
+)`);
+
+// Asegurar compatibilidad si la tabla ya existía sin la columna
+db.run(`ALTER TABLE usuarios ADD COLUMN bloqueado INTEGER DEFAULT 0`, (err) => {});
+
+// Actualizar login para verificar si está bloqueado
+app.post('/api/login', (req, res) => {
+    const { usuario, password } = req.body;
+    db.get(`SELECT * FROM usuarios WHERE usuario = ? AND password = ?`, [usuario, password], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado y no puede acceder." });
+        res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+    });
+});
+
+// Listar usuarios incluyendo el estado de bloqueo
+app.get('/api/usuarios', (req, res) => {
+    db.all(`SELECT id, usuario, rol, bloqueado FROM usuarios`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
+// Ruta para bloquear o desbloquear un usuario
+app.put('/api/usuarios/:id/bloquear', (req, res) => {
+    const { bloqueado } = req.body; // Recibe 1 (bloqueado) o 0 (activo)
+    db.run(`UPDATE usuarios SET bloqueado = ? WHERE id = ?`, [bloqueado, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: "Estado de bloqueo actualizado con éxito" });
+    });
+});
+
+
+// --- RUTAS API DE USUARIOS Y AUTENTICACIÓN ---
+app.post('/api/login', (req, res) => {
+    const { usuario, password } = req.body;
+    db.get(`SELECT * FROM usuarios WHERE usuario = ? AND password = ?`, [usuario, password], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+    });
+});
+
+app.post('/api/usuarios', (req, res) => {
+    const { usuario, password, rol } = req.body;
+    db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`, [usuario, password, rol || 'repartidor'], function(err) {
+        if (err) return res.status(500).json({ error: "El usuario ya existe o hubo un error" });
+        res.json({ id: this.lastID, mensaje: "Usuario creado con éxito" });
+    });
+});
+
+app.get('/api/usuarios', (req, res) => {
+    db.all(`SELECT id, usuario, rol FROM usuarios`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
+app.delete('/api/usuarios/:id', (req, res) => {
+    db.run(`DELETE FROM usuarios WHERE id = ?`, [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: "Usuario borrado con éxito" });
+    });
 });
