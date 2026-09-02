@@ -457,3 +457,32 @@ body {
 .text-muted { color: #555; font-size: 12px; }
 .text-danger { color: #e74c3c; font-size: 11px; margin-left: 5px; }
 .p-15 { padding: 15px; }
+
+
+.clientes-acciones-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.buscador-input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-nuevo-cliente {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 9px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+}
