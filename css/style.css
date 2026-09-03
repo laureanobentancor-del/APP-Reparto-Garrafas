@@ -486,3 +486,199 @@ body {
     font-size: 14px;
     white-space: nowrap;
 }
+
+
+/* Contenedor principal que alinea todo en una sola línea y distribuye los espacios */
+.acciones-superiores-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Agrupación izquierda (Botones de acción principal) */
+.grupo-izquierdo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Agrupación derecha (Filtros de fechas) */
+.grupo-filtros {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Campos individuales de fecha alineados verticalmente al centro */
+.filtro-campo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filtro-campo label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #34495e;
+}
+
+/* Estilos unificados para inputs y botones */
+.input-buscador {
+    padding: 8px 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #2c3e50;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-buscador:focus {
+    border-color: #27ae60;
+}
+
+.btn-nuevo {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-nuevo:hover {
+    background-color: #2471a3;
+}
+
+.btn-hoy {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-hoy:hover {
+    background-color: #219653;
+}
+
+.btn-limpiar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 9px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-limpiar:hover {
+    background-color: #c0392b;
+}
+
+
+/* Corrección Responsive para el Header y Panel de Administrador */
+@media screen and (max-width: 768px) {
+    /* Ajusta el contenedor principal del header para que apile los elementos */
+    header, .header-container, .acciones-superiores-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 10px !important;
+    }
+
+    /* Agrupa la sección del administrador para que no sobresalga */
+    .admin-info, .user-info, .admin-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    /* Hace que los botones dentro del header ocupen un espacio cómodo en celular */
+    header button, .btn-logout, .btn-nuevo, .btn-hoy {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+}
+
+
+/* Corrección agresiva y definitiva para contenedores y tablas desbordadas */
+@media screen and (max-width: 768px) {
+    /* Fuerza a cualquier modal o tarjeta a no superar el ancho de la pantalla del celular */
+    .modal, .modal-content, .modal-dialog, div[class*="modal"], .card, .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+    }
+
+    /* Contenedor obligatorio de tabla con scroll horizontal aislado */
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+    }
+
+    /* Evita que las tablas fuercen un ancho mayor al de la pantalla del celular */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+    }
+}
+
+
+/* 1. Comportamiento para PC (Pantallas grandes) */
+.table-responsive {
+    width: 100%;
+    overflow-x: visible; /* En PC muestra todo de forma fluida sin scroll innecesario */
+}
+
+table {
+    width: 100%; /* Ocupa todo el ancho disponible en la pantalla grande */
+    max-width: 100%;
+    border-collapse: collapse;
+}
+
+/* 2. Comportamiento exclusivo para Celulares (Modo Responsive) */
+@media screen and (max-width: 768px) {
+    /* El contenedor activa el scroll horizontal SOLO en celulares */
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Los modales vuelven a adaptarse al ancho de la pantalla móvil */
+    .modal-content, .modal-dialog, div[class*="modal"] {
+        width: 95% !important;
+        max-width: 100% !important;
+        margin: 10px auto !important;
+        box-sizing: border-box !important;
+    }
+}

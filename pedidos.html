@@ -22,24 +22,28 @@
             <div id="contenedor-qr"></div>
         </div>
 
-
-
-        <div class="acciones-superiores">
-            <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido</button>
-        </div>
-            <!-- Controles de búsqueda y filtro por fechas -->
-    <div style="margin: 20px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <button class="btn-principal" onclick="filtrarPedidosHoy()" style="background-color: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">📅 Pedidos de Hoy</button>
-        
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <label style="font-weight: bold; font-size: 14px;">Desde:</label>
-            <input type="date" id="filtro-desde" class="input-buscador" onchange="filtrarPedidosPorFecha()" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px;">
-            <label style="font-weight: bold; font-size: 14px;">Hasta:</label>
-            <input type="date" id="filtro-hasta" class="input-buscador" onchange="filtrarPedidosPorFecha()" style="padding: 8px; border: 1px solid #bdc3c7; border-radius: 5px;">
-            <button onclick="limpiarFiltrosFecha()" style="background-color: #e74c3c; color: white; border: none; padding: 9px 12px; border-radius: 5px; cursor: pointer;">Limpiar</button>
-        </div>
+<div class="acciones-superiores-container">
+    <div class="grupo-izquierdo">
+        <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido</button>
+        <button class="btn-principal btn-hoy" onclick="filtrarPedidosHoy()">📅 Pedidos de Hoy</button>
     </div>
-        <table class="tabla-datos">
+    
+    <div class="grupo-filtros">
+        <div class="filtro-campo">
+            <label for="filtro-desde">Desde:</label>
+            <input type="date" id="filtro-desde" class="input-buscador" onchange="filtrarPedidosPorFecha()">
+        </div>
+        <div class="filtro-campo">
+            <label for="filtro-hasta">Hasta:</label>
+            <input type="date" id="filtro-hasta" class="input-buscador" onchange="filtrarPedidosPorFecha()">
+        </div>
+        <button class="btn-limpiar" onclick="limpiarFiltrosFecha()">Limpiar</button>
+    </div>
+</div>
+
+      
+    <div class="table-responsive">
+    <table class="tu-tabla-actual">
           <thead>
     <tr>
         <th>ID</th>

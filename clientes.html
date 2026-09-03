@@ -14,8 +14,8 @@
     <input type="text" id="buscador-cliente" class="buscador-input" placeholder="Buscar cliente por nombre..." onkeyup="filtrarClientes()">
     <button onclick="abrirModalCliente()" class="btn-nuevo-cliente">+ Nuevo Cliente</button>
 </div>
-        <table class="tabla-datos">
-            <thead>
+        <div class="table-responsive">
+             <table class="tu-tabla-actual">
                 <tr>
                     <th>Nombre</th>
                     <th>Teléfono</th>
@@ -26,7 +26,8 @@
             <tbody id="cuerpo-tabla-clientes">
                 <!-- Se llena con JavaScript -->
             </tbody>
-        </table>
+            </table>
+         <div>
     </main>
 
 <!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
