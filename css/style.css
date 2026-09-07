@@ -307,6 +307,14 @@ body {
     cursor: pointer;
     font-weight: bold;
     color: #7f8c8d;
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    background: transparent;
+    border: none;
 }
 
 .modal-acciones-superior {

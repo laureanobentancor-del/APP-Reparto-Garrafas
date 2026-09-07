@@ -9,11 +9,22 @@
     <header>
         <h1>Panel de Control - Reparto de Garrafas</h1>
         <nav>
-            <a href="index.html" class="activo">Inicio</a>
-            <a href="pedidos.html">Pedidos</a>
-            <a href="clientes.html">Clientes</a>
-            <a href="stock.html">Stock</a>
+         
         </nav>
+        
+    <div class="header-usuario" style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
+    <!-- Muestra el rol o usuario actual -->
+    <span id="badge-rol" style="background: #2c3e50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;"></span>
+    
+    <!-- Botón para abrir el modal de perfil/datos personales -->
+    <button onclick="abrirModalPerfil()" class="btn-accion" style="background-color: #3498db; color: white;">Mi Perfil</button>
+    
+    <!-- Botón para cerrar sesión -->
+    <button onclick="cerrarSesion()" class="btn-accion btn-eliminar">Cerrar Sesión</button>
+    </div>
+
+
+
     </header>
 
     <main class="contenedor" style="padding: 20px; display: flex; justify-content: center;">
