@@ -314,10 +314,21 @@ async function iniciarWhatsApp() {
 }
 
 function procesarPedidoCliente(cliente, texto, jid) {
-    let tipo = texto.includes("15") ? "15kg" : "10kg";
+    // Determinación precisa del tipo de garrafa
+    let tipo = "10kg"; // Por defecto si menciona 10 o elige la opción 1
+    if (texto.includes("15") || texto.includes("2")) {
+        tipo = "15kg";
+    }
+
     let cantidad = 1;
     const match = texto.match(/\d+/);
-    if (match && parseInt(match[0]) < 10) cantidad = parseInt(match[0]);
+    // Evitamos confundir el "10" o "15" de los kilos con la cantidad de unidades solicitadas
+    if (match) {
+        const numeroDetectado = parseInt(match[0]);
+        if (numeroDetectado > 0 && numeroDetectado < 10) {
+            cantidad = numeroDetectado;
+        }
+    }
 
     db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
         if (stock) {
@@ -326,7 +337,7 @@ function procesarPedidoCliente(cliente, texto, jid) {
             
             if (llenasActuales < cantidad) {
                 if (sockGlobal && jid) {
-                    sockGlobal.sendMessage(jid, { text: `Hola ${cliente.nombre}, recibimos tu pedido pero no tenemos stock suficiente de garrafas de ${tipo}.` });
+                    sockGlobal.sendMessage(jid, { text: `Hola ${cliente.nombre}, recibimos tu pedido pero lamentablemente no tenemos stock suficiente de garrafas de ${tipo}.` });
                 }
                 return;
             }
@@ -342,7 +353,7 @@ function procesarPedidoCliente(cliente, texto, jid) {
                         db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
                             if (sockGlobal && jid) {
                                 sockGlobal.sendMessage(jid, { 
-                                    text: `📝 *TICKET DE PEDIDO*\n\nHola ${cliente.nombre}, tomamos tu pedido de:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor para tu domicilio! 🚚💨` 
+                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
                                 });
                             }
                         });
