@@ -2,7 +2,6 @@
 // VARIABLES GLOBALES
 // ==========================================
 let pedidosGlobales = [];
-
 // ==========================================
 // LÓGICA DE CLIENTES
 // ==========================================
@@ -143,7 +142,6 @@ if (document.getElementById('cuerpo-tabla-stock')) {
 
     cargarStock();
 }
-
 // ==========================================
 // LÓGICA DE PEDIDOS Y WHATSAPP
 // ==========================================
@@ -161,6 +159,16 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         pedidos.forEach(p => {
             const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
             const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
+            
+            // Solo mantenemos el botón de editar; el de borrar se omite si está completado
+            let botonesAccion = `
+                <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
+            `;
+            
+            if (p.estado !== 'Completado') {
+                botonesAccion += `<button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>`;
+            }
+
             tbody.innerHTML += `
                 <tr>
                     <td>#${p.id}</td>
@@ -170,10 +178,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                     <td>$${p.total}</td>
                     <td>${fechaFormateada} ${horaFormateada}</td>
                     <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
-                    <td>
-                        <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
-                        <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
-                    </td>
+                    <td>${botonesAccion}</td>
                 </tr>`;
         });
     }
@@ -339,6 +344,7 @@ if (document.getElementById('whatsapp-estado')) {
 // ==========================================
 // BUSCADORES Y FILTROS
 // ==========================================
+
 window.filtrarClientes = function() {
     const input = document.getElementById('buscador-cliente');
     if (!input) return;
