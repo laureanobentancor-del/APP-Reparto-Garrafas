@@ -160,13 +160,20 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
             const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
             const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
             
-            // Solo mantenemos el botón de editar; el de borrar se omite si está completado
-            let botonesAccion = `
-                <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
-            `;
-            
-            if (p.estado !== 'Completado') {
-                botonesAccion += `<button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>`;
+            let botonesAccion = '';
+            let columnaEstado = '';
+
+            if (p.estado === 'Completado') {
+                // Si está completado, no se muestra nada en la columna de acciones y el estado queda fijo sin enlace
+                botonesAccion = '';
+                columnaEstado = `<span style="font-weight:bold; color:#27ae60;">${p.estado}</span>`;
+            } else {
+                // Si está pendiente, se muestran los botones y la interacción para cambiar el estado
+                botonesAccion = `
+                    <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
+                    <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
+                `;
+                columnaEstado = `<span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:#e67e22;">${p.estado}</span>`;
             }
 
             tbody.innerHTML += `
@@ -177,7 +184,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                     <td>${p.cantidad}</td>
                     <td>$${p.total}</td>
                     <td>${fechaFormateada} ${horaFormateada}</td>
-                    <td><span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:${p.estado==='Pendiente'?'#e67e22':'#27ae60'}">${p.estado}</span></td>
+                    <td>${columnaEstado}</td>
                     <td>${botonesAccion}</td>
                 </tr>`;
         });
