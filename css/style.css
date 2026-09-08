@@ -1,4 +1,6 @@
-/* --- CONFIGURACIÓN GENERAL --- */
+/* ==========================================
+   1. CONFIGURACIÓN GENERAL Y BODY
+   ========================================== */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f7f6;
@@ -6,22 +8,18 @@ body {
     padding: 20px;
 }
 
-/* --- ACCIONES Y BOTONES --- */
-.acciones-superiores {
-    margin-bottom: 15px;
+.login-body {
+    background-color: #f4f6f9;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-.btn-nuevo {
-    background: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin: 0;
-}
-
+/* ==========================================
+   2. BOTONES Y ACCIONES
+   ========================================== */
 .btn-accion {
     padding: 5px 10px;
     border: none;
@@ -32,9 +30,98 @@ body {
 .btn-editar { background: #f39c12; }
 .btn-eliminar { background: #c0392b; }
 
-/* --- TABLAS DE DATOS --- */
-.tabla-datos {
+.btn-nuevo {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.btn-nuevo:hover { background-color: #2471a3; }
+
+.btn-hoy {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.btn-hoy:hover { background-color: #219653; }
+
+.btn-limpiar {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 9px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.btn-limpiar:hover { background-color: #c0392b; }
+
+.btn-nuevo-usuario {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.btn-guardar {
+    padding: 10px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
     width: 100%;
+}
+
+.btn-cancelar {
+    padding: 8px 16px;
+    background: #bdc3c7;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.btn-accion-tabla {
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.btn-bloquear { background: #f39c12; margin-right: 5px; }
+.btn-desbloquear { background: #27ae60; margin-right: 5px; }
+.btn-borrar { background: #e74c3c; }
+
+/* ==========================================
+   3. TABLAS Y CONTENEDORES
+   ========================================== */
+.table-responsive {
+    width: 100%;
+    overflow-x: visible;
+}
+
+table, .tabla-datos, .tabla-perfiles {
+    width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
     background: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -42,46 +129,77 @@ body {
     overflow: hidden;
 }
 
-.tabla-datos th, .tabla-datos td {
+.tabla-datos th, .tabla-datos td, .tabla-perfiles th, .tabla-perfiles td {
     padding: 12px;
     border-bottom: 1px solid #eee;
     text-align: left;
 }
 
-.tabla-datos th {
+.tabla-datos th, .tabla-perfiles thead tr {
     background: #2c3e50;
     color: white;
 }
 
-/* --- BUSCADORES Y FILTROS --- */
-.contenedor-buscador, .header-acciones-clientes {
-    margin: 20px 0;
+.tabla-contenedor-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* ==========================================
+   4. BUSCADORES, FILTROS Y CONTENEDORES SUPERIORES
+   ========================================== */
+.acciones-superiores-container {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.grupo-izquierdo, .grupo-filtros {
+    display: flex;
     align-items: center;
     gap: 12px;
-    width: 100%;
+    flex-wrap: wrap;
+}
+
+.filtro-campo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.filtro-campo label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #34495e;
 }
 
 .input-buscador {
-    padding: 10px 15px;
+    padding: 8px 12px;
     width: 100%;
     max-width: 320px;
     border: 1px solid #bdc3c7;
-    border-radius: 6px;
+    border-radius: 5px;
     font-size: 14px;
+    color: #2c3e50;
     outline: none;
-    margin: 0;
     background-color: #ffffff;
     transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
 }
-
 .input-buscador:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    border-color: #27ae60;
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
 }
 
-/* --- PANEL DE WHATSAPP --- */
+/* ==========================================
+   5. PANEL DE WHATSAPP
+   ========================================== */
 .panel-whatsapp {
     background: white;
     padding: 15px 20px;
@@ -98,19 +216,13 @@ body {
     border-radius: 4px;
     padding: 5px;
     background: #fff;
+    width: 160px;
+    height: 160px;
 }
 
-/* --- ESTILOS DE LOGIN --- */
-.login-body {
-    background-color: #f4f6f9;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
+/* ==========================================
+   6. LOGIN Y FORMULARIOS
+   ========================================== */
 .login-card {
     background: #ffffff;
     padding: 30px;
@@ -122,19 +234,18 @@ body {
 }
 
 .login-card h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;
     color: #2c3e50;
     text-align: center;
     font-size: 24px;
 }
 
-.form-group {
+.form-group, .form-grupo-select, .grupo-form {
     margin-bottom: 15px;
     text-align: left;
 }
 
-.form-group label {
+.form-group label, .form-grupo-select label, .grupo-form label {
     display: block;
     margin-bottom: 5px;
     color: #34495e;
@@ -142,7 +253,7 @@ body {
     font-size: 14px;
 }
 
-.form-group input {
+.form-group input, .form-grupo-inputs input, .form-grupo select, .grupo-form input, .grupo-form select {
     width: 100%;
     padding: 10px;
     border: 1px solid #bdc3c7;
@@ -152,12 +263,40 @@ body {
     outline: none;
     transition: border-color 0.2s;
 }
-
-.form-group input:focus {
+.form-group input:focus, .grupo-form input:focus {
     border-color: #27ae60;
 }
 
-/* --- HEADER MODULAR Y NAVEGACIÓN --- */
+.form-nuevo-usuario {
+    display: none;
+    background: #f4f6f9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+}
+.form-nuevo-usuario h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.form-grupo-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-botones-flex, .form-botones-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* ==========================================
+   7. HEADER Y NAVEGACIÓN
+   ========================================== */
 .app-header {
     background: #2c3e50;
     color: white;
@@ -197,7 +336,6 @@ body {
     font-size: 14px;
     transition: background 0.3s;
 }
-
 .nav-link:hover, .nav-link.active {
     background: #34495e;
 }
@@ -255,12 +393,11 @@ body {
     font-weight: bold;
     border-bottom: 1px solid #f1f1f1;
 }
+.dropdown-item.cerrar-sesion { color: #e74c3c; }
 
-.dropdown-item.cerrar-sesion {
-    color: #e74c3c;
-}
-
-/* --- MODALES Y FORMULARIOS --- */
+/* ==========================================
+   8. MODALES
+   ========================================== */
 .modal-fondo {
     display: none;
     position: fixed;
@@ -282,11 +419,10 @@ body {
     max-width: 650px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     position: relative;
+    box-sizing: border-box;
 }
 
-.modal-caja-pequena {
-    max-width: 400px;
-}
+.modal-caja-pequena { max-width: 400px; }
 
 .modal-header {
     display: flex;
@@ -294,19 +430,9 @@ body {
     align-items: center;
     margin-bottom: 15px;
 }
+.modal-header h3 { margin: 0; color: #2c3e50; }
 
-.modal-header h3 {
-    margin: 0;
-    color: #2c3e50;
-}
-
-.btn-cerrar-modal, .btn-cerrar {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #7f8c8d;
+.btn-cerrar {
     position: absolute;
     top: 12px;
     right: 18px;
@@ -315,150 +441,12 @@ body {
     cursor: pointer;
     background: transparent;
     border: none;
+    color: #7f8c8d;
 }
 
-.modal-acciones-superior {
-    margin-bottom: 15px;
-    text-align: right;
-}
-
-.btn-nuevo-usuario {
-    background: #27ae60;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 13px;
-}
-
-.form-nuevo-usuario {
-    display: none;
-    background: #f4f6f9;
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-}
-
-.form-nuevo-usuario h4 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    font-size: 14px;
-}
-
-.form-grupo-inputs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.form-grupo-inputs input, .form-grupo select, .form-grupo-select select, .grupo-form input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    font-size: 13px;
-    box-sizing: border-box;
-}
-
-.form-grupo-select, .grupo-form {
-    margin-bottom: 15px;
-}
-
-.form-grupo-select label, .grupo-form label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #34495e;
-    font-size: 13px;
-}
-
-.form-botones-flex, .form-botones-footer {
-    display: flex;
-    gap: 10px;
-    text-align: right;
-    justify-content: flex-end;
-    margin-top: 15px;
-}
-
-.btn-guardar {
-    padding: 10px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-}
-
-.btn-cancelar {
-    padding: 8px 16px;
-    background: #bdc3c7;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-/* --- TABLAS DE PERFILES --- */
-.tabla-contenedor-scroll {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.tabla-perfiles {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 14px;
-}
-
-.tabla-perfiles thead tr {
-    background: #f4f6f9;
-    border-bottom: 2px solid #ddd;
-}
-
-.tabla-perfiles th {
-    padding: 10px;
-}
-
-.fila-tabla-perfil {
-    border-bottom: 1px solid #eee;
-}
-
-.fila-tabla-perfil td {
-    padding: 10px;
-}
-
-.btn-accion-tabla {
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.btn-bloquear {
-    background: #f39c12;
-    margin-right: 5px;
-}
-
-.btn-desbloquear {
-    background: #27ae60;
-    margin-right: 5px;
-}
-
-.btn-borrar {
-    background: #e74c3c;
-}
-
-/* --- UTILIDADES DE TEXTO --- */
+/* ==========================================
+   9. UTILIDADES DE TEXTO
+   ========================================== */
 .text-center { text-align: center; }
 .font-bold { font-weight: bold; }
 .text-uppercase { text-transform: uppercase; }
@@ -466,142 +454,10 @@ body {
 .text-danger { color: #e74c3c; font-size: 11px; margin-left: 5px; }
 .p-15 { padding: 15px; }
 
-
-.clientes-acciones-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 15px;
-}
-
-.buscador-input {
-    flex: 1;
-    padding: 9px 12px;
-    border: 1px solid #bdc3c7;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.btn-nuevo-cliente {
-    background: #27ae60;
-    color: white;
-    border: none;
-    padding: 9px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-
-/* Contenedor principal que alinea todo en una sola línea y distribuye los espacios */
-.acciones-superiores-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin: 20px 0;
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-/* Agrupación izquierda (Botones de acción principal) */
-.grupo-izquierdo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Agrupación derecha (Filtros de fechas) */
-.grupo-filtros {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-/* Campos individuales de fecha alineados verticalmente al centro */
-.filtro-campo {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.filtro-campo label {
-    font-weight: bold;
-    font-size: 14px;
-    color: #34495e;
-}
-
-/* Estilos unificados para inputs y botones */
-.input-buscador {
-    padding: 8px 10px;
-    border: 1px solid #bdc3c7;
-    border-radius: 5px;
-    font-size: 14px;
-    color: #2c3e50;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.input-buscador:focus {
-    border-color: #27ae60;
-}
-
-.btn-nuevo {
-    background-color: #2980b9;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.btn-nuevo:hover {
-    background-color: #2471a3;
-}
-
-.btn-hoy {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.btn-hoy:hover {
-    background-color: #219653;
-}
-
-.btn-limpiar {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 9px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.btn-limpiar:hover {
-    background-color: #c0392b;
-}
-
-
-/* Corrección Responsive para el Header y Panel de Administrador */
+/* ==========================================
+   10. DISEÑO RESPONSIVO (MÓVILES)
+   ========================================== */
 @media screen and (max-width: 768px) {
-    /* Ajusta el contenedor principal del header para que apile los elementos */
     header, .header-container, .acciones-superiores-container {
         flex-direction: column !important;
         align-items: stretch !important;
@@ -609,7 +465,6 @@ body {
         padding: 10px !important;
     }
 
-    /* Agrupa la sección del administrador para que no sobresalga */
     .admin-info, .user-info, .admin-controls {
         display: flex;
         flex-wrap: wrap;
@@ -619,32 +474,25 @@ body {
         gap: 8px;
     }
 
-    /* Hace que los botones dentro del header ocupen un espacio cómodo en celular */
     header button, .btn-logout, .btn-nuevo, .btn-hoy {
         width: 100%;
         text-align: center;
         padding: 10px;
         box-sizing: border-box;
     }
-}
 
-
-/* Corrección agresiva y definitiva para contenedores y tablas desbordadas */
-@media screen and (max-width: 768px) {
-    /* Fuerza a cualquier modal o tarjeta a no superar el ancho de la pantalla del celular */
-    .modal, .modal-content, .modal-dialog, div[class*="modal"], .card, .container {
-        width: 100% !important;
+    .modal, .modal-content, .modal-dialog, div[class*="modal"], .card, .container, .modal-contenido {
+        width: 95% !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        margin: 0 !important;
-        padding: 10px !important;
+        margin: 10px auto !important;
+        padding: 15px !important;
         box-sizing: border-box !important;
         left: 0 !important;
         right: 0 !important;
         transform: none !important;
     }
 
-    /* Contenedor obligatorio de tabla con scroll horizontal aislado */
     .table-responsive {
         width: 100% !important;
         overflow-x: auto !important;
@@ -652,7 +500,6 @@ body {
         display: block;
     }
 
-    /* Evita que las tablas fuercen un ancho mayor al de la pantalla del celular */
     table {
         width: 100% !important;
         max-width: 100% !important;
@@ -661,32 +508,47 @@ body {
 }
 
 
-/* 1. Comportamiento para PC (Pantallas grandes) */
-.table-responsive {
+/* --- ESTILOS PARA LA SECCIÓN DE CLIENTES --- */
+.clientes-acciones-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
     width: 100%;
-    overflow-x: visible; /* En PC muestra todo de forma fluida sin scroll innecesario */
+    box-sizing: border-box;
 }
 
-table {
-    width: 100%; /* Ocupa todo el ancho disponible en la pantalla grande */
-    max-width: 100%;
-    border-collapse: collapse;
+.buscador-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+    background-color: #ffffff;
+    color: #2c3e50;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* 2. Comportamiento exclusivo para Celulares (Modo Responsive) */
-@media screen and (max-width: 768px) {
-    /* El contenedor activa el scroll horizontal SOLO en celulares */
-    .table-responsive {
-        width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
+.buscador-input:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+}
 
-    /* Los modales vuelven a adaptarse al ancho de la pantalla móvil */
-    .modal-content, .modal-dialog, div[class*="modal"] {
-        width: 95% !important;
-        max-width: 100% !important;
-        margin: 10px auto !important;
-        box-sizing: border-box !important;
-    }
+.btn-nuevo-cliente {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.btn-nuevo-cliente:hover {
+    background-color: #219653;
 }

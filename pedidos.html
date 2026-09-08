@@ -51,6 +51,7 @@
         <th>Tipo</th>
         <th>Cantidad</th>
         <th>Total</th>
+        <th>Pago</th>
         <th>Fecha / Hora</th>
         <th>Estado</th>
         <th>Acciones</th>
@@ -81,12 +82,20 @@
                     <label>Cantidad:</label>
                     <input type="number" id="pedido-cantidad" min="1" value="1" required>
                 </div>
+                <div class="grupo-form">
+                    <label>Forma de Pago:</label>
+                    <select id="pedido-forma-pago" required>
+                        <option value="Efectivo">💵 Efectivo</option>
+                        <option value="Mercado Pago">📱 Mercado Pago</option>
+                        <option value="Transferencia">🏦 Transferencia</option>
+                        <option value="Pendiente">⏳ Pendiente de Pago</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn-guardar">Guardar</button>
             </form>
         </div>
     </div>
 
-   
 </body>
     <script src="app.js"></script>
     <script src="header.js"></script>

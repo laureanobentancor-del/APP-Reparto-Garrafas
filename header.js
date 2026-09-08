@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <nav style="display: flex; gap: 5px;">
                     <a href="pedidos.html" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('pedidos.html') ? '#34495e' : 'transparent'}">Pedidos</a>
                     <a href="clientes.html" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('clientes.html') ? '#34495e' : 'transparent'}">Clientes</a>
+                    <a href="ventas.html" class="nav-link">Ventas</a>
                     <a href="stock.html" id="nav-stock" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('stock.html') ? '#34495e' : 'transparent'}">Stock</a>
                 </nav>
             </div>

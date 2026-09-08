@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Ventas - Control de Garrafas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main>
+        <h1>Control y Registro de Ventas</h1>
+        
+        <!-- Tarjetas de Resumen Financiero -->
+        <div class="panel-whatsapp" style="display: flex; justify-content: space-around; text-align: center;">
+            <div>
+                <h3>Total Recaudado (Cobrado)</h3>
+                <p id="total-recaudado" style="font-size: 22px; font-weight: bold; color: #27ae60;">$0</p>
+            </div>
+            <div>
+                <h3>Garrafas Vendidas</h3>
+                <p id="total-garrafas" style="font-size: 22px; font-weight: bold; color: #2980b9;">0 unidades</p>
+            </div>
+        </div>
+
+        <!-- Botonera y Filtros -->
+        <div class="acciones-superiores-container">
+            <div class="grupo-izquierdo">
+                <input type="text" id="buscador-ventas" class="buscador-input" placeholder="Buscar por cliente o tipo..." onkeyup="filtrarVentasTexto()">
+                <button class="btn-principal btn-hoy" onclick="filtrarVentasHoy()">📅 Ventas de Hoy</button>
+            </div>
+            
+            <div class="grupo-filtros">
+                <div class="filtro-campo">
+                    <label for="filtro-ventas-desde">Desde:</label>
+                    <input type="date" id="filtro-ventas-desde" class="input-buscador" onchange="filtrarVentasPorFecha()">
+                </div>
+                <div class="filtro-campo">
+                    <label for="filtro-ventas-hasta">Hasta:</label>
+                    <input type="date" id="filtro-ventas-hasta" class="input-buscador" onchange="filtrarVentasPorFecha()">
+                </div>
+                <button class="btn-limpiar" onclick="limpiarFiltrosVentas()">Limpiar</button>
+            </div>
+        </div>
+      
+        <!-- Tabla de Ventas -->
+        <div class="table-responsive">
+            <table class="tu-tabla-actual">
+                <thead>
+                    <tr>
+                        <th>ID Venta</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Forma de Pago</th>
+                        <th>Fecha / Hora</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-ventas"></tbody>
+            </table>
+        </div>
+    </main>
+</body>
+<script src="app.js"></script>
+<script src="header.js"></script>
+</html>
