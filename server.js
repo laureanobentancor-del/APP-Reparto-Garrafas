@@ -33,8 +33,11 @@ db.serialize(() => {
 
     db.run(`CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, telefono TEXT, direccion TEXT)`);
     db.run(`CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT UNIQUE, llenas INTEGER, vacias INTEGER, precio REAL)`);
+    
     db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('10kg', 0, 0, 0)");
     db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('15kg', 0, 0, 0)");
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('30kg', 0, 0, 0)");
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('45kg', 0, 0, 0)");
     
     db.run(`CREATE TABLE IF NOT EXISTS pedidos (
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -152,7 +155,6 @@ app.put('/api/pedidos/:id/pago', (req, res) => {
     });
 });
 
-
 app.get('/api/pedidos/hoy', (req, res) => {
     const sql = `SELECT pedidos.*, 
                  COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
@@ -169,20 +171,23 @@ app.get('/api/pedidos/hoy', (req, res) => {
     });
 });
 
-app.get('/api/pedidos', (req, res) => {
+app.get('/api/pedidos/filtrar', (req, res) => {
+    const { desde, hasta } = req.query;
     const sql = `SELECT pedidos.*, 
                  COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
                  clientes.nombre as cliente_nombre, 
                  clientes.telefono as cliente_telefono 
                  FROM pedidos 
                  JOIN clientes ON pedidos.cliente_id = clientes.id 
+                 WHERE DATE(pedidos.fecha) BETWEEN ? AND ? 
                  ORDER BY pedidos.id DESC`;
-    db.all(sql, [], (err, rows) => {
+    db.all(sql, [desde, hasta], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
         res.json(rows || []);
     });
 });
+
 app.post('/api/pedidos', (req, res) => {
     const { cliente_id, tipo, forma_pago } = req.body;
     const cantidad = parseInt(req.body.cantidad) || 1; 
@@ -228,7 +233,13 @@ app.put('/api/pedidos/:id', (req, res) => {
 });
 
 app.get('/api/pedidos', (req, res) => {
-    const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre, clientes.telefono as cliente_telefono FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id ORDER BY pedidos.id DESC`;
+    const sql = `SELECT pedidos.*, 
+                 COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
+                 clientes.nombre as cliente_nombre, 
+                 clientes.telefono as cliente_telefono 
+                 FROM pedidos 
+                 JOIN clientes ON pedidos.cliente_id = clientes.id 
+                 ORDER BY pedidos.id DESC`;
     db.all(sql, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
@@ -285,14 +296,16 @@ async function iniciarWhatsApp() {
 
             db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
                 if (cliente) {
-                    const esPedido = /(garrafa|10|15|kilo|kg|pedido)/i.test(texto);
+                    const esPedido = /(garrafa|10|15|30|45|kilo|kg|pedido)/i.test(texto);
                     if (esPedido) {
                         const especifica10 = texto.includes("10");
                         const especifica15 = texto.includes("15");
+                        const especifica30 = texto.includes("30");
+                        const especifica45 = texto.includes("45");
 
-                        if (!especifica10 && !especifica15) {
+                        if (!especifica10 && !especifica15 && !especifica30 && !especifica45) {
                             await sockGlobal.sendMessage(remoteJid, { 
-                                text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n\n(Responde con el tamaño deseado).` 
+                                text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*\n\n(Responde con el tamaño deseado).` 
                             });
                             return;
                         }
@@ -353,7 +366,11 @@ async function iniciarWhatsApp() {
 
 function procesarPedidoCliente(cliente, texto, jid) {
     let tipo = "10kg"; 
-    if (texto.includes("15") || texto.includes("2")) {
+    if (texto.includes("45")) {
+        tipo = "45kg";
+    } else if (texto.includes("30")) {
+        tipo = "30kg";
+    } else if (texto.includes("15")) {
         tipo = "15kg";
     }
 
