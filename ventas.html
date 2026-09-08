@@ -8,18 +8,34 @@
 </head>
 <body>
     <main>
-        <h1>Control y Registro de Ventas</h1>
-        
-        <!-- Tarjetas de Resumen Financiero -->
-        <div class="panel-whatsapp" style="display: flex; justify-content: space-around; text-align: center;">
-            <div>
-                <h3>Total Recaudado (Cobrado)</h3>
-                <p id="total-recaudado" style="font-size: 22px; font-weight: bold; color: #27ae60;">$0</p>
+  
+        <!-- Paneles de Resumen Financiero y Desglose por Tipo -->
+        <div class="panel-whatsapp" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; text-align: left; padding: 20px; background: #ffffff; border: 1px solid #e1e8ed; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px;">
+            
+            <!-- Desglose de Recaudación y Pagos -->
+            <div style="flex: 1; min-width: 250px; border-right: 1px solid #eaeaea; padding-right: 15px;">
+                <h3 style="margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">💰 Recaudación y Pagos</h3>
+                <p style="font-size: 17px; font-weight: bold; color: #27ae60; margin: 8px 0;">Total Cobrado: <span id="total-recaudado">$0</span></p>
+                <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                    <div>💵 Efectivo: <span id="pago-efectivo" style="font-weight: 600;">$0</span></div>
+                    <div>📱 Mercado Pago: <span id="pago-mp" style="font-weight: 600;">$0</span></div>
+                    <div>🏦 Transferencia: <span id="pago-transf" style="font-weight: 600;">$0</span></div>
+                    <div>⏳ Pendiente de Cobro: <span id="pago-pendiente" style="font-weight: 600; color: #d35400;">$0</span></div>
+                </div>
             </div>
-            <div>
-                <h3>Garrafas Vendidas</h3>
-                <p id="total-garrafas" style="font-size: 22px; font-weight: bold; color: #2980b9;">0 unidades</p>
+            
+            <!-- Desglose de Garrafas Vendidas por Gramaje -->
+            <div style="flex: 1; min-width: 250px;">
+                <h3 style="margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 5px;">🔥 Garrafas Vendidas</h3>
+                <p style="font-size: 17px; font-weight: bold; color: #2980b9; margin: 8px 0;">Total Unidades: <span id="total-garrafas">0 unidades</span></p>
+                <div style="font-size: 13px; color: #555; line-height: 1.6;">
+                    <div>🔹 10kg: <span id="garrafas-10" style="font-weight: 600;">0 un.</span></div>
+                    <div>🔹 15kg: <span id="garrafas-15" style="font-weight: 600;">0 un.</span></div>
+                    <div>🔹 30kg: <span id="garrafas-30" style="font-weight: 600;">0 un.</span></div>
+                    <div>🔹 45kg: <span id="garrafas-45" style="font-weight: 600;">0 un.</span></div>
+                </div>
             </div>
+
         </div>
 
         <!-- Botonera y Filtros -->

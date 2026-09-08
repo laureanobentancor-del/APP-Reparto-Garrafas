@@ -199,6 +199,8 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     }
 
     function cargarPedidos() {
+     actualizarResumenPanelPedidos(); // <--- Agrega esto aquí
+        
         const desde = document.getElementById('filtro-desde')?.value;
         const hasta = document.getElementById('filtro-hasta')?.value;
         
@@ -318,6 +320,50 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     chequearWhatsApp();
     setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
 }
+
+function actualizarResumenPanelPedidos() {
+        // Cargar stock detallado por tipo (llenas y vacías)
+        fetch('/api/stock')
+            .then(res => res.json())
+            .then(stock => {
+                const elStock = document.getElementById('resumen-stock-pedidos');
+                if (elStock) {
+                    let htmlStock = '';
+                    stock.forEach(s => {
+                        htmlStock += `<div><strong>${s.tipo}:</strong> 🟢 ${s.llenas} | 🟠 ${s.vacias}</div>`;
+                    });
+                    elStock.innerHTML = htmlStock;
+                }
+            })
+            .catch(err => console.error("Error al cargar stock para el panel:", err));
+
+        // Cargar pedidos de hoy y separar cobrados de pendientes
+        fetch('/api/pedidos/hoy')
+            .then(res => res.json())
+            .then(pedidos => {
+                let garrafasHoy = 0;
+                let cobradoHoy = 0;
+                let pendienteHoy = 0;
+
+                pedidos.forEach(p => {
+                    garrafasHoy += parseInt(p.cantidad) || 0;
+                    const metodoPago = p.forma_pago ? p.forma_pago.trim() : 'Efectivo';
+                    const monto = parseFloat(p.total) || 0;
+
+                    if (metodoPago === 'Pendiente') {
+                        pendienteHoy += monto;
+                    } else {
+                        cobradoHoy += monto;
+                    }
+                });
+
+                document.getElementById('resumen-garrafas-pedidos').textContent = `${garrafasHoy} un.`;
+                document.getElementById('resumen-cobrado-pedidos').textContent = `$${cobradoHoy.toLocaleString()}`;
+                document.getElementById('resumen-pendiente-pedidos').textContent = `$${pendienteHoy.toLocaleString()}`;
+            })
+            .catch(err => console.error("Error al cargar resumen de ventas de hoy:", err));
+    }
+
 
 // ==========================================
 // HISTORIAL DE CLIENTES Y MODALES
@@ -485,23 +531,54 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
         
         if (ventas.length === 0) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron registros de ventas.</td></tr>`;
-            actualizarMetricasVentas(0, 0);
+            actualizarMetricasVentas({
+                recaudado: 0, efectivo: 0, mp: 0, transf: 0, pendiente: 0,
+                totalGarrafas: 0, c10: 0, c15: 0, c30: 0, c45: 0
+            });
             return;
         }
 
         let totalRecaudadoGeneral = 0;
+        let efectivoTotal = 0;
+        let mpTotal = 0;
+        let transfTotal = 0;
+        let pendienteTotal = 0;
+
         let totalGarrafasGeneral = 0;
+        let cant10 = 0;
+        let cant15 = 0;
+        let cant30 = 0;
+        let cant45 = 0;
 
         ventas.forEach(v => {
             const fechaFormateada = v.fecha ? v.fecha.substring(0, 10) : '';
             const horaFormateada = v.fecha ? v.fecha.substring(11, 16) : '';
             
             const metodoPago = v.forma_pago ? v.forma_pago.trim() : 'Efectivo';
+            const monto = parseFloat(v.total) || 0;
+            const cantidad = parseInt(v.cantidad) || 0;
 
-            if (metodoPago !== 'Pendiente') {
-                totalRecaudadoGeneral += parseFloat(v.total) || 0;
+            totalGarrafasGeneral += cantidad;
+
+            // Conteo por gramaje
+            if (v.tipo === '10kg') cant10 += cantidad;
+            if (v.tipo === '15kg') cant15 += cantidad;
+            if (v.tipo === '30kg') cant30 += cantidad;
+            if (v.tipo === '45kg') cant45 += cantidad;
+
+            // Acumulado por tipo de pago
+            if (metodoPago === 'Efectivo') {
+                efectivoTotal += monto;
+                totalRecaudadoGeneral += monto;
+            } else if (metodoPago === 'Mercado Pago') {
+                mpTotal += monto;
+                totalRecaudadoGeneral += monto;
+            } else if (metodoPago === 'Transferencia') {
+                transfTotal += monto;
+                totalRecaudadoGeneral += monto;
+            } else if (metodoPago === 'Pendiente') {
+                pendienteTotal += monto;
             }
-            totalGarrafasGeneral += parseInt(v.cantidad) || 0;
 
             let columnaPago = '';
             if (metodoPago === 'Pendiente') {
@@ -534,12 +611,32 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
                 </tr>`;
         });
 
-        actualizarMetricasVentas(totalRecaudadoGeneral, totalGarrafasGeneral);
+        actualizarMetricasVentas({
+            recaudado: totalRecaudadoGeneral,
+            efectivo: efectivoTotal,
+            mp: mpTotal,
+            transf: transfTotal,
+            pendiente: pendienteTotal,
+            totalGarrafas: totalGarrafasGeneral,
+            c10: cant10,
+            c15: cant15,
+            c30: cant30,
+            c45: cant45
+        });
     }
 
-    function actualizarMetricasVentas(recaudado, garrafas) {
-        document.getElementById('total-recaudado').textContent = `$${recaudado.toLocaleString()}`;
-        document.getElementById('total-garrafas').textContent = `${garrafas} unidades`;
+    function actualizarMetricasVentas(m) {
+        document.getElementById('total-recaudado').textContent = `$${m.recaudado.toLocaleString()}`;
+        document.getElementById('pago-efectivo').textContent = `$${m.efectivo.toLocaleString()}`;
+        document.getElementById('pago-mp').textContent = `$${m.mp.toLocaleString()}`;
+        document.getElementById('pago-transf').textContent = `$${m.transf.toLocaleString()}`;
+        document.getElementById('pago-pendiente').textContent = `$${m.pendiente.toLocaleString()}`;
+
+        document.getElementById('total-garrafas').textContent = `${m.totalGarrafas} unidades`;
+        document.getElementById('garrafas-10').textContent = `${m.c10} un.`;
+        document.getElementById('garrafas-15').textContent = `${m.c15} un.`;
+        document.getElementById('garrafas-30').textContent = `${m.c30} un.`;
+        document.getElementById('garrafas-45').textContent = `${m.c45} un.`;
     }
 
     function cargarVentas() {
