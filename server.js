@@ -147,6 +147,22 @@ app.put('/api/stock/:tipo', (req, res) => {
 
 // --- RUTAS API: PEDIDOS ---
 
+app.get('/api/pedidos', (req, res) => {
+    const sql = `SELECT pedidos.*, 
+                 COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
+                 clientes.nombre as cliente_nombre, 
+                 clientes.telefono as cliente_telefono,
+                 clientes.direccion as direccion
+                 FROM pedidos 
+                 JOIN clientes ON pedidos.cliente_id = clientes.id 
+                 ORDER BY pedidos.id DESC`;
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
+        res.json(rows || []);
+    });
+});
+
 app.put('/api/pedidos/:id/pago', (req, res) => {
     const { forma_pago } = req.body;
     db.run("UPDATE pedidos SET forma_pago = ? WHERE id = ?", [forma_pago, req.params.id], function(err) {
@@ -159,7 +175,8 @@ app.get('/api/pedidos/hoy', (req, res) => {
     const sql = `SELECT pedidos.*, 
                  COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
                  clientes.nombre as cliente_nombre, 
-                 clientes.telefono as cliente_telefono 
+                 clientes.telefono as cliente_telefono,
+                 clientes.direccion as direccion
                  FROM pedidos 
                  JOIN clientes ON pedidos.cliente_id = clientes.id 
                  WHERE DATE(pedidos.fecha) = DATE('now', 'localtime') 
@@ -176,7 +193,8 @@ app.get('/api/pedidos/filtrar', (req, res) => {
     const sql = `SELECT pedidos.*, 
                  COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
                  clientes.nombre as cliente_nombre, 
-                 clientes.telefono as cliente_telefono 
+                 clientes.telefono as cliente_telefono,
+                 clientes.direccion as direccion
                  FROM pedidos 
                  JOIN clientes ON pedidos.cliente_id = clientes.id 
                  WHERE DATE(pedidos.fecha) BETWEEN ? AND ? 
@@ -229,21 +247,6 @@ app.put('/api/pedidos/:id', (req, res) => {
     db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
         const total = stock.precio * cantidad;
         db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => res.json({ mensaje: "Editado" }));
-    });
-});
-
-app.get('/api/pedidos', (req, res) => {
-    const sql = `SELECT pedidos.*, 
-                 COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
-                 clientes.nombre as cliente_nombre, 
-                 clientes.telefono as cliente_telefono 
-                 FROM pedidos 
-                 JOIN clientes ON pedidos.cliente_id = clientes.id 
-                 ORDER BY pedidos.id DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (rows) rows.forEach(r => { if(r.cliente_telefono) r.cliente_telefono = r.cliente_telefono.split(',')[0]; });
-        res.json(rows || []);
     });
 });
 
