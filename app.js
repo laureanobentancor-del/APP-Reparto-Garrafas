@@ -905,16 +905,19 @@ function inicializarMapaVentas(ventasConDireccion) {
                         lon = centroNogoya[1] + (Math.random() - 0.5) * 0.025;
                     }
 
-                    let colorRojo = '#f1c40f'; // Amarillo
-                    let radio = 9;
+                    let colorRojo = '#f1c40f'; // Amarillo para 1 unidad
+let radio = 8;
 
-                    if (zona.cantidadTotal >= 5) {
-                        colorRojo = '#c0392b'; // Rojo intenso
-                        radio = 18;
-                    } else if (zona.cantidadTotal >= 3) {
-                        colorRojo = '#e67e22'; // Naranja
-                        radio = 13;
-                    }
+if (zona.cantidadTotal >= 10) {
+    colorRojo = '#8b0000'; // Rojo oscuro (alta concentración masiva)
+    radio = 20;
+} else if (zona.cantidadTotal >= 5) {
+    colorRojo = '#c0392b'; // Rojo intenso
+    radio = 15;
+} else if (zona.cantidadTotal >= 3) {
+    colorRojo = '#e67e22'; // Naranja (moderada)
+    radio = 11;
+}
 
                     const circleMarker = L.circleMarker([lat, lon], {
                         radius: radio,

@@ -7,30 +7,32 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
     <main>
         <h1>Gestión de Clientes</h1>
-<div class="clientes-acciones-container">
-    <input type="text" id="buscador-cliente" class="buscador-input" placeholder="Buscar cliente por nombre..." onkeyup="filtrarClientes()">
-    <button onclick="abrirModalCliente()" class="btn-nuevo-cliente">+ Nuevo Cliente</button>
-</div>
+        
+        <div class="clientes-acciones-container">
+            <input type="text" id="buscador-cliente" class="buscador-input" placeholder="Buscar cliente por nombre..." onkeyup="filtrarClientes()">
+            <button onclick="abrirModalCliente()" class="btn-nuevo-cliente">+ Nuevo Cliente</button>
+        </div>
+
         <div class="table-responsive">
-             <table class="tu-tabla-actual">
-                <tr>
-                    <th>Nombre</th>
-                    <th>Teléfono</th>
-                    <th>Dirección</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpo-tabla-clientes">
-                <!-- Se llena con JavaScript -->
-            </tbody>
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-clientes">
+                    <!-- Se llena con JavaScript -->
+                </tbody>
             </table>
-         <div>
+        </div>
     </main>
 
-<!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
+    <!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
     <div id="modal-cliente" class="modal-fondo" style="display: none;">
         <div class="modal-contenido">
             <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
@@ -56,37 +58,37 @@
         </div>
     </div>
 
-<!-- Modal de Historial -->
-<div id="modal-historial" class="modal-fondo" style="display: none;">
-    <div class="modal-caja" style="max-width: 800px;">
-        <!-- Cabecera corregida con el título a la izquierda y la cruz a la derecha -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 id="titulo-historial" style="margin: 0; color: #2c3e50;">Historial de Pedidos</h3>
-            <button onclick="cerrarModalHistorial()" style="background: none; border: none; font-size: 22px; cursor: pointer; font-weight: bold; color: #7f8c8d;">&times;</button>
-        </div>
-        
-        <div class="tabla-contenedor-scroll" style="max-height: 350px; overflow-y: auto;">
-            <table class="tabla-datos">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Tipo</th>
-                        <th>Cantidad</th>
-                        <th>Total</th>
-                        <th>Fecha / Hora</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-tabla-historial"></tbody>
-            </table>
-        </div>
+    <!-- Modal de Historial -->
+    <div id="modal-historial" class="modal-fondo" style="display: none;">
+        <div class="modal-caja" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 id="titulo-historial" style="margin: 0; color: #2c3e50;">Historial de Pedidos</h3>
+                <button onclick="cerrarModalHistorial()" style="background: none; border: none; font-size: 22px; cursor: pointer; font-weight: bold; color: #7f8c8d;">&times;</button>
+            </div>
+            
+            <div class="tabla-contenedor-scroll" style="max-height: 350px; overflow-y: auto;">
+                <table class="tabla-datos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Fecha / Hora</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-historial"></tbody>
+                </table>
+            </div>
 
-        <div style="margin-top: 20px; text-align: right;">
-            <button type="button" onclick="cerrarModalHistorial()" class="btn-cancelar" style="padding: 8px 16px;">Cerrar</button>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" onclick="cerrarModalHistorial()" class="btn-cancelar" style="padding: 8px 16px;">Cerrar</button>
+            </div>
         </div>
     </div>
-</div>
+
     <script src="app.js"></script>
     <script src="header.js"></script> 
 </body>
