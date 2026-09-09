@@ -844,6 +844,13 @@ if (document.getElementById('cuerpo-tabla-diario')) {
 
 
 let mapaVentas = null;
+const centroNogoya = [-32.3947, -59.7894];
+
+window.centrarMapaNogoya = function() {
+    if (mapaVentas) {
+        mapaVentas.setView(centroNogoya, 13);
+    }
+};
 
 function inicializarMapaVentas(ventasConDireccion) {
     const contenedorMapa = document.getElementById('mapa-ventas');
@@ -853,8 +860,6 @@ function inicializarMapaVentas(ventasConDireccion) {
         mapaVentas.remove();
     }
 
-    // Coordenadas centrales de Nogoyá, Entre Ríos
-    const centroNogoya = [-32.3947, -59.7894];
     mapaVentas = L.map('mapa-ventas').setView(centroNogoya, 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -862,34 +867,110 @@ function inicializarMapaVentas(ventasConDireccion) {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapaVentas);
 
-    // Procesar cada venta para ubicarla en el mapa mediante geocodificación
-    ventasConDireccion.forEach((v, index) => {
+    let zonasMap = {};
+    ventasConDireccion.forEach(v => {
         if (!v.direccion) return;
+        const dirKey = v.direccion.trim().toLowerCase();
+        if (!zonasMap[dirKey]) {
+            zonasMap[dirKey] = {
+                direccionOriginal: v.direccion,
+                cantidadTotal: 0,
+                montoTotal: 0,
+                clientes: new Set()
+            };
+        }
+        zonasMap[dirKey].cantidadTotal += parseInt(v.cantidad) || 0;
+        zonasMap[dirKey].montoTotal += parseFloat(v.total) || 0;
+        if (v.cliente_nombre) zonasMap[dirKey].clientes.add(v.cliente_nombre);
+    });
 
-        const direccionCompleta = `${v.direccion}, Nogoyá, Entre Ríos, Argentina`;
+    let zonasArray = Object.values(zonasMap);
+    zonasArray.sort((a, b) => b.cantidadTotal - a.cantidadTotal);
+    renderizarPanelEstadisticasZonas(zonasArray);
 
-        // Se usa un pequeño retraso (debounce/timeout) para evitar saturar el servicio público gratuito de Nominatim
+    zonasArray.forEach((zona, index) => {
+        const direccionCompleta = `${zona.direccionOriginal}, Nogoyá, Entre Ríos, Argentina`;
+
         setTimeout(() => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccionCompleta)}`)
                 .then(res => res.json())
                 .then(data => {
+                    let lat, lon;
                     if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-
-                        const marker = L.marker([lat, lon]).addTo(mapaVentas);
-                        marker.bindPopup(`
-                            <div style="font-size: 13px;">
-                                <b>Cliente:</b> ${v.cliente_nombre || 'Desconocido'}<br>
-                                <b>Dirección:</b> ${v.direccion}<br>
-                                <b>Pedido:</b> ${v.cantidad}x ${v.tipo}<br>
-                                <b>Total:</b> $${v.total}
-                            </div>
-                        `);
+                        lat = parseFloat(data[0].lat);
+                        lon = parseFloat(data[0].lon);
+                    } else {
+                        // Fallback: Si el mapa no encuentra la dirección exacta, se ubica en Nogoyá con un desplazamiento aleatorio seguro
+                        lat = centroNogoya[0] + (Math.random() - 0.5) * 0.025;
+                        lon = centroNogoya[1] + (Math.random() - 0.5) * 0.025;
                     }
+
+                    let colorRojo = '#f1c40f'; // Amarillo
+                    let radio = 9;
+
+                    if (zona.cantidadTotal >= 5) {
+                        colorRojo = '#c0392b'; // Rojo intenso
+                        radio = 18;
+                    } else if (zona.cantidadTotal >= 3) {
+                        colorRojo = '#e67e22'; // Naranja
+                        radio = 13;
+                    }
+
+                    const circleMarker = L.circleMarker([lat, lon], {
+                        radius: radio,
+                        fillColor: colorRojo,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.85
+                    }).addTo(mapaVentas);
+
+                    const listaClientes = Array.from(zona.clientes).join(', ');
+                    circleMarker.bindPopup(`
+                        <div style="font-size: 13px;">
+                            <b>Zona / Dirección:</b> ${zona.direccionOriginal}<br>
+                            <b>Total Garrafas:</b> ${zona.cantidadTotal} un.<br>
+                            <b>Recaudado:</b> $${zona.montoTotal.toLocaleString()}<br>
+                            <b>Clientes:</b> ${listaClientes}
+                        </div>
+                    `);
                 })
-                .catch(err => console.error("Error al geocodificar la dirección:", err));
-        }, index * 800); 
+                .catch(err => {
+                    console.error("Error de red al geocodificar zona:", err);
+                });
+        }, index * 700);
+    });
+}
+
+function renderizarPanelEstadisticasZonas(zonas) {
+    const panel = document.getElementById('panel-estadisticas-zonas');
+    if (!panel) return;
+    panel.innerHTML = '';
+
+    if (zonas.length === 0) {
+        panel.innerHTML = '<span style="color: #7f8c8d; text-align: center;">No hay datos de zonas para mostrar.</span>';
+        return;
+    }
+
+    const maxUnidades = zonas[0].cantidadTotal || 1;
+
+    zonas.forEach(z => {
+        const porcentaje = Math.round((z.cantidadTotal / maxUnidades) * 100);
+        let colorBarra = '#f1c40f';
+        if (z.cantidadTotal >= 5) colorBarra = '#c0392b';
+        else if (z.cantidadTotal >= 3) colorBarra = '#e67e22';
+
+        panel.innerHTML += `
+            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px; color: #2c3e50;">
+                    <span>📍 ${z.direccionOriginal}</span>
+                    <span style="color: #27ae60;">${z.cantidadTotal} un. ($${z.montoTotal.toLocaleString()})</span>
+                </div>
+                <div style="background: #e1e8ed; border-radius: 4px; height: 8px; width: 100%; overflow: hidden;">
+                    <div style="background: ${colorBarra}; width: ${porcentaje}%; height: 100%; transition: width 0.4s;"></div>
+                </div>
+            </div>
+        `;
     });
 }
 
