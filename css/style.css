@@ -782,3 +782,31 @@ table, .tabla-datos, .tabla-perfiles {
 .tabla-ventas tr:hover {
     background-color: #f1f1f1;
 }
+
+/* ========================================== */
+/* ESTILOS DEFINITIVOS PARA TABLAS UNIFICADAS */
+/* ========================================== */
+table, .tabla-datos {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+table th, table td, .tabla-datos th, .tabla-datos td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+table thead tr, .tabla-datos thead tr, .tabla-datos th {
+    background: #2c3e50 !important;
+    color: white !important;
+}
+
+table tbody tr:hover, .tabla-datos tbody tr:hover {
+    background-color: #f1f1f1 !important;
+}
