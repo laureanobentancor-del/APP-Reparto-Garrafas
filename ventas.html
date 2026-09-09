@@ -3,79 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Ventas - Control de Garrafas</title>
+    <title>Ventas - Control de Garrafas</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <main>
-  
-        <!-- Paneles de Resumen Financiero y Desglose por Tipo -->
-        <div class="panel-whatsapp" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; text-align: left; padding: 20px; background: #ffffff; border: 1px solid #e1e8ed; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px;">
-            
-            <!-- Desglose de Recaudación y Pagos -->
-            <div style="flex: 1; min-width: 250px; border-right: 1px solid #eaeaea; padding-right: 15px;">
-                <h3 style="margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">💰 Recaudación y Pagos</h3>
-                <p style="font-size: 17px; font-weight: bold; color: #27ae60; margin: 8px 0;">Total Cobrado: <span id="total-recaudado">$0</span></p>
-                <div style="font-size: 13px; color: #555; line-height: 1.6;">
-                    <div>💵 Efectivo: <span id="pago-efectivo" style="font-weight: 600;">$0</span></div>
-                    <div>📱 Mercado Pago: <span id="pago-mp" style="font-weight: 600;">$0</span></div>
-                    <div>🏦 Transferencia: <span id="pago-transf" style="font-weight: 600;">$0</span></div>
-                    <div>⏳ Pendiente de Cobro: <span id="pago-pendiente" style="font-weight: 600; color: #d35400;">$0</span></div>
-                </div>
-            </div>
-            
-            <!-- Desglose de Garrafas Vendidas por Gramaje -->
-            <div style="flex: 1; min-width: 250px;">
-                <h3 style="margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 5px;">🔥 Garrafas Vendidas</h3>
-                <p style="font-size: 17px; font-weight: bold; color: #2980b9; margin: 8px 0;">Total Unidades: <span id="total-garrafas">0 unidades</span></p>
-                <div style="font-size: 13px; color: #555; line-height: 1.6;">
-                    <div>🔹 10kg: <span id="garrafas-10" style="font-weight: 600;">0 un.</span></div>
-                    <div>🔹 15kg: <span id="garrafas-15" style="font-weight: 600;">0 un.</span></div>
-                    <div>🔹 30kg: <span id="garrafas-30" style="font-weight: 600;">0 un.</span></div>
-                    <div>🔹 45kg: <span id="garrafas-45" style="font-weight: 600;">0 un.</span></div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Botonera y Filtros -->
+    <main>        
+        <!-- Acciones Superiores y Filtros -->
         <div class="acciones-superiores-container">
-            <div class="grupo-izquierdo">
-                <input type="text" id="buscador-ventas" class="buscador-input" placeholder="Buscar por cliente o tipo..." onkeyup="filtrarVentasTexto()">
-                <button class="btn-principal btn-hoy" onclick="filtrarVentasHoy()">📅 Ventas de Hoy</button>
-            </div>
-            
             <div class="grupo-filtros">
                 <div class="filtro-campo">
-                    <label for="filtro-ventas-desde">Desde:</label>
-                    <input type="date" id="filtro-ventas-desde" class="input-buscador" onchange="filtrarVentasPorFecha()">
+                    <label for="buscador-ventas">Buscar:</label>
+                    <input type="text" id="buscador-ventas" class="input-buscador" placeholder="Cliente o detalle...">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtro-ventas-hasta">Hasta:</label>
-                    <input type="date" id="filtro-ventas-hasta" class="input-buscador" onchange="filtrarVentasPorFecha()">
-                </div>
-                <button class="btn-limpiar" onclick="limpiarFiltrosVentas()">Limpiar</button>
             </div>
         </div>
-      
-        <!-- Tabla de Ventas -->
+
         <div class="table-responsive">
-            <table class="tu-tabla-actual">
-                <thead>
-                    <tr>
-                        <th>ID Venta</th>
-                        <th>Cliente</th>
-                        <th>Tipo</th>
-                        <th>Cantidad</th>
-                        <th>Total</th>
-                        <th>Forma de Pago</th>
-                        <th>Fecha / Hora</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-tabla-ventas"></tbody>
-            </table>
-        </div>
+    <table class="tabla-ventas">
+        <thead>
+    <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Tipo</th>
+        <th>Cantidad</th>
+        <th>Total</th>
+        <th>Forma de Pago</th>
+        <th>Fecha / Hora</th>
+        <th>Estado</th>
+    </tr>
+</thead>
+        <tbody id="cuerpo-tabla-ventas"></tbody>
+    </table>
+</div>
     </main>
 </body>
 <script src="app.js"></script>

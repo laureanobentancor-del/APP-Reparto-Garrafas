@@ -552,3 +552,233 @@ table, .tabla-datos, .tabla-perfiles {
 .btn-nuevo-cliente:hover {
     background-color: #219653;
 }
+
+
+/* ========================================== */
+/* ESTILOS PARA EL APARTADO DE VENTAS         */
+/* ========================================== */
+.ventas-resumen-card {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    margin-bottom: 25px;
+}
+
+.ventas-metricas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.ventas-caja {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.ventas-titulo-verde {
+    color: #27ae60;
+    border-bottom: 2px solid #27ae60;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventas-titulo-azul {
+    color: #2980b9;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventas-fila-total {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    color: #2c3e50;
+}
+
+.ventas-pills-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.ventas-pill {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #333333;
+}
+
+.ventas-pill-alerta {
+    border-color: #f5c6cb;
+    background: #fff3f3;
+}
+
+.ventas-header-solo-buscador {
+    justify-content: flex-end !important;
+}
+
+
+/* ========================================== */
+/* ESTILOS PARA EL APARTADO DE LIBRO DIARIO   */
+/* ========================================== */
+.diario-card-superior {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    margin-bottom: 25px;
+}
+
+.diario-fila-navegacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 20px;
+}
+
+.diario-label-fecha {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 13px;
+}
+
+.diario-grupo-botones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.diario-grilla-metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.diario-caja-metrica {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.diario-caja-titulo-verde {
+    color: #27ae60;
+    border-bottom: 2px solid #27ae60;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.diario-caja-titulo-azul {
+    color: #2980b9;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 6px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.diario-fila-total-principal {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    color: #2c3e50;
+}
+
+.diario-subgrilla-pills {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.diario-pill {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #333333;
+}
+
+.diario-pill-alerta {
+    border-color: #f5c6cb;
+    background: #fff3f3;
+}
+
+.diario-texto-verde {
+    color: #27ae60;
+}
+
+.diario-texto-naranja {
+    color: #d35400;
+}
+
+.diario-texto-azul {
+    color: #2980b9;
+}
+
+/* ========================================== */
+/* NUEVA CLASE PARA LA TABLA DE VENTAS        */
+/* ========================================== */
+.tabla-ventas {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.tabla-ventas th, 
+.tabla-ventas td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.tabla-ventas th {
+    background: #2c3e50;
+    color: white;
+}
+
+.tabla-ventas tr:hover {
+    background-color: #f1f1f1;
+}
