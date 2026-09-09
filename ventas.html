@@ -20,17 +20,22 @@
             </div>
         </div>
 
-
-        <div class="ventas-resumen-card">
+    
+<div class="ventas-resumen-card">
     <h3 class="ventas-titulo-verde">🗺️ Mapa de Concentración de Ventas - Nogoyá</h3>
-    <div id="mapa-ventas" style="height: 450px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+    <div style="position: relative;">
+        <div id="mapa-ventas" style="height: 450px; width: 100%; border-radius: 8px; z-index: 1;"></div>
+        <button onclick="centrarMapaNogoya()" style="position: absolute; bottom: 15px; right: 15px; z-index: 1000; background: #2c3e50; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">🎯 Centrar Mapa</button>
+    </div>
 </div>
-
 
 <div class="ventas-resumen-card">
     <h3 class="ventas-titulo-verde">📊 Ranking de Zonas y Sectores (Nogoyá)</h3>
     <div id="panel-estadisticas-zonas" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
+       
         <!-- Se rellena dinámicamente desde JavaScript -->
+
+
     </div>
 </div>
 
