@@ -199,7 +199,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     }
 
     function cargarPedidos() {
-     actualizarResumenPanelPedidos(); // <--- Agrega esto aquí
+     actualizarResumenPanelPedidos(); 
         
         const desde = document.getElementById('filtro-desde')?.value;
         const hasta = document.getElementById('filtro-hasta')?.value;
@@ -696,14 +696,22 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
         renderizarVentas(filtradas);
     }
 
+
     window.filtrarVentasTexto = function() {
-        const texto = document.getElementById('buscador-ventas').value.toLowerCase();
+        const input = document.getElementById('buscador-ventas');
+        if (!input) return;
+        const texto = input.value.toLowerCase();
+        
         let filtradas = ventasGlobales.filter(v => {
             const cliente = (v.cliente_nombre || '').toLowerCase();
             const tipo = (v.tipo || '').toLowerCase();
-            return cliente.includes(texto) || tipo.includes(texto);
+            const direccion = (v.direccion || '').toLowerCase(); // 👈 Captura la dirección del cliente
+            
+            return cliente.includes(texto) || tipo.includes(texto) || direccion.includes(texto);
         });
+        
         renderizarVentas(filtradas);
+        inicializarMapaVentas(filtradas); // 👈 Actualiza el mapa y las estadísticas con los filtrados
     }
 
     window.limpiarFiltrosVentas = function() {

@@ -10,35 +10,29 @@
 </head>
 <body>
     <main>        
-        <!-- Acciones Superiores y Filtros -->
         <div class="acciones-superiores-container">
-            <div class="grupo-filtros">
-                <div class="filtro-campo">
-                    <label for="buscador-ventas">Buscar:</label>
-                    <input type="text" id="buscador-ventas" class="input-buscador" placeholder="Cliente o detalle...">
-                </div>
-            </div>
+    <div class="grupo-filtros">
+        <div class="filtro-campo">
+            <label for="buscador-ventas">Buscar:</label>
+            <input type="text" id="buscador-ventas" class="input-buscador" placeholder="Cliente o detalle..." oninput="filtrarVentasTexto()">
         </div>
+    </div>
+</div>
 
-    
 <div class="ventas-resumen-card">
     <h3 class="ventas-titulo-verde">🗺️ Mapa de Concentración de Ventas - Nogoyá</h3>
-    <div style="position: relative;">
-        <div id="mapa-ventas" style="height: 450px; width: 100%; border-radius: 8px; z-index: 1;"></div>
-        <button onclick="centrarMapaNogoya()" style="position: absolute; bottom: 15px; right: 15px; z-index: 1000; background: #2c3e50; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">🎯 Centrar Mapa</button>
+    <div class="mapa-contenedor">
+        <div id="mapa-ventas"></div>
+        <button class="btn-centrar-mapa" onclick="centrarMapaNogoya()">🎯 Centrar Mapa</button>
     </div>
 </div>
 
 <div class="ventas-resumen-card">
     <h3 class="ventas-titulo-verde">📊 Ranking de Zonas y Sectores (Nogoyá)</h3>
-    <div id="panel-estadisticas-zonas" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
-       
+    <div id="panel-estadisticas-zonas">
         <!-- Se rellena dinámicamente desde JavaScript -->
-
-
     </div>
 </div>
-
         <div class="table-responsive">
     <table class="tabla-ventas">
         <thead>
