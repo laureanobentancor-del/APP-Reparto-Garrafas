@@ -858,3 +858,170 @@ table tbody tr:hover, .tabla-datos tbody tr:hover {
     max-height: 220px;
     overflow-y: auto;
 }
+
+
+/* Header Principal y Navegación */
+.app-header {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.app-header-left {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.app-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.app-nav {
+    display: flex;
+    gap: 5px;
+}
+
+.app-nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    background: transparent;
+}
+
+.app-nav-link.active {
+    background: #34495e;
+}
+
+/* Zona de Perfil y Menú Desplegable */
+.app-header-right {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rol-label {
+    font-size: 13px;
+    color: #bdc3c7;
+    font-weight: bold;
+}
+
+.user-avatar-container {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #3498db;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    border: 2px solid #ecf0f1;
+    overflow: hidden;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 48px;
+    background: white;
+    color: #333;
+    width: 220px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+    z-index: 2000;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-item.danger {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+/* Compensación del Body por el Header Fijo */
+body {
+    margin-top: 65px;
+}
+
+
+/*.estilos-header{
+    background: #2c3e50; 
+    color: white; 
+    padding: 12px 25px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    position: fixed; 
+    top: 0; 
+    left: 0;
+     width: 100%; 
+     box-sizing: border-box; 
+     z-index: 100;
+}
+
+/* Header Fijo Superior */
+.estilos-header {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+
+body {
+    margin-top: 85px; /* Incrementa este valor según la altura real de tu header */
+}
+.acciones-superiores-container {
+    margin-top: 20px; /* Espacio adicional de separación en la sección de ventas */
+}
+
+.acciones-superiores-container {
+    position: sticky;
+    top: 75px; /* Distancia exacta desde arriba para respetar la altura del header */
+    z-index: 10;
+    background-color: #ffffff;
+    padding: 12px 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 15px;
+}

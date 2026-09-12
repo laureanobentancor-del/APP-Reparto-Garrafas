@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rolFormateado = user ? (user.rol && user.rol.toLowerCase() === 'admin' ? 'Administrador' : user.rol) : '';
 
     const estructuraHeader = `
-        <header style="background: #2c3e50; color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; z-index: 100;">
+        <header class = "app-header">
             <div style="display: flex; gap: 20px; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Garrafas App</h2>
                 <nav style="display: flex; gap: 5px;">
