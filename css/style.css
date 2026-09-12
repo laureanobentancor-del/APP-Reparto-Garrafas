@@ -231,6 +231,7 @@ table, .tabla-datos, .tabla-perfiles {
     width: 100%;
     max-width: 380px;
     box-sizing: border-box;
+    margin: auto;
 }
 
 .login-card h2 {
