@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const headerViejo = document.querySelector('header');
     if (headerViejo) headerViejo.remove();
 
-    const rolFormateado = user ? (user.rol === 'admin' ? 'Administrador' : user.rol) : '';
+    const rolFormateado = user ? (user.rol && user.rol.toLowerCase() === 'admin' ? 'Administrador' : user.rol) : '';
 
     const estructuraHeader = `
         <header style="background: #2c3e50; color: white; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; z-index: 100;">
@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <nav style="display: flex; gap: 5px;">
                     <a href="pedidos.html" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('pedidos.html') ? '#34495e' : 'transparent'}">Pedidos</a>
                     <a href="clientes.html" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('clientes.html') ? '#34495e' : 'transparent'}">Clientes</a>
-                    <a href="ventas.html" class="nav-link">Ventas</a>
-                    <a href="diario.html" class="nav-link">Diario</a>
+                   <a href="ventas.html" id="nav-ventas" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('ventas.html') ? '#34495e' : 'transparent'}">Ventas</a>
+                   <a href="Diario.html" id="nav-diario" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('diario.html') ? '#34495e' : 'transparent'}">Diario</a>
                     <a href="stock.html" id="nav-stock" style="color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 14px; background: ${window.location.href.includes('stock.html') ? '#34495e' : 'transparent'}">Stock</a>
                 </nav>
             </div>
@@ -122,10 +122,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (user && user.rol === 'repartidor') {
+        // Ocultar botón de Stock
         const linkStock = document.getElementById('nav-stock');
         if (linkStock) linkStock.style.display = 'none';
 
-        if (window.location.href.includes('stock.html')) {
+        // Ocultar botón de Diario
+        const linkDiario = document.getElementById('nav-diario');
+        if (linkDiario) linkDiario.style.display = 'none';
+
+        // Bloquear acceso por URL a Stock y Diario
+        if (window.location.href.includes('stock.html') || window.location.href.includes('diario.html')) {
             alert("No tienes permisos para acceder a este apartado.");
             window.location.href = 'pedidos.html';
         }
