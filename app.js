@@ -3,6 +3,7 @@
 // ==========================================
 let pedidosGlobales = [];
 
+
 // ==========================================
 // LÓGICA DE CLIENTES
 // ==========================================
@@ -728,6 +729,9 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
 // ==========================================
 // LÓGICA DEL LIBRO DIARIO
 // ==========================================
+
+    
+
 if (document.getElementById('cuerpo-tabla-diario')) {
     let todosLosPedidosDiario = [];
 

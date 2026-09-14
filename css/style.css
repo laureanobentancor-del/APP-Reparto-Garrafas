@@ -399,52 +399,125 @@ table, .tabla-datos, .tabla-perfiles {
 /* ==========================================
    8. MODALES
    ========================================== */
+
 .modal-fondo {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.6); /* Oscurece el fondo de la pantalla */
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 3000;
-}
-
-.modal-caja, .modal-contenido {
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 650px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    position: relative;
+    padding: 15px; /* Margen de seguridad para que no pegue contra los bordes del celular */
     box-sizing: border-box;
+    z-index: 1000;
 }
 
-.modal-caja-pequena { max-width: 400px; }
-
-.modal-header {
+.modal-contenido {
+    background: #ffffff; /* 🔑 Fondo blanco y sólido: elimina la transparencia */
+    width: 100%;
+    max-width: 500px; /* Ancho cómodo y profesional para formularios */
+    max-height: 90vh; /* 🔑 Vital en vertical: evita que el modal sea más alto que la pantalla */
+    overflow-y: auto; /* 🔑 Activa scroll interno si el celular es muy pequeño o se abre el teclado */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    border-radius: 8px;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+/* Estilos internos para que los inputs y botones respondan bien al celular */
+.modal-contenido .grupo-form {
     margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
 }
-.modal-header h3 { margin: 0; color: #2c3e50; }
 
-.btn-cerrar {
-    position: absolute;
-    top: 12px;
-    right: 18px;
-    font-size: 24px;
+.modal-contenido .grupo-form label {
+    margin-bottom: 5px;
     font-weight: bold;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    color: #7f8c8d;
+    color: #2c3e50;
 }
 
+.modal-contenido .grupo-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px; /* Evita que los dispositivos iOS hagan zoom automático incómodo */
+}
+
+.modal-contenido .btn-guardar {
+    width: 100%;
+    padding: 12px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.modal-contenido .btn-cerrar {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #7f8c8d;
+    background: none;
+    border: none;
+}
+
+
+
+
+
+
+
+.modal-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px; /* Margen de seguridad para que no pegue contra los bordes en celulares */
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.modal-caja {
+    background: #ffffff;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh; /* 🔑 CLAVE: Impide que el modal sea más alto que la pantalla del celular */
+    display: flex;
+    flex-direction: column; /* Organiza los elementos internos en columna */
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Contenedor de la tabla con scroll interno adaptable */
+.tabla-contenedor-scroll {
+    width: 100%;
+    overflow-x: auto; /* Permite deslizar las columnas lateralmente si no entran */
+    overflow-y: auto; /* Permite hacer scroll vertical solo en la tabla si hay muchos datos */
+    max-height: 55vh; /* Se ajusta proporcionalmente al espacio vertical disponible */
+    flex: 1;
+}
 /* ==========================================
    9. UTILIDADES DE TEXTO
    ========================================== */
@@ -507,6 +580,9 @@ table, .tabla-datos, .tabla-perfiles {
         table-layout: auto !important;
     }
 }
+
+
+
 
 
 /* --- ESTILOS PARA LA SECCIÓN DE CLIENTES --- */
@@ -976,21 +1052,6 @@ body {
 }
 
 
-/*.estilos-header{
-    background: #2c3e50; 
-    color: white; 
-    padding: 12px 25px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    position: fixed; 
-    top: 0; 
-    left: 0;
-     width: 100%; 
-     box-sizing: border-box; 
-     z-index: 100;
-}
 
 /* Header Fijo Superior */
 .estilos-header {
@@ -1026,3 +1087,28 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     margin-bottom: 15px;
 }
+
+/*Estilos CSS básicos para las notificaciones*/
+
+.alerta {
+    padding: 12px 20px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+}
+.alerta.oculto { 
+    display: none; 
+}
+.alerta.error { 
+    background-color: #f8d7da; 
+    color: #721c24; 
+    border: 1px solid #f5c6cb; 
+}
+.alerta.exito { 
+    background-color: #d4edda; 
+    color: #155724; 
+    border: 1px solid #c3e6cb; 
+}
+

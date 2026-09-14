@@ -56,6 +56,56 @@ db.serialize(() => {
 });
 
 // --- RUTAS API DE USUARIOS Y AUTENTICACIÓN ---
+
+
+async function enviarDatosConFeedback(url, datos) {
+    const contenedorAlerta = document.getElementById('alerta-sistema');
+    
+    // Limpiamos cualquier alerta anterior y ocultamos el contenedor
+    contenedorAlerta.className = "alerta oculto";
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+        });
+
+        // Verificamos si el servidor devolvió un error HTTP
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.mensaje || `Error del servidor: ${response.status}`);
+        }
+
+        const resultado = await response.json();
+        
+        // Mostramos feedback visual de éxito en la pantalla
+        contenedorAlerta.textContent = "¡Operación realizada con éxito!";
+        contenedorAlerta.className = "alerta exito";
+        
+        return resultado;
+
+    } catch (error) {
+        // Capturamos tanto errores de red como los lanzados por response.ok
+        contenedorAlerta.textContent = `Atención: ${error.message}`;
+        contenedorAlerta.className = "alerta error";
+    }
+}
+
+
+function esAdministrador(req, res, next) {
+    if (req.session && req.session.rol === 'admin') {
+        return next();
+    }
+    return res.status(403).json({ error: 'Acceso exclusivo para administradores' });
+}
+
+// Aplicar el filtro a las rutas del diario
+app.get('/api/diario', esAdministrador, (req, res) => {
+    // Lógica para retornar los registros del diario
+});
+
+
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
     db.get(`SELECT * FROM usuarios WHERE usuario = ? AND password = ?`, [usuario, password], (err, user) => {
