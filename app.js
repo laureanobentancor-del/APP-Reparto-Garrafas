@@ -156,7 +156,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         tbody.innerHTML = '';
         
         if (pedidos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
             return;
         }
 
@@ -187,7 +187,6 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
 
             tbody.innerHTML += `
                 <tr>
-                    <td>#${p.id}</td>
                     <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
                     <td>${p.tipo}</td>
                     <td>${p.cantidad}</td>
@@ -729,9 +728,9 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
 
 
 
-// ==========================================
-// LÓGICA DEL LIBRO DIARIO (AISLADA)
-// ==========================================
+// ============================
+// LÓGICA DEL LIBRO DIARIO
+// ============================
 let todosLosPedidosDiario = [];
 
 window.cargarLibroDiario = function() {
