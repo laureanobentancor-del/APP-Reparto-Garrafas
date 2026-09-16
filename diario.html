@@ -12,8 +12,22 @@
             <!-- Barra de Selección de Fecha y Navegación -->
             <div class="diario-fila-navegacion">
                 <div class="grupo-izquierdo">
-                    <label for="input-fecha-diario" class="diario-label-fecha">📅 Seleccionar Día:</label>
-                    <input type="date" id="input-fecha-diario" class="input-buscador" onchange="cargarLibroDiario()">
+                    <div class="grupo-filtros">
+        <div class="filtro-campo">
+            <label for="buscador-diario">Buscar:</label>
+            <input type="text" id="buscador-diario" class="input-buscador" placeholder="Cliente, tipo o ID..." oninput="filtrarDiarioTexto()">
+        </div>
+        <div class="filtro-campo">
+            <label for="filtro-diario-desde">Desde:</label>
+            <input type="date" id="filtro-diario-desde" class="input-buscador" onchange="filtrarDiarioPorFecha()">
+        </div>
+        <div class="filtro-campo">
+            <label for="filtro-diario-hasta">Hasta:</label>
+            <input type="date" id="filtro-diario-hasta" class="input-buscador" onchange="filtrarDiarioPorFecha()">
+    
+    </div>
+        </div>
+        <button class="btn-limpiar" onclick="limpiarFiltrosDiario()">Limpiar</button>
                 </div>
                 <div class="diario-grupo-botones">
                     <button class="btn-principal" onclick="cambiarDia(-1)">⬅️ Día Anterior</button>
@@ -77,7 +91,7 @@
         </div>
     </main>
 </body>
-<script src="app.js"></script>
+
 <script src="header.js"></script>
-<script src="diario.js"></script>
+<script src="app.js"></script>
 </html>

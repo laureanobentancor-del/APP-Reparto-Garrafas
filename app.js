@@ -726,110 +726,142 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
 }
 
 
-// ==========================================
-// LÓGICA DEL LIBRO DIARIO
-// ==========================================
 
+
+// ==========================================
+// LÓGICA DEL LIBRO DIARIO (AISLADA)
+// ==========================================
+let todosLosPedidosDiario = [];
+
+window.cargarLibroDiario = function() {
+    fetch('/api/pedidos')
+        .then(res => res.json())
+        .then(pedidos => {
+            todosLosPedidosDiario = pedidos;
+            filtrarYRenderizarDiario();
+        })
+        .catch(err => console.error("Error al cargar datos para el libro diario:", err));
+}
+
+window.filtrarDiarioHoy = function() {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    const inputBuscador = document.getElementById('buscador-diario');
     
+    if (inputBuscador) inputBuscador.value = '';
 
-if (document.getElementById('cuerpo-tabla-diario')) {
-    let todosLosPedidosDiario = [];
+    const fechaLocal = new Date();
+    const anio = fechaLocal.getFullYear();
+    const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaLocal.getDate()).padStart(2, '0');
+    const hoy = `\({anio}-\){mes}-${dia}`;
+    
+    if (inputDesde) inputDesde.value = hoy;
+    if (inputHasta) inputHasta.value = hoy;
 
-    window.ponerDiaHoy = function() {
-        const hoy = new Date().toISOString().substring(0, 10);
-        const input = document.getElementById('input-fecha-diario');
-        if (input) input.value = hoy;
-        cargarLibroDiario();
-    };
+    filtrarYRenderizarDiario();
+};
 
-    window.cambiarDia = function(dias) {
-        const input = document.getElementById('input-fecha-diario');
-        if (!input) return;
-        let fechaActual = input.value ? new Date(input.value + 'T00:00:00') : new Date();
-        fechaActual.setDate(fechaActual.getDate() + dias);
-        input.value = fechaActual.toISOString().substring(0, 10);
-        cargarLibroDiario();
-    };
+window.ponerDiaHoy = function() {
+    window.filtrarDiarioHoy();
+};
 
-    window.cargarLibroDiario = function() {
-        const inputFecha = document.getElementById('input-fecha-diario');
-        if (!inputFecha) return;
-        if (!inputFecha.value) {
-            ponerDiaHoy();
-            return;
+window.cambiarDia = function(dias) {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    if (!inputDesde) return;
+    let fechaActual = inputDesde.value ? new Date(inputDesde.value + 'T00:00:00') : new Date();
+    fechaActual.setDate(fechaActual.getDate() + dias);
+    inputDesde.value = fechaActual.toISOString().substring(0, 10);
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    if (inputHasta) inputHasta.value = inputDesde.value;
+    filtrarYRenderizarDiario();
+};
+
+window.filtrarDiarioPorFecha = function() {
+    filtrarYRenderizarDiario();
+};
+
+window.filtrarDiarioTexto = function() {
+    filtrarYRenderizarDiario();
+};
+
+window.limpiarFiltrosDiario = function() {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    const inputBuscador = document.getElementById('buscador-diario');
+    
+    if (inputDesde) inputDesde.value = '';
+    if (inputHasta) inputHasta.value = '';
+    if (inputBuscador) inputBuscador.value = '';
+    
+    filtrarYRenderizarDiario();
+};
+
+function filtrarYRenderizarDiario() {
+    const tbody = document.getElementById('cuerpo-tabla-diario');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const desde = document.getElementById('filtro-diario-desde')?.value;
+    const hasta = document.getElementById('filtro-diario-hasta')?.value;
+    const texto = document.getElementById('buscador-diario')?.value.toLowerCase() || '';
+
+    let totalCobrado = 0, efec = 0, mp = 0, transf = 0, pend = 0;
+    let totUnidades = 0, u10 = 0, u15 = 0, u30 = 0, u45 = 0;
+
+    const pedidosFiltrados = todosLosPedidosDiario.filter(p => {
+        if (!p.fecha) return false;
+        const fechaPedido = p.fecha.substring(0, 10);
+        if (desde && fechaPedido < desde) return false;
+        if (hasta && fechaPedido > hasta) return false;
+
+        if (texto) {
+            const cliente = (p.cliente_nombre || '').toLowerCase();
+            const tipo = (p.tipo || '').toLowerCase();
+            const idStr = String(p.id || '');
+            if (!cliente.includes(texto) && !tipo.includes(texto) && !idStr.includes(texto)) return false;
         }
-        const fechaSeleccionada = inputFecha.value;
+        return true;
+    });
 
-        fetch('/api/pedidos')
-            .then(res => res.json())
-            .then(pedidos => {
-                todosLosPedidosDiario = pedidos;
-                filtrarYRenderizarDiario(fechaSeleccionada);
-            })
-            .catch(err => console.error("Error al cargar datos para el libro diario:", err));
-    }
+    pedidosFiltrados.forEach(p => {
+        const hora = p.fecha.substring(11, 16);
+        const monto = parseFloat(p.total) || 0;
+        const cant = parseInt(p.cantidad) || 0;
+        const metodo = p.forma_pago || 'Efectivo';
+        const badgeEstado = p.estado === 'Completado' ? 
+            `<span style="color:#27ae60; font-weight:bold;">Completado</span>` : 
+            `<span style="color:#e67e22; font-weight:bold;">Pendiente</span>`;
 
-    function filtrarYRenderizarDiario(fechaStr) {
-        const tbody = document.getElementById('cuerpo-tabla-diario');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+        // Sumas
+        totUnidades += cant;
+        if(p.tipo === '10kg') u10 += cant;
+        if(p.tipo === '15kg') u15 += cant;
+        if(p.tipo === '30kg') u30 += cant;
+        if(p.tipo === '45kg') u45 += cant;
 
-        const pedidosDelDia = todosLosPedidosDiario.filter(p => {
-            if (!p.fecha) return false;
-            return p.fecha.substring(0, 10) === fechaStr;
-        });
+        if (metodo === 'Efectivo') efec += monto;
+        else if (metodo === 'Mercado Pago') mp += monto;
+        else if (metodo === 'Transferencia') transf += monto;
+        else pend += monto;
+        totalCobrado += monto;
 
-        if (pedidosDelDia.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">No se registraron movimientos en esta fecha.</td></tr>`;
-            actualizarMetricasDiario(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-            return;
-        }
+        tbody.innerHTML += `
+            <tr>
+                <td>${hora}<br><small>#${p.id}</small></td>
+                <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
+                <td>${p.tipo}</td>
+                <td>${cant}</td>
+                <td style="font-weight: bold; color: #27ae60;">$${monto.toLocaleString()}</td>
+                <td>${metodo}</td>
+                <td>${badgeEstado}</td>
+            </tr>`;
+    });
 
-        let totalCobrado = 0;
-        let efec = 0, mp = 0, transf = 0, pend = 0;
-        let totUnidades = 0;
-        let u10 = 0, u15 = 0, u30 = 0, u45 = 0;
+    actualizarMetricasDiario(totalCobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45);
+}
 
-        pedidosDelDia.forEach(p => {
-            const hora = p.fecha ? p.fecha.substring(11, 16) : '';
-            const metodo = p.forma_pago ? p.forma_pago.trim() : 'Efectivo';
-            const monto = parseFloat(p.total) || 0;
-            const cant = parseInt(p.cantidad) || 0;
-
-            totUnidades += cant;
-            if (p.tipo === '10kg') u10 += cant;
-            if (p.tipo === '15kg') u15 += cant;
-            if (p.tipo === '30kg') u30 += cant;
-            if (p.tipo === '45kg') u45 += cant;
-
-            if (metodo === 'Pendiente') {
-                pend += monto;
-            } else {
-                totalCobrado += monto;
-                if (metodo === 'Efectivo') efec += monto;
-                if (metodo === 'Mercado Pago') mp += monto;
-                if (metodo === 'Transferencia') transf += monto;
-            }
-
-            let badgeEstado = p.estado === 'Completado' ? '<span style="color:#27ae60; font-weight:bold;">Completado</span>' : '<span style="color:#e67e22; font-weight:bold;">Pendiente</span>';
-
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>${hora}</strong><br><small>#${p.id}</small></td>
-                    <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
-                    <td>${p.tipo}</td>
-                    <td>${cant}</td>
-                    <td style="font-weight: bold; color: #27ae60;">$${monto}</td>
-                    <td>${metodo}</td>
-                    <td>${badgeEstado}</td>
-                </tr>
-            `;
-        });
-
-        actualizarMetricasDiario(totalCobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45);
-    }
-
-    function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45) {
+   function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45) {
         document.getElementById('diario-total-cobrado').textContent = `$${cobrado.toLocaleString()}`;
         document.getElementById('diario-efectivo').textContent = `$${efec.toLocaleString()}`;
         document.getElementById('diario-mp').textContent = `$${mp.toLocaleString()}`;
@@ -841,18 +873,58 @@ if (document.getElementById('cuerpo-tabla-diario')) {
         document.getElementById('diario-g15').textContent = `${u15}`;
         document.getElementById('diario-g30').textContent = `${u30}`;
         document.getElementById('diario-g45').textContent = `${u45}`;
-    }
+  }
 
-    document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
         const inputFecha = document.getElementById('input-fecha-diario');
-        if (inputFecha && !inputFecha.value) {
-            ponerDiaHoy();
-        }
+       if (inputFecha && !inputFecha.value) {
+                 ponerDiaHoy();
+    }
+ });
+
+
+window.filtrarDiarioHoy = function() {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    const inputBuscador = document.getElementById('buscador-diario');
+    
+    if (inputBuscador) inputBuscador.value = '';
+
+    const fechaLocal = new Date();
+    const anio = fechaLocal.getFullYear();
+    const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaLocal.getDate()).padStart(2, '0');
+    
+    // CORRECCIÓN: Uso correcto de backticks y variables
+    const hoy = `${anio}-${mes}-${dia}`;
+    
+    if (inputDesde) inputDesde.value = hoy;
+    if (inputHasta) inputHasta.value = hoy;
+
+    filtrarYRenderizarDiario();
+};
+
+//Agregar esta línea para compatibilidad con el botón antiguo:
+window.ponerDiaHoy = function() {
+   filtrarDiarioHoy();
+};
+
+// Al iniciar el script o al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Establecer fecha de hoy en los inputs de rango
+    const hoy = new Date().toISOString().split('T')[0];
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    
+    if (inputDesde) inputDesde.value = hoy;
+    if (inputHasta) inputHasta.value = hoy;
+
+    // 2. Cargar los datos y renderizar el día actual
+    cargarLibroDiario().then(() => {
+        filtrarYRenderizarDiario();
     });
+});
 
-
-
-}
 
 
 let mapaVentas = null;
