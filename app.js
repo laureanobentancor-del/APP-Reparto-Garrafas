@@ -1,3 +1,4 @@
+
 // ==========================================
 // VARIABLES GLOBALES
 // ==========================================
@@ -734,7 +735,7 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
 let todosLosPedidosDiario = [];
 
 window.cargarLibroDiario = function() {
-    fetch('/api/pedidos')
+    return fetch('/api/pedidos')
         .then(res => res.json())
         .then(pedidos => {
             todosLosPedidosDiario = pedidos;
@@ -754,7 +755,7 @@ window.filtrarDiarioHoy = function() {
     const anio = fechaLocal.getFullYear();
     const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
     const dia = String(fechaLocal.getDate()).padStart(2, '0');
-    const hoy = `\({anio}-\){mes}-${dia}`;
+    const hoy = `${anio}-${mes}-${dia}`;
     
     if (inputDesde) inputDesde.value = hoy;
     if (inputHasta) inputHasta.value = hoy;
@@ -825,7 +826,8 @@ function filtrarYRenderizarDiario() {
     });
 
     pedidosFiltrados.forEach(p => {
-        const hora = p.fecha.substring(11, 16);
+        const fecha = p.fecha ? p.fecha.substring(0, 10) : '';
+        const hora = p.fecha ? p.fecha.substring(11, 16) : '';
         const monto = parseFloat(p.total) || 0;
         const cant = parseInt(p.cantidad) || 0;
         const metodo = p.forma_pago || 'Efectivo';
@@ -848,7 +850,8 @@ function filtrarYRenderizarDiario() {
 
         tbody.innerHTML += `
             <tr>
-                <td>${hora}<br><small>#${p.id}</small></td>
+                <td>${fecha}</td>
+                <td>${hora}</td>
                 <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
                 <td>${p.tipo}</td>
                 <td>${cant}</td>
@@ -875,54 +878,25 @@ function filtrarYRenderizarDiario() {
         document.getElementById('diario-g45').textContent = `${u45}`;
   }
 
-document.addEventListener("DOMContentLoaded", () => {
-        const inputFecha = document.getElementById('input-fecha-diario');
-       if (inputFecha && !inputFecha.value) {
-                 ponerDiaHoy();
-    }
- });
-
-
-window.filtrarDiarioHoy = function() {
-    const inputDesde = document.getElementById('filtro-diario-desde');
-    const inputHasta = document.getElementById('filtro-diario-hasta');
-    const inputBuscador = document.getElementById('buscador-diario');
-    
-    if (inputBuscador) inputBuscador.value = '';
-
-    const fechaLocal = new Date();
-    const anio = fechaLocal.getFullYear();
-    const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
-    const dia = String(fechaLocal.getDate()).padStart(2, '0');
-    
-    // CORRECCIÓN: Uso correcto de backticks y variables
-    const hoy = `${anio}-${mes}-${dia}`;
-    
-    if (inputDesde) inputDesde.value = hoy;
-    if (inputHasta) inputHasta.value = hoy;
-
-    filtrarYRenderizarDiario();
-};
-
-//Agregar esta línea para compatibilidad con el botón antiguo:
-window.ponerDiaHoy = function() {
-   filtrarDiarioHoy();
-};
-
 // Al iniciar el script o al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Establecer fecha de hoy en los inputs de rango
-    const hoy = new Date().toISOString().split('T')[0];
-    const inputDesde = document.getElementById('filtro-diario-desde');
-    const inputHasta = document.getElementById('filtro-diario-hasta');
-    
-    if (inputDesde) inputDesde.value = hoy;
-    if (inputHasta) inputHasta.value = hoy;
+    if (document.getElementById('cuerpo-tabla-diario')) {
+        // 1. Establecer fecha de hoy en los inputs de rango
+        const fechaLocal = new Date();
+        const anio = fechaLocal.getFullYear();
+        const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+        const dia = String(fechaLocal.getDate()).padStart(2, '0');
+        const hoy = `${anio}-${mes}-${dia}`;
 
-    // 2. Cargar los datos y renderizar el día actual
-    cargarLibroDiario().then(() => {
-        filtrarYRenderizarDiario();
-    });
+        const inputDesde = document.getElementById('filtro-diario-desde');
+        const inputHasta = document.getElementById('filtro-diario-hasta');
+        
+        if (inputDesde) inputDesde.value = hoy;
+        if (inputHasta) inputHasta.value = hoy;
+
+        // 2. Cargar los datos y renderizar el día actual
+        cargarLibroDiario();
+    }
 });
 
 
