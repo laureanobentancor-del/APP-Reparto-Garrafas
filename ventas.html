@@ -19,6 +19,58 @@
     </div>
 </div>
 
+    <!-- Añadir dentro de <main> en ventas.html -->
+<div class="ventas-resumen-card">
+    <h3 class="ventas-titulo-verde">🏢 Desglose de Ventas por Canal (Depósito vs Reparto vs Comercios)</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+        
+        <!-- Tarjeta Depósito -->
+        <div style="background: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🏭 Ventas en Depósito</h4>
+            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="deposito-cantidad">0 un.</span></p>
+            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="deposito-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
+            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="deposito-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+        </div>
+
+        <!-- Tarjeta Reparto -->
+        <div style="background: #f8f9fa; border-left: 5px solid #e67e22; padding: 15px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Ventas en Reparto</h4>
+            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="reparto-cantidad">0 un.</span></p>
+            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="reparto-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
+            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="reparto-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+        </div>
+
+        <!-- Tarjeta Comercios -->
+        <div style="background: #f8f9fa; border-left: 5px solid #9b59b6; padding: 15px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🏪 Ventas en Comercios</h4>
+            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="comercios-cantidad">0 un.</span></p>
+            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="comercios-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
+            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="comercios-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+        </div>
+
+    </div>
+</div>
+
+        <div class="table-responsive">
+    <table class="tabla-ventas">
+        <thead>
+    <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Tipo Venta</th>
+        <th>Tipo</th>
+        <th>Cantidad</th>
+        <th>Total</th>
+        <th>Forma de Pago</th>
+        <th>Fecha / Hora</th>
+        <th>Estado</th>
+    </tr>
+</thead>
+        <tbody id="cuerpo-tabla-ventas"></tbody>
+    </table>
+</div>
+
+
 <div class="ventas-resumen-card">
     <h3 class="ventas-titulo-verde">🗺️ Mapa de Concentración de Ventas - Nogoyá</h3>
     <div class="mapa-contenedor">
@@ -33,23 +85,7 @@
         <!-- Se rellena dinámicamente desde JavaScript -->
     </div>
 </div>
-        <div class="table-responsive">
-    <table class="tabla-ventas">
-        <thead>
-    <tr>
-        <th>ID</th>
-        <th>Cliente</th>
-        <th>Tipo</th>
-        <th>Cantidad</th>
-        <th>Total</th>
-        <th>Forma de Pago</th>
-        <th>Fecha / Hora</th>
-        <th>Estado</th>
-    </tr>
-</thead>
-        <tbody id="cuerpo-tabla-ventas"></tbody>
-    </table>
-</div>
+
     </main>
 </body>
 <script src="app.js"></script>

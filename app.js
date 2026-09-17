@@ -547,84 +547,41 @@ window.cerrarSesion = function() {
 let ventasGlobales = [];
 
 if (document.getElementById('cuerpo-tabla-ventas')) {
+
     function renderizarVentas(ventas) {
         const tbody = document.getElementById('cuerpo-tabla-ventas');
         if (!tbody) return;
         tbody.innerHTML = '';
         
         if (ventas.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron registros de ventas.</td></tr>`;
-            actualizarMetricasVentas({
-                recaudado: 0, efectivo: 0, mp: 0, transf: 0, pendiente: 0,
-                totalGarrafas: 0, c10: 0, c15: 0, c30: 0, c45: 0
-            });
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center;">No se encontraron registros de ventas.</td></tr>`;
+            actualizarMetricasVentasPorCanal([]);
             return;
         }
-
-        let totalRecaudadoGeneral = 0;
-        let efectivoTotal = 0;
-        let mpTotal = 0;
-        let transfTotal = 0;
-        let pendienteTotal = 0;
-
-        let totalGarrafasGeneral = 0;
-        let cant10 = 0;
-        let cant15 = 0;
-        let cant30 = 0;
-        let cant45 = 0;
 
         ventas.forEach(v => {
             const fechaFormateada = v.fecha ? v.fecha.substring(0, 10) : '';
             const horaFormateada = v.fecha ? v.fecha.substring(11, 16) : '';
-            
             const metodoPago = v.forma_pago ? v.forma_pago.trim() : 'Efectivo';
-            const monto = parseFloat(v.total) || 0;
-            const cantidad = parseInt(v.cantidad) || 0;
-
-            totalGarrafasGeneral += cantidad;
-
-            // Conteo por gramaje
-            if (v.tipo === '10kg') cant10 += cantidad;
-            if (v.tipo === '15kg') cant15 += cantidad;
-            if (v.tipo === '30kg') cant30 += cantidad;
-            if (v.tipo === '45kg') cant45 += cantidad;
-
-            // Acumulado por tipo de pago
-            if (metodoPago === 'Efectivo') {
-                efectivoTotal += monto;
-                totalRecaudadoGeneral += monto;
-            } else if (metodoPago === 'Mercado Pago') {
-                mpTotal += monto;
-                totalRecaudadoGeneral += monto;
-            } else if (metodoPago === 'Transferencia') {
-                transfTotal += monto;
-                totalRecaudadoGeneral += monto;
-            } else if (metodoPago === 'Pendiente') {
-                pendienteTotal += monto;
+            
+            // Tipo de venta formateado para visualización
+            let tipoVentaTexto = '🏭 Depósito';
+            let badgeColor = '#3498db';
+            if (v.tipo_venta === 'reparto') {
+                tipoVentaTexto = '🚚 Reparto';
+                badgeColor = '#e67e22';
+            } else if (v.tipo_venta === 'comercios') {
+                tipoVentaTexto = '🏪 Comercios';
+                badgeColor = '#9b59b6';
             }
 
-            let columnaPago = '';
-            if (metodoPago === 'Pendiente') {
-                columnaPago = `
-                    <select onchange="actualizarFormaPagoVenta(${v.id}, this.value)" style="padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; border: 1px solid #e67e22; background-color: #fdf2e9; color: #d35400;">
-                        <option value="Pendiente" selected>⏳ Pendiente</option>
-                        <option value="Efectivo">💵 Efectivo</option>
-                        <option value="Mercado Pago">📱 Mercado Pago</option>
-                        <option value="Transferencia">🏦 Transferencia</option>
-                    </select>
-                `;
-            } else {
-                let iconoPago = '💵 Efectivo';
-                if (metodoPago === 'Mercado Pago') iconoPago = '📱 Mercado Pago';
-                if (metodoPago === 'Transferencia') iconoPago = '🏦 Transferencia';
-                
-                columnaPago = `<span style="font-weight: bold; color: #27ae60;">${iconoPago}</span>`;
-            }
+            let columnaPago = `<span style="font-weight: bold; color: #27ae60;">💵 ${metodoPago}</span>`;
 
             tbody.innerHTML += `
                 <tr>
                     <td>#${v.id}</td>
                     <td><strong>${v.cliente_nombre || 'Desconocido'}</strong><br><small>${v.cliente_telefono || ''}</small></td>
+                    <td><span style="background: ${badgeColor}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">${tipoVentaTexto}</span></td>
                     <td>${v.tipo}</td>
                     <td>${v.cantidad}</td>
                     <td style="font-weight: bold; color: #27ae60;">$${v.total}</td>
@@ -634,19 +591,49 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
                 </tr>`;
         });
 
-        actualizarMetricasVentas({
-            recaudado: totalRecaudadoGeneral,
-            efectivo: efectivoTotal,
-            mp: mpTotal,
-            transf: transfTotal,
-            pendiente: pendienteTotal,
-            totalGarrafas: totalGarrafasGeneral,
-            c10: cant10,
-            c15: cant15,
-            c30: cant30,
-            c45: cant45
-        });
+        // Llamada a la función que calcula los totales por canal
+        actualizarMetricasVentasPorCanal(ventas);
     }
+
+    function actualizarMetricasVentasPorCanal(ventas) {
+        // Inicializar contadores por canal
+        const canales = {
+            deposito: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+            reparto: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+            comercios: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 }
+        };
+
+        ventas.forEach(v => {
+            const canal = (v.tipo_venta && canales[v.tipo_venta]) ? v.tipo_venta : 'deposito';
+            const cantidad = parseInt(v.cantidad) || 0;
+            const monto = parseFloat(v.total) || 0;
+
+            canales[canal].cantidad += cantidad;
+            canales[canal].monto += monto;
+
+            if (v.tipo === '10kg') canales[canal].c10 += cantidad;
+            if (v.tipo === '15kg') canales[canal].c15 += cantidad;
+            if (v.tipo === '30kg') canales[canal].c30 += cantidad;
+            if (v.tipo === '45kg') canales[canal].c45 += cantidad;
+        });
+
+        // Actualizar DOM para Depósito
+        document.getElementById('deposito-cantidad').textContent = `${canales.deposito.cantidad} un.`;
+        document.getElementById('deposito-monto').textContent = `$${canales.deposito.monto.toLocaleString()}`;
+        document.getElementById('deposito-detalle').textContent = `10kg: ${canales.deposito.c10} | 15kg: ${canales.deposito.c15} | 30kg: ${canales.deposito.c30} | 45kg: ${canales.deposito.c45}`;
+
+        // Actualizar DOM para Reparto
+        document.getElementById('reparto-cantidad').textContent = `${canales.reparto.cantidad} un.`;
+        document.getElementById('reparto-monto').textContent = `$${canales.reparto.monto.toLocaleString()}`;
+        document.getElementById('reparto-detalle').textContent = `10kg: ${canales.reparto.c10} | 15kg: ${canales.reparto.c15} | 30kg: ${canales.reparto.c30} | 45kg: ${canales.reparto.c45}`;
+
+        // Actualizar DOM para Comercios
+        document.getElementById('comercios-cantidad').textContent = `${canales.comercios.cantidad} un.`;
+        document.getElementById('comercios-monto').textContent = `$${canales.comercios.monto.toLocaleString()}`;
+        document.getElementById('comercios-detalle').textContent = `10kg: ${canales.comercios.c10} | 15kg: ${canales.comercios.c15} | 30kg: ${canales.comercios.c30} | 45kg: ${canales.comercios.c45}`;
+    }
+
+
     function actualizarMetricasVentas(m) {
     const actualizarTexto = (id, valor) => {
         const elemento = document.getElementById(id);
