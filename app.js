@@ -814,6 +814,7 @@ function filtrarYRenderizarDiario() {
     const desde = document.getElementById('filtro-diario-desde')?.value;
     const hasta = document.getElementById('filtro-diario-hasta')?.value;
     const texto = document.getElementById('buscador-diario')?.value.toLowerCase() || '';
+    const canalSeleccionado = document.getElementById('filtro-diario-canal')?.value || 'todos'; // 👈 Nuevo filtro
 
     let totalCobrado = 0, efec = 0, mp = 0, transf = 0, pend = 0;
     let totUnidades = 0, u10 = 0, u15 = 0, u30 = 0, u45 = 0;
@@ -823,6 +824,12 @@ function filtrarYRenderizarDiario() {
         const fechaPedido = p.fecha.substring(0, 10);
         if (desde && fechaPedido < desde) return false;
         if (hasta && fechaPedido > hasta) return false;
+
+        // 🟢 Filtro por Canal de Venta
+        if (canalSeleccionado !== 'todos') {
+            const tipoVentaReg = p.tipo_venta ? p.tipo_venta.trim() : 'deposito';
+            if (tipoVentaReg !== canalSeleccionado) return false;
+        }
 
         if (texto) {
             const cliente = (p.cliente_nombre || '').toLowerCase();
@@ -839,11 +846,23 @@ function filtrarYRenderizarDiario() {
         const monto = parseFloat(p.total) || 0;
         const cant = parseInt(p.cantidad) || 0;
         const metodo = p.forma_pago || 'Efectivo';
+        
+        // 🟢 Identificar el tipo de venta para mostrar el Badge en la tabla
+        let tipoVentaTexto = '🏭 Depósito';
+        let badgeColor = '#3498db';
+        if (p.tipo_venta === 'reparto') {
+            tipoVentaTexto = '🚚 Reparto';
+            badgeColor = '#e67e22';
+        } else if (p.tipo_venta === 'comercios') {
+            tipoVentaTexto = '🏪 Comercios';
+            badgeColor = '#9b59b6';
+        }
+
         const badgeEstado = p.estado === 'Completado' ? 
             `<span style="color:#27ae60; font-weight:bold;">Completado</span>` : 
             `<span style="color:#e67e22; font-weight:bold;">Pendiente</span>`;
 
-        // Sumas
+        // Sumas de métricas...
         totUnidades += cant;
         if(p.tipo === '10kg') u10 += cant;
         if(p.tipo === '15kg') u15 += cant;
@@ -858,9 +877,9 @@ function filtrarYRenderizarDiario() {
 
         tbody.innerHTML += `
             <tr>
-                <td>${fecha}</td>
-                <td>${hora}</td>
+                <td>${fecha} ${hora}</td>
                 <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
+                <td><span style="background: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold;">${tipoVentaTexto}</span></td>
                 <td>${p.tipo}</td>
                 <td>${cant}</td>
                 <td style="font-weight: bold; color: #27ae60;">$${monto.toLocaleString()}</td>
@@ -871,6 +890,11 @@ function filtrarYRenderizarDiario() {
 
     actualizarMetricasDiario(totalCobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45);
 }
+
+window.filtrarDiarioPorCanal = function() {
+    filtrarYRenderizarDiario();
+};
+
 
    function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45) {
         document.getElementById('diario-total-cobrado').textContent = `$${cobrado.toLocaleString()}`;

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Libro Diario - Control de Garrafas</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <main>
         <div class="diario-card-superior">
@@ -13,21 +15,34 @@
             <div class="diario-fila-navegacion">
                 <div class="grupo-izquierdo">
                     <div class="grupo-filtros">
-        <div class="filtro-campo">
-            <label for="buscador-diario">Buscar:</label>
-            <input type="text" id="buscador-diario" class="input-buscador" placeholder="Cliente, tipo o ID..." oninput="filtrarDiarioTexto()">
-        </div>
-        <div class="filtro-campo">
-            <label for="filtro-diario-desde">Desde:</label>
-            <input type="date" id="filtro-diario-desde" class="input-buscador" onchange="filtrarDiarioPorFecha()">
-        </div>
-        <div class="filtro-campo">
-            <label for="filtro-diario-hasta">Hasta:</label>
-            <input type="date" id="filtro-diario-hasta" class="input-buscador" onchange="filtrarDiarioPorFecha()">
-    
-    </div>
-        </div>
-        <button class="btn-limpiar" onclick="limpiarFiltrosDiario()">Limpiar</button>
+
+                        <div class="filtro-campo">
+                            <label for="filtro-diario-canal">Canal:</label>
+                            <select id="filtro-diario-canal" class="input-buscador" onchange="filtrarDiarioPorCanal()">
+                                <option value="todos">Todos los canales</option>
+                                <option value="deposito">🏭 Depósito</option>
+                                <option value="reparto">🚚 Reparto</option>
+                                <option value="comercios">🏪 Comercios</option>
+                            </select>
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="buscador-diario">Buscar:</label>
+                            <input type="text" id="buscador-diario" class="input-buscador"
+                                placeholder="Cliente, tipo o ID..." oninput="filtrarDiarioTexto()">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtro-diario-desde">Desde:</label>
+                            <input type="date" id="filtro-diario-desde" class="input-buscador"
+                                onchange="filtrarDiarioPorFecha()">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtro-diario-hasta">Hasta:</label>
+                            <input type="date" id="filtro-diario-hasta" class="input-buscador"
+                                onchange="filtrarDiarioPorFecha()">
+
+                        </div>
+                    </div>
+                    <button class="btn-limpiar" onclick="limpiarFiltrosDiario()">Limpiar</button>
                 </div>
                 <div class="diario-grupo-botones">
                     <button class="btn-principal" onclick="cambiarDia(-1)">⬅️ Día Anterior</button>
@@ -38,7 +53,7 @@
 
             <!-- Grilla de Métricas Organizadas Horizontalmente -->
             <div class="diario-grilla-metricas">
-                
+
                 <!-- Resumen Financiero -->
                 <div class="diario-caja-metrica">
                     <h3 class="diario-caja-titulo-verde">💰 Resumen Financiero</h3>
@@ -49,8 +64,10 @@
                     <div class="diario-subgrilla-pills">
                         <div class="diario-pill"><span>Efectivo:</span> <strong id="diario-efectivo">$0</strong></div>
                         <div class="diario-pill"><span>Mercado Pago:</span> <strong id="diario-mp">$0</strong></div>
-                        <div class="diario-pill"><span>Transferencia:</span> <strong id="diario-transf">$0</strong></div>
-                        <div class="diario-pill diario-pill-alerta"><span>Pendiente:</span> <strong id="diario-pendiente" class="diario-texto-naranja">$0</strong></div>
+                        <div class="diario-pill"><span>Transferencia:</span> <strong id="diario-transf">$0</strong>
+                        </div>
+                        <div class="diario-pill diario-pill-alerta"><span>Pendiente:</span> <strong
+                                id="diario-pendiente" class="diario-texto-naranja">$0</strong></div>
                     </div>
                 </div>
 
@@ -76,17 +93,17 @@
         <div class="table-responsive">
             <table class="tabla-datos">
                 <thead>
-    <tr>
-        <th>Fecha</th>
-        <th>Hora</th>
-        <th>Cliente</th>
-        <th>Tipo</th>
-        <th>Cantidad</th>
-        <th>Total</th>
-        <th>Forma de Pago</th>
-        <th>Estado Pedido</th>
-    </tr>
-</thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Cliente</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Forma de Pago</th>
+                        <th>Estado Pedido</th>
+                    </tr>
+                </thead>
                 <tbody id="cuerpo-tabla-diario"></tbody>
             </table>
         </div>
@@ -95,4 +112,5 @@
 
 <script src="header.js"></script>
 <script src="app.js"></script>
+
 </html>
