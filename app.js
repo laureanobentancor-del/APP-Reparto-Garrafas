@@ -160,6 +160,20 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
             return;
         }
 
+        // --- ORDENAR: Primero los Pendientes, luego los demás ---
+        pedidos.sort((a, b) => {
+            const estadoA = (a.estado || '').trim();
+            const estadoB = (b.estado || '').trim();
+
+            // Si A es Pendiente y B no, A va primero (-1)
+            if (estadoA === 'Pendiente' && estadoB !== 'Pendiente') return -1;
+            // Si B es Pendiente y A no, B va primero (1)
+            if (estadoA !== 'Pendiente' && estadoB === 'Pendiente') return 1;
+
+            // Si ambos tienen el mismo estado, los ordenamos del más nuevo al más viejo (por ID descendente)
+            return b.id - a.id;
+        });
+
         pedidos.forEach(p => {
             const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
             const horaFormateada = p.fecha ? p.fecha.substring(11, 16) : '';
@@ -182,7 +196,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                     <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
                     <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
                 `;
-                columnaEstado = `<span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:#e67e22;">${p.estado}</span>`;
+                columnaEstado = `<span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:#e67e22;" title="Hacer clic para completar">${p.estado}</span>`;
             }
 
             tbody.innerHTML += `
@@ -198,7 +212,6 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                 </tr>`;
         });
     }
-
     function cargarPedidos() {
      actualizarResumenPanelPedidos(); 
         
@@ -261,7 +274,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     }
 
     window.abrirModalPedido = function() {
-        document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido Manual";
+        document.getElementById('titulo-modal-pedido').textContent = "Nuevo Pedido";
         document.getElementById('form-pedido').reset();
         document.getElementById('pedido-id').value = "";
         document.getElementById('grupo-cliente').style.display = "block";
