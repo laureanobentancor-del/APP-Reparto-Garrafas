@@ -300,26 +300,35 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     }
 
     document.getElementById('form-pedido').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('pedido-id').value;
-        const tipo = document.getElementById('pedido-tipo').value;
-        const cantidad = document.getElementById('pedido-cantidad').value;
-        const forma_pago = document.getElementById('pedido-forma-pago').value;
+    e.preventDefault();
+    const id = document.getElementById('pedido-id').value;
+    const tipo = document.getElementById('pedido-tipo').value;
+    const cantidad = document.getElementById('pedido-cantidad').value;
+    const forma_pago = document.getElementById('pedido-forma-pago').value;
+    const tipo_venta = document.getElementById('pedido-tipo-venta').value; // 👈 Capturamos el tipo de venta
 
-        if (id) {
-            fetch(`/api/pedidos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo, cantidad }) })
-                .then(() => { cerrarModalPedido(); cargarPedidos(); });
-        } else {
-            fetch('/api/pedidos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cliente_id: document.getElementById('pedido-cliente').value, tipo, cantidad, forma_pago }) })
-                .then(async res => {
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || "No hay suficiente stock disponible");
-                    return data;
-                })
-                .then(() => { cerrarModalPedido(); cargarPedidos(); })
-                .catch(err => alert(err.message));
-        }
-    });
+    if (id) {
+        fetch(`/api/pedidos/${id}`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ tipo, cantidad, tipo_venta }) 
+        })
+        .then(() => { cerrarModalPedido(); cargarPedidos(); });
+    } else {
+        fetch('/api/pedidos', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ cliente_id: document.getElementById('pedido-cliente').value, tipo, cantidad, forma_pago, tipo_venta }) 
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "No hay suficiente stock disponible");
+            return data;
+        })
+        .then(() => { cerrarModalPedido(); cargarPedidos(); })
+        .catch(err => alert(err.message));
+    }
+});
 
     window.borrarPedido = function(id) { 
         if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); 

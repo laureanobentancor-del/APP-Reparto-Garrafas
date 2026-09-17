@@ -55,6 +55,25 @@ db.serialize(() => {
     db.run(`ALTER TABLE pedidos ADD COLUMN fecha TEXT`, (err) => {});
 });
 
+
+db.run(`CREATE TABLE IF NOT EXISTS pedidos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    cliente_id INTEGER, 
+    tipo TEXT, -- Este es el tipo de garrafa (10kg, 15kg, etc.)
+    cantidad INTEGER, 
+    total REAL, 
+    estado TEXT DEFAULT 'Pendiente', 
+    forma_pago TEXT DEFAULT 'Efectivo', 
+    tipo_venta TEXT DEFAULT 'deposito', -- 👈 NUEVO CAMPO: 'deposito', 'reparto' o 'comercios'
+    fecha TEXT,
+    FOREIGN KEY(cliente_id) REFERENCES clientes(id)
+)`);
+
+// Migración automática por si la tabla ya existe
+db.run(`ALTER TABLE pedidos ADD COLUMN tipo_venta TEXT DEFAULT 'deposito'`, (err) => {});
+
+
+
 // --- RUTAS API DE USUARIOS Y AUTENTICACIÓN ---
 
 
@@ -256,9 +275,12 @@ app.get('/api/pedidos/filtrar', (req, res) => {
     });
 });
 
+
+
+
 app.post('/api/pedidos', (req, res) => {
-    const { cliente_id, tipo, forma_pago } = req.body;
-    const cantidad = parseInt(req.body.cantidad) || 1; 
+    let { cliente_id, tipo, cantidad, forma_pago, tipo_venta } = req.body;
+    cantidad = parseInt(req.body.cantidad) || 1; 
 
     db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
         if (!stock) return res.status(400).json({ error: "Stock no encontrado" });
@@ -271,13 +293,14 @@ app.post('/api/pedidos', (req, res) => {
             return res.status(400).json({ error: `No hay suficiente stock de garrafas llenas de ${tipo}. Disponibles: ${llenasActuales}` });
         }
 
-        const total = precio * cantidad;
-        const pagoFinal = forma_pago || 'Efectivo';
-        
-        db.serialize(() => {
-            db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, fecha) 
-                    VALUES (?, ?, ?, ?, 'Pendiente', ?, DATETIME('now', 'localtime'))`, 
-                    [cliente_id, tipo, cantidad, total, pagoFinal], function(err) {
+      const total = precio * cantidad;
+    const pagoFinal = forma_pago || 'Efectivo';
+    const ventaFinal = tipo_venta || 'deposito';
+    
+    db.serialize(() => {
+        db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, tipo_venta, fecha) 
+                VALUES (?, ?, ?, ?, 'Pendiente', ?, ?, DATETIME('now', 'localtime'))`, 
+                [cliente_id, tipo, cantidad, total, pagoFinal, ventaFinal], function(err) {
                 if (err) return res.status(500).json({ error: err.message });
                 const pedidoId = this.lastID;
 

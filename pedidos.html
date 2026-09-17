@@ -1,55 +1,81 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - Control de Garrafas</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
     <main>
-        <div class="panel-whatsapp" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; background: #ffffff; border: 1px solid #e1e8ed; border-radius: 10px; padding: 15px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px;">
-            
+        <div class="panel-whatsapp"
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; background: #ffffff; border: 1px solid #e1e8ed; border-radius: 10px; padding: 15px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px;">
+
             <!-- Bloque Izquierdo: WhatsApp Compacto con QR Discreto -->
-            <div style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 280px; border-right: 1px solid #eaeaea; padding-right: 20px;">
+            <div
+                style="display: flex; align-items: center; gap: 15px; flex: 1; min-width: 280px; border-right: 1px solid #eaeaea; padding-right: 20px;">
                 <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                         <span style="font-weight: 600; color: #2c3e50; font-size: 14px;">📱 WhatsApp</span>
-                        <button class="btn-accion btn-eliminar" style="padding: 2px 6px; font-size: 10px; border-radius: 3px;" onclick="reiniciarWhatsApp()">🔄 Reiniciar</button>
+                        <button class="btn-accion btn-eliminar"
+                            style="padding: 2px 6px; font-size: 10px; border-radius: 3px;"
+                            onclick="reiniciarWhatsApp()">🔄 Reiniciar</button>
                     </div>
-                    <p id="whatsapp-estado" style="margin: 0 0 4px 0; font-size: 12px; color: #555;">Verificando estado...</p>
-                    <small style="color: #888; font-size: 10px; display: block;">Sincronización automática activa.</small>
+                    <p id="whatsapp-estado" style="margin: 0 0 4px 0; font-size: 12px; color: #555;">Verificando
+                        estado...</p>
+                    <small style="color: #888; font-size: 10px; display: block;">Sincronización automática
+                        activa.</small>
                 </div>
                 <!-- Contenedor QR compacto -->
                 <div id="contenedor-qr" style="flex-shrink: 0;"></div>
             </div>
-            
+
             <!-- Bloque Derecho: Métricas y Stock Detallado -->
-            <div style="flex: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; align-items: stretch;">
-                
+            <div
+                style="flex: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; align-items: stretch;">
+
                 <!-- Tarjeta Stock Detallado por Tipo -->
-                <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: left;">
-                    <span style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px; text-align: center;">Stock por Tipo</span>
-                    <div id="resumen-stock-pedidos" style="font-size: 11px; color: #2c3e50; line-height: 1.4;">Cargando...</div>
+                <div
+                    style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: left;">
+                    <span
+                        style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 4px; text-align: center;">Stock
+                        por Tipo</span>
+                    <div id="resumen-stock-pedidos" style="font-size: 11px; color: #2c3e50; line-height: 1.4;">
+                        Cargando...</div>
                 </div>
 
                 <!-- Tarjeta Vendidas Hoy -->
-                <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                    <span style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Vendidas (Hoy)</span>
-                    <p id="resumen-garrafas-pedidos" style="font-weight: 700; font-size: 15px; color: #2980b9; margin: 0;">0 un.</p>
+                <div
+                    style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <span
+                        style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Vendidas
+                        (Hoy)</span>
+                    <p id="resumen-garrafas-pedidos"
+                        style="font-weight: 700; font-size: 15px; color: #2980b9; margin: 0;">0 un.</p>
                 </div>
 
                 <!-- Tarjeta Cobrado Hoy -->
-                <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                    <span style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Cobrado (Hoy)</span>
-                    <p id="resumen-cobrado-pedidos" style="font-weight: 700; font-size: 15px; color: #27ae60; margin: 0;">$0</p>
+                <div
+                    style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <span
+                        style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Cobrado
+                        (Hoy)</span>
+                    <p id="resumen-cobrado-pedidos"
+                        style="font-weight: 700; font-size: 15px; color: #27ae60; margin: 0;">$0</p>
                 </div>
 
                 <!-- Tarjeta Pendiente Hoy -->
-                <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-                    <span style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Pendiente (Hoy)</span>
-                    <p id="resumen-pendiente-pedidos" style="font-weight: 700; font-size: 15px; color: #d35400; margin: 0;">$0</p>
+                <div
+                    style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                    <span
+                        style="color: #6c757d; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Pendiente
+                        (Hoy)</span>
+                    <p id="resumen-pendiente-pedidos"
+                        style="font-weight: 700; font-size: 15px; color: #d35400; margin: 0;">$0</p>
                 </div>
 
             </div>
@@ -60,7 +86,7 @@
                 <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido</button>
                 <button class="btn-principal btn-hoy" onclick="filtrarPedidosHoy()">📅 Pedidos de Hoy</button>
             </div>
-            
+
             <div class="grupo-filtros">
                 <div class="filtro-campo">
                     <label for="filtro-desde">Desde:</label>
@@ -73,7 +99,7 @@
                 <button class="btn-limpiar" onclick="limpiarFiltrosFecha()">Limpiar</button>
             </div>
         </div>
-      
+
         <div class="table-responsive">
             <table class="tu-tabla-actual">
                 <thead>
@@ -116,6 +142,16 @@
                     <label>Cantidad:</label>
                     <input type="number" id="pedido-cantidad" min="1" value="1" required>
                 </div>
+
+
+                <div class="grupo-form">
+                    <label>Tipo de Venta / Canal:</label>
+                    <select id="pedido-tipo-venta" required>
+                        <option value="deposito">Depósito (Venta en la Oficina)</option>
+                        <option value="reparto">Reparto (Envío a domicilio)</option>
+                        <option value="comercios">Comercios</option>
+                    </select>
+                </div>
                 <div class="grupo-form">
                     <label>Forma de Pago:</label>
                     <select id="pedido-forma-pago" required>
@@ -133,4 +169,5 @@
 </body>
 <script src="app.js"></script>
 <script src="header.js"></script>
+
 </html>
