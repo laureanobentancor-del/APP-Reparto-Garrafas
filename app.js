@@ -150,13 +150,13 @@ if (document.getElementById('cuerpo-tabla-stock')) {
 // LÓGICA DE PEDIDOS Y WHATSAPP
 // ==========================================
 if (document.getElementById('cuerpo-tabla-pedidos')) {
-    function renderizarPedidos(pedidos) {
+  function renderizarPedidos(pedidos) {
         const tbody = document.getElementById('cuerpo-tabla-pedidos');
         if (!tbody) return;
         tbody.innerHTML = '';
         
         if (pedidos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center;">No se encontraron pedidos.</td></tr>`;
             return;
         }
 
@@ -165,12 +165,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
             const estadoA = (a.estado || '').trim();
             const estadoB = (b.estado || '').trim();
 
-            // Si A es Pendiente y B no, A va primero (-1)
             if (estadoA === 'Pendiente' && estadoB !== 'Pendiente') return -1;
-            // Si B es Pendiente y A no, B va primero (1)
             if (estadoA !== 'Pendiente' && estadoB === 'Pendiente') return 1;
 
-            // Si ambos tienen el mismo estado, los ordenamos del más nuevo al más viejo (por ID descendente)
             return b.id - a.id;
         });
 
@@ -184,6 +181,18 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
             if (metodoPago === 'Mercado Pago') iconoPago = '📱 Mercado Pago';
             if (metodoPago === 'Transferencia') iconoPago = '🏦 Transferencia';
             if (metodoPago === 'Pendiente') iconoPago = '⏳ Pendiente';
+
+            // 🟢 NUEVO: Identificar el tipo de venta (deposito, reparto, comercios)
+            let tipoVentaTexto = '🏭 Depósito';
+            let badgeColor = '#3498db'; // Azul por defecto
+            
+            if (p.tipo_venta === 'reparto') {
+                tipoVentaTexto = '🚚 Reparto';
+                badgeColor = '#e67e22'; // Naranja
+            } else if (p.tipo_venta === 'comercios') {
+                tipoVentaTexto = '🏪 Comercios';
+                badgeColor = '#9b59b6'; // Morado
+            }
 
             let botonesAccion = '';
             let columnaEstado = '';
@@ -203,6 +212,7 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                 <tr>
                     <td><strong>${p.cliente_nombre || 'Desconocido'}</strong><br><small>${p.cliente_telefono || ''}</small></td>
                     <td>${p.tipo}</td>
+                    <td><span style="background: ${badgeColor}; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">${tipoVentaTexto}</span></td>
                     <td>${p.cantidad}</td>
                     <td>$${p.total}</td>
                     <td>${iconoPago}</td>
