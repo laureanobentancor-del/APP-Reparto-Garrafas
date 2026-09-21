@@ -589,11 +589,56 @@ let ventasGlobales = [];
 
 if (document.getElementById('cuerpo-tabla-ventas')) {
 
+    // --- LÓGICA DE NAVEGACIÓN POR TECLADO EN LA TABLA ---
+  let indiceFilaActiva = -1;
+
+    function resaltarFilaActual(filas) {
+        filas.forEach((fila, idx) => {
+            if (idx === indiceFilaActiva) {
+                fila.classList.add('fila-seleccionada');
+                // Esto hace que el contenedor haga scroll automático a la fila activa
+                fila.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                fila.classList.remove('fila-seleccionada');
+            }
+        });
+    }
+
+    const contenedorTablaVentas = document.getElementById('contenedor-tabla-ventas');
+    if (contenedorTablaVentas) {
+        contenedorTablaVentas.addEventListener('keydown', (e) => {
+            const tbody = document.getElementById('cuerpo-tabla-ventas');
+            if (!tbody) return;
+            const filas = tbody.querySelectorAll('tr');
+            if (filas.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (indiceFilaActiva < filas.length - 1) {
+                    indiceFilaActiva++;
+                } else {
+                    indiceFilaActiva = 0; // Vuelve al inicio si llega al final
+                }
+                resaltarFilaActual(filas);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (indiceFilaActiva > 0) {
+                    indiceFilaActiva--;
+                } else {
+                    indiceFilaActiva = filas.length - 1; // Va al final si está en el primero
+                }
+                resaltarFilaActual(filas);
+            }
+        });
+    }
+    
     function renderizarVentas(ventas) {
         const tbody = document.getElementById('cuerpo-tabla-ventas');
         if (!tbody) return;
         tbody.innerHTML = '';
         
+        indiceFilaActiva = -1;
+
         if (ventas.length === 0) {
             tbody.innerHTML = `<tr><td colspan="9" style="text-align: center;">No se encontraron registros de ventas.</td></tr>`;
             actualizarMetricasVentasPorCanal([]);
