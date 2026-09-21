@@ -775,9 +775,6 @@ if (document.getElementById('cuerpo-tabla-ventas')) {
     cargarVentas();
 }
 
-
-
-
 // ============================
 // LÓGICA DEL LIBRO DIARIO
 // ============================
@@ -812,10 +809,6 @@ window.filtrarDiarioHoy = function() {
     filtrarYRenderizarDiario();
 };
 
-window.ponerDiaHoy = function() {
-    window.filtrarDiarioHoy();
-};
-
 window.cambiarDia = function(dias) {
     const inputDesde = document.getElementById('filtro-diario-desde');
     if (!inputDesde) return;
@@ -824,6 +817,39 @@ window.cambiarDia = function(dias) {
     inputDesde.value = fechaActual.toISOString().substring(0, 10);
     const inputHasta = document.getElementById('filtro-diario-hasta');
     if (inputHasta) inputHasta.value = inputDesde.value;
+    filtrarYRenderizarDiario();
+};
+
+window.ponerDiaHoy = function() {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    const inputBuscador = document.getElementById('buscador-diario');
+    
+    if (inputBuscador) inputBuscador.value = '';
+
+    const fechaLocal = new Date();
+    const anio = fechaLocal.getFullYear();
+    const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaLocal.getDate()).padStart(2, '0');
+    
+    // ✅ Interpolación limpia sin barras invertidas
+    const hoy = `\({anio}-\){mes}-${dia}`;
+    
+    if (inputDesde) inputDesde.value = hoy;
+    if (inputHasta) inputHasta.value = hoy;
+
+    filtrarYRenderizarDiario();
+};
+
+window.limpiarFiltrosDiario = function() {
+    const inputDesde = document.getElementById('filtro-diario-desde');
+    const inputHasta = document.getElementById('filtro-diario-hasta');
+    const inputBuscador = document.getElementById('buscador-diario');
+    
+    if (inputDesde) inputDesde.value = '';
+    if (inputHasta) inputHasta.value = '';
+    if (inputBuscador) inputBuscador.value = '';
+    
     filtrarYRenderizarDiario();
 };
 
@@ -855,10 +881,17 @@ function filtrarYRenderizarDiario() {
     const desde = document.getElementById('filtro-diario-desde')?.value;
     const hasta = document.getElementById('filtro-diario-hasta')?.value;
     const texto = document.getElementById('buscador-diario')?.value.toLowerCase() || '';
-    const canalSeleccionado = document.getElementById('filtro-diario-canal')?.value || 'todos'; // 👈 Nuevo filtro
+    const canalSeleccionado = document.getElementById('filtro-diario-canal')?.value || 'todos';
 
     let totalCobrado = 0, efec = 0, mp = 0, transf = 0, pend = 0;
     let totUnidades = 0, u10 = 0, u15 = 0, u30 = 0, u45 = 0;
+
+    // Objeto acumulador para los canales
+    const canales = {
+        deposito: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+        reparto: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+        comercios: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 }
+    };
 
     const pedidosFiltrados = todosLosPedidosDiario.filter(p => {
         if (!p.fecha) return false;
@@ -866,9 +899,8 @@ function filtrarYRenderizarDiario() {
         if (desde && fechaPedido < desde) return false;
         if (hasta && fechaPedido > hasta) return false;
 
-        // 🟢 Filtro por Canal de Venta
         if (canalSeleccionado !== 'todos') {
-            const tipoVentaReg = p.tipo_venta ? p.tipo_venta.trim() : 'deposito';
+            const tipoVentaReg = p.tipo_venta ? p.tipo_venta.trim().toLowerCase() : 'deposito';
             if (tipoVentaReg !== canalSeleccionado) return false;
         }
 
@@ -886,29 +918,42 @@ function filtrarYRenderizarDiario() {
         const hora = p.fecha ? p.fecha.substring(11, 16) : '';
         const monto = parseFloat(p.total) || 0;
         const cant = parseInt(p.cantidad) || 0;
-        const metodo = p.forma_pago || 'Efectivo';
+        const metodo = p.forma_pago ? p.forma_pago.trim() : 'Efectivo';
         
-        // 🟢 Identificar el tipo de venta para mostrar el Badge en la tabla
+        // --- CORRECCIÓN CLAVE ---
+        // Normalizamos el tipo de venta. Si viene vacío o extraño, lo mandamos a 'deposito' por seguridad.
+        let tipoVentaReg = p.tipo_venta ? p.tipo_venta.trim().toLowerCase() : 'deposito';
+        if (!canales[tipoVentaReg]) {
+            tipoVentaReg = 'deposito';
+        }
+
+        // Acumular en el canal correspondiente de forma segura
+        canales[tipoVentaReg].cantidad += cant;
+        canales[tipoVentaReg].monto += monto;
+        
+        const tipoGarrafa = (p.tipo || '').trim();
+        if (tipoGarrafa === '10kg') canales[tipoVentaReg].c10 += cant;
+        else if (tipoGarrafa === '15kg') canales[tipoVentaReg].c15 += cant;
+        else if (tipoGarrafa === '30kg') canales[tipoVentaReg].c30 += cant;
+        else if (tipoGarrafa === '45kg') canales[tipoVentaReg].c45 += cant;
+
         let tipoVentaTexto = '🏭 Depósito';
         let badgeColor = '#3498db';
-        if (p.tipo_venta === 'reparto') {
+        if (tipoVentaReg === 'reparto') {
             tipoVentaTexto = '🚚 Reparto';
             badgeColor = '#e67e22';
-        } else if (p.tipo_venta === 'comercios') {
+        } else if (tipoVentaReg === 'comercios') {
             tipoVentaTexto = '🏪 Comercios';
             badgeColor = '#9b59b6';
         }
 
-        const badgeEstado = p.estado === 'Completado' ? 
-            `<span style="color:#27ae60; font-weight:bold;">Completado</span>` : 
-            `<span style="color:#e67e22; font-weight:bold;">Pendiente</span>`;
+        const badgeEstado = p.estado === 'Completado' ? 'Completado' : 'Pendiente';
 
-        // Sumas de métricas...
         totUnidades += cant;
-        if(p.tipo === '10kg') u10 += cant;
-        if(p.tipo === '15kg') u15 += cant;
-        if(p.tipo === '30kg') u30 += cant;
-        if(p.tipo === '45kg') u45 += cant;
+        if (tipoGarrafa === '10kg') u10 += cant;
+        else if (tipoGarrafa === '15kg') u15 += cant;
+        else if (tipoGarrafa === '30kg') u30 += cant;
+        else if (tipoGarrafa === '45kg') u45 += cant;
 
         if (metodo === 'Efectivo') efec += monto;
         else if (metodo === 'Mercado Pago') mp += monto;
@@ -929,27 +974,48 @@ function filtrarYRenderizarDiario() {
             </tr>`;
     });
 
-    actualizarMetricasDiario(totalCobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45);
+    actualizarMetricasDiario(totalCobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45, canales);
 }
 
 window.filtrarDiarioPorCanal = function() {
     filtrarYRenderizarDiario();
 };
+function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45, canalesParam) {
+    // 1. Resumen Financiero
+    document.getElementById('diario-total-cobrado').textContent = `$${cobrado.toLocaleString()}`;
+    document.getElementById('diario-efectivo').textContent = `$${efec.toLocaleString()}`;
+    document.getElementById('diario-mp').textContent = `$${mp.toLocaleString()}`;
+    document.getElementById('diario-transf').textContent = `$${transf.toLocaleString()}`;
+    document.getElementById('diario-pendiente').textContent = `$${pend.toLocaleString()}`;
 
+    // 2. Unidades Vendidas
+    document.getElementById('diario-total-unidades').textContent = `${totUnidades} un.`;
+    document.getElementById('diario-g10').textContent = `${u10} un.`;
+    document.getElementById('diario-g15').textContent = `${u15} un.`;
+    document.getElementById('diario-g30').textContent = `${u30} un.`;
+    document.getElementById('diario-g45').textContent = `${u45} un.`;
 
-   function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45) {
-        document.getElementById('diario-total-cobrado').textContent = `$${cobrado.toLocaleString()}`;
-        document.getElementById('diario-efectivo').textContent = `$${efec.toLocaleString()}`;
-        document.getElementById('diario-mp').textContent = `$${mp.toLocaleString()}`;
-        document.getElementById('diario-transf').textContent = `$${transf.toLocaleString()}`;
-        document.getElementById('diario-pendiente').textContent = `$${pend.toLocaleString()}`;
+    // 3. Resumen por Canal (Mapeado exacto con los IDs de diario.html)
+    const canales = canalesParam || {
+        deposito: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+        reparto: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 },
+        comercios: { cantidad: 0, monto: 0, c10: 0, c15: 0, c30: 0, c45: 0 }
+    };
 
-        document.getElementById('diario-total-unidades').textContent = `${totUnidades} un.`;
-        document.getElementById('diario-g10').textContent = `${u10}`;
-        document.getElementById('diario-g15').textContent = `${u15}`;
-        document.getElementById('diario-g30').textContent = `${u30}`;
-        document.getElementById('diario-g45').textContent = `${u45}`;
-  }
+    ['deposito', 'reparto', 'comercios'].forEach(c => {
+        // Estos IDs ahora coinciden punto por punto con los de diario.html (ej: diario-deposito-cant)
+        const elCant = document.getElementById(`diario-${c}-cant`);
+        const elMonto = document.getElementById(`diario-${c}-monto`);
+        const elDet = document.getElementById(`diario-${c}-det`);
+
+        if (elCant) elCant.textContent = `${canales[c].cantidad} un.`;
+        if (elMonto) elMonto.textContent = `$${canales[c].monto.toLocaleString()}`;
+        if (elDet) {
+            elDet.textContent = `10kg: \({canales[c].c10} | 15kg:\){canales[c].c15} | 30kg: \({canales[c].c30} | 45kg:\){canales[c].c45}`;
+        }
+    });
+}
+
 
 // Al iniciar el script o al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
