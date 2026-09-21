@@ -6,16 +6,16 @@
     <title>Clientes - Control de Garrafas</title>
     <link rel="stylesheet" href="css/style.css">
     <script type="speculationrules">
-{
-  "prerender": [
     {
-      "source": "list",
-      "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
-      "eagerness": "conservative"
+      "prerender": [
+        {
+          "source": "list",
+          "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
+          "eagerness": "conservative"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 </head>
 <body>
     <main>
@@ -44,7 +44,7 @@
     </main>
 
     <!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
-    <div id="modal-cliente" class="modal-fondo" style="display: none;">
+    <div id="modal-cliente" class="modal-fondo">
         <div class="modal-contenido">
             <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
             <h2 id="titulo-modal-cliente">Registrar Nuevo Cliente</h2>
@@ -70,14 +70,14 @@
     </div>
 
     <!-- Modal de Historial -->
-    <div id="modal-historial" class="modal-fondo" style="display: none;">
-        <div class="modal-caja" style="max-width: 800px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 id="titulo-historial" style="margin: 0; color: #2c3e50;">Historial de Pedidos</h3>
-                <button onclick="cerrarModalHistorial()" style="background: none; border: none; font-size: 22px; cursor: pointer; font-weight: bold; color: #7f8c8d;">&times;</button>
+    <div id="modal-historial" class="modal-fondo">
+        <div class="modal-caja modal-caja-historial">
+            <div class="modal-header-flex">
+                <h3 id="titulo-historial" class="modal-historial-titulo">Historial de Pedidos</h3>
+                <button type="button" onclick="cerrarModalHistorial()" class="btn-cerrar-historial">&times;</button>
             </div>
             
-            <div class="tabla-contenedor-scroll" style="max-height: 350px; overflow-y: auto;">
+            <div class="tabla-contenedor-scroll tabla-scroll-historial">
                 <table class="tabla-datos">
                     <thead>
                         <tr>
@@ -94,8 +94,8 @@
                 </table>
             </div>
 
-            <div style="margin-top: 20px; text-align: right;">
-                <button type="button" onclick="cerrarModalHistorial()" class="btn-cancelar" style="padding: 8px 16px;">Cerrar</button>
+            <div class="modal-footer-acciones">
+                <button type="button" onclick="cerrarModalHistorial()" class="btn-cancelar">Cerrar</button>
             </div>
         </div>
     </div>

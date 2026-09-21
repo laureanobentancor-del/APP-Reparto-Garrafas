@@ -22,9 +22,9 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
                             <td>${c.telefono}</td>
                             <td>${c.direccion || '-'}</td>
                             <td>
-                                <button class="btn-accion btn-editar" onclick="editarCliente(${c.id}, '${c.nombre}', '${c.telefono}', '${c.direccion || ''}')">Editar</button>
-                                <button class="btn-accion" style="background-color: #3498db; color: white;" onclick="verHistorialCliente(${c.id}, '${c.nombre}')">Historial</button>
-                                <button class="btn-accion btn-eliminar" onclick="borrarCliente(${c.id})">Borrar</button>
+                                <button class="btn-accion btn-editar" title="Editar cliente" onclick="editarCliente(${c.id}, '${c.nombre}', '${c.telefono}', '${c.direccion || ''}')">✏️</button>
+                                <button class="btn-accion btn-historial" title="Ver historial" onclick="verHistorialCliente(${c.id}, '${c.nombre}')">📋</button>
+                                <button class="btn-accion btn-eliminar" title="Borrar cliente" onclick="borrarCliente(${c.id})">🗑️</button>
                             </td>
                         </tr>
                     `;

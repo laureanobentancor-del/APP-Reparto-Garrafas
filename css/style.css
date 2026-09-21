@@ -1395,3 +1395,85 @@ body {
 .text-blue { color: #2980b9; }
 .text-green { color: #27ae60; }
 .text-orange { color: #d35400; }
+
+/* ==========================================
+   BOTONES DE ACCIÓN CON ICONOS EN TABLAS
+   ========================================== */
+.btn-accion {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-accion:hover {
+    background-color: #f1f3f5;
+    transform: scale(1.05);
+}
+
+.btn-accion:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================
+   ESTILOS Y MODALES DE CLIENTES
+   ========================================== */
+.modal-fondo {
+    display: none; /* Controlado dinámicamente por app.js con 'flex' */
+}
+
+.modal-caja-historial {
+    max-width: 800px;
+}
+
+.modal-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-historial-titulo {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.btn-cerrar-historial {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+.btn-cerrar-historial:hover {
+    color: #2c3e50;
+}
+
+.tabla-scroll-historial {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.modal-footer-acciones {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.btn-cancelar {
+    padding: 8px 16px;
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-cancelar:hover {
+    background-color: #7f8c8d;
+}
