@@ -307,6 +307,10 @@ body {
 }
 
 .clientes-acciones-container {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 70px; /* Debe coincidir o estar justo debajo de tu header fijo (ajusta según la altura de tu app-header) */
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -314,6 +318,10 @@ body {
     margin-bottom: 20px;
     width: 100%;
     box-sizing: border-box;
+    background-color: #f4f7f6; /* Usar el mismo color de fondo del body para que no se traspase la tabla por debajo */
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.08);
 }
 
 .btn-nuevo-cliente {
@@ -619,6 +627,25 @@ table tbody tr:hover,
 .text-blue { color: #2980b9; }
 .text-green { color: #27ae60; }
 .text-orange { color: #d35400; }
+
+
+.diario-fila-navegacion {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 70px; /* Queda fija justo debajo del header principal de la app */
+    z-index: 100;
+    background-color: #ffffff; /* Fondo blanco sólido para que la tabla no se traspase */
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px; /* Mantiene la separación con las métricas al hacer scroll */
+}
 
 /* Ventas y Canales */
 .ventas-resumen-card,

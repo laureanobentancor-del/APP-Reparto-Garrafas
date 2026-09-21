@@ -832,8 +832,8 @@ window.ponerDiaHoy = function() {
     const mes = String(fechaLocal.getMonth() + 1).padStart(2, '0');
     const dia = String(fechaLocal.getDate()).padStart(2, '0');
     
-    // ✅ Interpolación limpia sin barras invertidas
-    const hoy = `\({anio}-\){mes}-${dia}`;
+    // Concatenación tradicional (cero errores de sintaxis en editores)
+    const hoy = anio + '-' + mes + '-' + dia;
     
     if (inputDesde) inputDesde.value = hoy;
     if (inputHasta) inputHasta.value = hoy;
@@ -980,6 +980,7 @@ function filtrarYRenderizarDiario() {
 window.filtrarDiarioPorCanal = function() {
     filtrarYRenderizarDiario();
 };
+
 function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, u10, u15, u30, u45, canalesParam) {
     // 1. Resumen Financiero
     document.getElementById('diario-total-cobrado').textContent = `$${cobrado.toLocaleString()}`;
@@ -1003,7 +1004,7 @@ function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, 
     };
 
     ['deposito', 'reparto', 'comercios'].forEach(c => {
-        // Estos IDs ahora coinciden punto por punto con los de diario.html (ej: diario-deposito-cant)
+        // Enlace corregido a los IDs de diario.html
         const elCant = document.getElementById(`diario-${c}-cant`);
         const elMonto = document.getElementById(`diario-${c}-monto`);
         const elDet = document.getElementById(`diario-${c}-det`);
