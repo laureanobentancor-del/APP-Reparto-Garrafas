@@ -245,16 +245,13 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                 badgeColor = '#9b59b6';
             }
 
-            let botonesAccion = '';
-            let columnaEstado = '';
-
             if (p.estado === 'Completado') {
                 botonesAccion = '';
                 columnaEstado = `<span style="font-weight:bold; color:#27ae60;">${p.estado}</span>`;
             } else {
                 botonesAccion = `
-                    <button class="btn-accion btn-editar" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">Editar</button> 
-                    <button class="btn-accion btn-eliminar" onclick="borrarPedido(${p.id})">Borrar</button>
+                    <button class="btn-accion btn-editar" title="Editar pedido" onclick="editarPedido(${p.id}, '${p.tipo}', ${p.cantidad})">✏️</button> 
+                    <button class="btn-accion btn-eliminar" title="Borrar pedido" onclick="borrarPedido(${p.id})">🗑️</button>
                 `;
                 columnaEstado = `<span onclick="cambiarEstado(${p.id}, '${p.estado}')" style="cursor:pointer; font-weight:bold; color:#e67e22;" title="Hacer clic para completar">${p.estado}</span>`;
             }

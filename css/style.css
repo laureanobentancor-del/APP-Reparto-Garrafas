@@ -155,7 +155,7 @@ body {
     padding: 5px 8px;
     border-radius: 6px;
     transition: background-color 0.2s, transform 0.1s;
-    color: white;
+    /* Quitamos el color white para que los emojis se vean perfectos y no se pongan blancos */
 }
 
 .btn-accion:hover {
