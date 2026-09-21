@@ -6,6 +6,7 @@ body {
     background-color: #f4f7f6;
     margin: 0;
     padding: 20px;
+    margin-top: 85px; /* Compensación por el header fijo */
 }
 
 .login-body {
@@ -15,26 +16,159 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin-top: 0;
 }
 
 /* ==========================================
-   2. BOTONES Y ACCIONES
+   2. HEADER Y NAVEGACIÓN FIJA
+   ========================================== */
+.app-header,
+.estilos-header {
+    background: #2c3e50;
+    color: white;
+    padding: 12px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 2000;
+}
+
+.app-header-left,
+.header-nav-container {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.app-title,
+.header-logo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.app-nav,
+.header-nav {
+    display: flex;
+    gap: 5px;
+}
+
+.app-nav-link,
+.nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    background: transparent;
+    transition: background 0.3s;
+}
+
+.app-nav-link:hover,
+.nav-link:hover,
+.app-nav-link.active,
+.nav-link.active {
+    background: #34495e;
+}
+
+.app-header-right,
+.header-user-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rol-label,
+.header-rol-badge {
+    font-size: 13px;
+    color: #bdc3c7;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.user-avatar-container,
+.header-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #3498db;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    border: 2px solid #ecf0f1;
+    overflow: hidden;
+}
+
+.dropdown-menu,
+.header-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 48px;
+    background: white;
+    color: #333;
+    width: 220px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 2000;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown-item.danger,
+.dropdown-item.cerrar-sesion {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+/* ==========================================
+   3. BOTONES Y ACCIONES GENERALES
    ========================================== */
 .btn-accion {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 3px;
+    background: transparent;
+    border: 1px solid transparent;
     cursor: pointer;
+    font-size: 15px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s, transform 0.1s;
     color: white;
 }
 
-.btn-editar {
-    background: #f39c12;
+.btn-accion:hover {
+    background-color: #f1f3f5;
+    transform: scale(1.05);
 }
 
-.btn-eliminar {
-    background: #c0392b;
+.btn-accion:active {
+    transform: scale(0.95);
 }
+
+.btn-editar { background: #f39c12; }
+.btn-eliminar, .btn-borrar { background: #c0392b; }
 
 .btn-nuevo {
     background-color: #2980b9;
@@ -46,10 +180,7 @@ body {
     font-weight: bold;
     transition: background-color 0.2s;
 }
-
-.btn-nuevo:hover {
-    background-color: #2471a3;
-}
+.btn-nuevo:hover { background-color: #2471a3; }
 
 .btn-hoy {
     background-color: #27ae60;
@@ -61,10 +192,7 @@ body {
     font-weight: bold;
     transition: background-color 0.2s;
 }
-
-.btn-hoy:hover {
-    background-color: #219653;
-}
+.btn-hoy:hover { background-color: #219653; }
 
 .btn-limpiar {
     background-color: #e74c3c;
@@ -76,10 +204,31 @@ body {
     font-weight: bold;
     transition: background-color 0.2s;
 }
+.btn-limpiar:hover { background-color: #c0392b; }
 
-.btn-limpiar:hover {
-    background-color: #c0392b;
+.btn-guardar {
+    padding: 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    font-size: 16px;
 }
+
+.btn-cancelar {
+    padding: 8px 16px;
+    background: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+}
+.btn-cancelar:hover { background-color: #7f8c8d; }
 
 .btn-nuevo-usuario {
     background: #27ae60;
@@ -92,60 +241,17 @@ body {
     font-size: 13px;
 }
 
-.btn-guardar {
-    padding: 10px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%;
-}
-
-.btn-cancelar {
-    padding: 8px 16px;
-    background: #bdc3c7;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-}
-
-.btn-accion-tabla {
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.btn-bloquear {
-    background: #f39c12;
-    margin-right: 5px;
-}
-
-.btn-desbloquear {
-    background: #27ae60;
-    margin-right: 5px;
-}
-
-.btn-borrar {
-    background: #e74c3c;
-}
-
+.btn-bloquear { background: #f39c12; margin-right: 5px; }
+.btn-desbloquear { background: #27ae60; margin-right: 5px; }
 
 /* ==========================================
-   4. BUSCADORES, FILTROS Y CONTENEDORES SUPERIORES (STICKY CORREGIDO)
+   4. CONTENEDORES SUPERIORES Y FILTROS (STICKY)
    ========================================== */
 .acciones-superiores-container {
     position: -webkit-sticky;
     position: sticky;
-    top: 65px; /* Altura exacta del header fijo para que se pegue justo debajo */
-    z-index: 99; /* Por debajo del header (100) pero por encima del contenido */
+    top: 70px;
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -157,73 +263,6 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.08);
     border-bottom: 1px solid #e2e8f0;
-}
-
-
-/* Filtro superior fijo para Libro Diario y Ventas */
-.acciones-superiores-container {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 65px !important; /* Altura de tu header fijo */
-    z-index: 100 !important;
-    background-color: #ffffff !important;
-}
-
-
-/* ==========================================
-   3. TABLAS Y CONTENEDORES
-   ========================================== */
-.table-responsive {
-    width: 100%;
-    overflow-x: visible;
-}
-
-table,
-.tabla-datos,
-.tabla-perfiles {
-    width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.tabla-datos th,
-.tabla-datos td,
-.tabla-perfiles th,
-.tabla-perfiles td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-}
-
-.tabla-datos th,
-.tabla-perfiles thead tr {
-    background: #2c3e50;
-    color: white;
-}
-
-.tabla-contenedor-scroll {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-/* ==========================================
-   4. BUSCADORES, FILTROS Y CONTENEDORES SUPERIORES
-   ========================================== */
-.acciones-superiores-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin: 20px 0;
-    background-color: #ffffff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .grupo-izquierdo,
@@ -246,7 +285,8 @@ table,
     color: #34495e;
 }
 
-.input-buscador {
+.input-buscador,
+.buscador-input {
     padding: 8px 12px;
     width: 100%;
     max-width: 320px;
@@ -256,28 +296,270 @@ table,
     color: #2c3e50;
     outline: none;
     background-color: #ffffff;
-    transition: border-color 0.3s, box-shadow 0.3s;
     box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.input-buscador:focus {
+.input-buscador:focus,
+.buscador-input:focus {
     border-color: #27ae60;
     box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
 }
 
+.clientes-acciones-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-nuevo-cliente {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+.btn-nuevo-cliente:hover { background-color: #219653; }
+
 /* ==========================================
-   5. PANEL DE WHATSAPP
+   5. TABLAS Y CONTENEDORES
+   ========================================== */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table,
+.tabla-datos,
+.tabla-perfiles,
+.tabla-ventas {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+table th,
+table td,
+.tabla-datos th,
+.tabla-datos td,
+.tabla-perfiles th,
+.tabla-perfiles td,
+.tabla-ventas th,
+.tabla-ventas td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+table thead tr,
+.tabla-datos thead tr,
+.tabla-perfiles thead tr,
+.tabla-ventas thead tr,
+table th,
+.tabla-datos th,
+.tabla-perfiles th,
+.tabla-ventas th {
+    background: #2c3e50 !important;
+    color: white !important;
+}
+
+table tbody tr:hover,
+.tabla-datos tbody tr:hover,
+.tabla-ventas tbody tr:hover {
+    background-color: #f1f1f1 !important;
+}
+
+.tabla-contenedor-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* ==========================================
+   6. MODALES Y VENTANAS FLOTANTES
+   ========================================== */
+.modal-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none; /* Controlado por JS con flex */
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.modal-contenido {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.modal-contenido .grupo-form {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-contenido .grupo-form label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.modal-contenido .grupo-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+.modal-contenido .btn-cerrar {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #7f8c8d;
+    background: none;
+    border: none;
+}
+
+.modal-caja {
+    background: #ffffff;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-caja-historial { max-width: 800px; }
+
+.modal-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-historial-titulo {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.btn-cerrar-historial {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+.btn-cerrar-historial:hover { color: #2c3e50; }
+
+.tabla-scroll-historial {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.modal-footer-acciones {
+    margin-top: 20px;
+    text-align: right;
+}
+
+/* ==========================================
+   7. PANELES ESPECÍFICOS (WHATSAPP, VENTAS, DIARIO)
    ========================================== */
 .panel-whatsapp {
     background: white;
     padding: 15px 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 25px;
+    border: 1px solid #e1e8ed;
 }
+
+.whatsapp-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    min-width: 280px;
+    border-right: 1px solid #eaeaea;
+    padding-right: 20px;
+}
+
+.whatsapp-info { flex: 1; }
+
+.whatsapp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.whatsapp-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.btn-reiniciar-qr {
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+}
+
+.whatsapp-status {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    color: #555;
+}
+
+.whatsapp-note {
+    color: #888;
+    font-size: 10px;
+    display: block;
+}
+
+.qr-box { flex-shrink: 0; }
 
 #contenedor-qr img {
     border: 1px solid #ddd;
@@ -288,8 +570,211 @@ table,
     height: 160px;
 }
 
+/* Grilla de Métricas / Tarjetas */
+.metrics-grid {
+    flex: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 10px;
+    align-items: stretch;
+}
+
+.metric-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: left;
+}
+
+.metric-center {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.metric-stock-text {
+    font-size: 11px;
+    color: #2c3e50;
+    line-height: 1.4;
+}
+
+.metric-val {
+    font-weight: 700;
+    font-size: 15px;
+    margin: 0;
+}
+
+.text-blue { color: #2980b9; }
+.text-green { color: #27ae60; }
+.text-orange { color: #d35400; }
+
+/* Ventas y Canales */
+.ventas-resumen-card,
+.diario-card-superior {
+    background: #ffffff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    margin-bottom: 25px;
+}
+
+.ventas-canales-grid,
+.ventas-metricas-grid,
+.diario-grilla-metricas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.canal-card,
+.ventas-caja,
+.diario-caja-metrica {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.canal-deposito { border-left: 5px solid #3498db; }
+.canal-reparto { border-left: 5px solid #e67e22; }
+.canal-comercios { border-left: 5px solid #9b59b6; }
+
+.canal-card-titulo,
+.ventas-titulo-verde,
+.diario-caja-titulo-verde {
+    color: #27ae60;
+    border-bottom: 2px solid #27ae60;
+    padding-bottom: 6px;
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ventas-titulo-azul,
+.diario-caja-titulo-azul {
+    color: #2980b9;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 6px;
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.canal-card-p,
+.ventas-fila-total,
+.diario-fila-total-principal {
+    margin: 5px 0;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    color: #2c3e50;
+}
+
+.canal-monto { color: #27ae60; font-weight: bold; }
+.canal-detalle { font-size: 0.9em; color: #7f8c8d; }
+
+.ventas-pills-grid,
+.diario-subgrilla-pills {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.ventas-pill,
+.diario-pill {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #333333;
+}
+
+.ventas-pill-alerta,
+.diario-pill-alerta {
+    border-color: #f5c6cb;
+    background: #fff3f3;
+}
+
+.diario-fila-navegacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 20px;
+}
+
+.diario-grupo-botones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.diario-texto-verde { color: #27ae60; }
+.diario-texto-naranja { color: #d35400; }
+.diario-texto-azul { color: #2980b9; }
+
+/* Mapa y Zonas */
+.mapa-contenedor { position: relative; }
+
+#mapa-ventas {
+    height: 450px;
+    width: 100%;
+    border-radius: 8px;
+    z-index: 1;
+}
+
+.btn-centrar-mapa {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    z-index: 1000;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.btn-centrar-mapa:hover { background: #34495e; }
+
+#panel-estadisticas-zonas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
 /* ==========================================
-   6. LOGIN Y FORMULARIOS
+   8. FORMULARIOS Y LOGIN Y ALERTAS
    ========================================== */
 .login-card {
     background: #ffffff;
@@ -346,312 +831,29 @@ table,
     border-color: #27ae60;
 }
 
-.form-nuevo-usuario {
-    display: none;
-    background: #f4f6f9;
-    padding: 15px;
-    border-radius: 6px;
+.alerta {
+    padding: 12px 20px;
     margin-bottom: 15px;
-    border: 1px solid #ddd;
-}
-
-.form-nuevo-usuario h4 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    font-size: 14px;
-}
-
-.form-grupo-inputs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.form-botones-flex,
-.form-botones-footer {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 15px;
-}
-
-/* ==========================================
-   7. HEADER Y NAVEGACIÓN
-   ========================================== */
-.app-header {
-    background: #2c3e50;
-    color: white;
-    padding: 12px 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 100;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.header-nav-container {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.header-logo {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.header-nav {
-    display: flex;
-    gap: 5px;
-}
-
-.nav-link {
-    color: white;
-    text-decoration: none;
-    padding: 6px 12px;
     border-radius: 4px;
+    font-weight: bold;
     font-size: 14px;
-    transition: background 0.3s;
+    transition: opacity 0.3s ease;
 }
-
-.nav-link:hover,
-.nav-link.active {
-    background: #34495e;
-}
-
-.header-user-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.header-rol-badge {
-    font-size: 13px;
-    color: #bdc3c7;
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.header-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #3498db;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
-    border: 2px solid #ecf0f1;
-    overflow: hidden;
-}
-
-.header-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 48px;
-    background: white;
-    color: #333;
-    width: 220px;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    z-index: 2000;
-}
-
-.dropdown-item {
-    display: block;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #2c3e50;
-    font-size: 14px;
-    font-weight: bold;
-    border-bottom: 1px solid #f1f1f1;
-}
-
-.dropdown-item.cerrar-sesion {
-    color: #e74c3c;
-}
+.alerta.oculto { display: none; }
+.alerta.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alerta.exito { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 
 /* ==========================================
-   8. MODALES
+   9. UTILIDADES Y RESPONSIVO (MÓVILES)
    ========================================== */
+.text-center { text-align: center; }
+.font-bold { font-weight: bold; }
+.text-uppercase { text-transform: uppercase; }
+.text-muted { color: #555; font-size: 12px; }
+.text-danger { color: #e74c3c; font-size: 11px; margin-left: 5px; }
+.p-15 { padding: 15px; }
 
-.modal-fondo {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    /* Oscurece el fondo de la pantalla */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    /* Margen de seguridad para que no pegue contra los bordes del celular */
-    box-sizing: border-box;
-    z-index: 1000;
-}
-
-.modal-contenido {
-    background: #ffffff;
-    /* 🔑 Fondo blanco y sólido: elimina la transparencia */
-    width: 100%;
-    max-width: 500px;
-    /* Ancho cómodo y profesional para formularios */
-    max-height: 90vh;
-    /* 🔑 Vital en vertical: evita que el modal sea más alto que la pantalla */
-    overflow-y: auto;
-    /* 🔑 Activa scroll interno si el celular es muy pequeño o se abre el teclado */
-    display: flex;
-    flex-direction: column;
-    border-radius: 8px;
-    padding: 20px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-}
-
-/* Estilos internos para que los inputs y botones respondan bien al celular */
-.modal-contenido .grupo-form {
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-contenido .grupo-form label {
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.modal-contenido .grupo-form input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 16px;
-    /* Evita que los dispositivos iOS hagan zoom automático incómodo */
-}
-
-.modal-contenido .btn-guardar {
-    width: 100%;
-    padding: 12px;
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.modal-contenido .btn-cerrar {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    color: #7f8c8d;
-    background: none;
-    border: none;
-}
-
-
-
-
-
-
-
-.modal-fondo {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    /* Margen de seguridad para que no pegue contra los bordes en celulares */
-    box-sizing: border-box;
-    z-index: 1000;
-}
-
-.modal-caja {
-    background: #ffffff;
-    width: 100%;
-    max-width: 800px;
-    max-height: 90vh;
-    /* 🔑 CLAVE: Impide que el modal sea más alto que la pantalla del celular */
-    display: flex;
-    flex-direction: column;
-    /* Organiza los elementos internos en columna */
-    border-radius: 8px;
-    padding: 15px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-/* Contenedor de la tabla con scroll interno adaptable */
-.tabla-contenedor-scroll {
-    width: 100%;
-    overflow-x: auto;
-    /* Permite deslizar las columnas lateralmente si no entran */
-    overflow-y: auto;
-    /* Permite hacer scroll vertical solo en la tabla si hay muchos datos */
-    max-height: 55vh;
-    /* Se ajusta proporcionalmente al espacio vertical disponible */
-    flex: 1;
-}
-
-/* ==========================================
-   9. UTILIDADES DE TEXTO
-   ========================================== */
-.text-center {
-    text-align: center;
-}
-
-.font-bold {
-    font-weight: bold;
-}
-
-.text-uppercase {
-    text-transform: uppercase;
-}
-
-.text-muted {
-    color: #555;
-    font-size: 12px;
-}
-
-.text-danger {
-    color: #e74c3c;
-    font-size: 11px;
-    margin-left: 5px;
-}
-
-.p-15 {
-    padding: 15px;
-}
-
-/* ==========================================
-   10. DISEÑO RESPONSIVO (MÓVILES)
-   ========================================== */
 @media screen and (max-width: 768px) {
-
     header,
     .header-container,
     .acciones-superiores-container {
@@ -659,17 +861,6 @@ table,
         align-items: stretch !important;
         gap: 10px !important;
         padding: 10px !important;
-    }
-
-    .admin-info,
-    .user-info,
-    .admin-controls {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        gap: 8px;
     }
 
     header button,
@@ -712,820 +903,4 @@ table,
         max-width: 100% !important;
         table-layout: auto !important;
     }
-}
-
-
-
-
-
-/* --- ESTILOS PARA LA SECCIÓN DE CLIENTES --- */
-.clientes-acciones-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.buscador-input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid #bdc3c7;
-    border-radius: 5px;
-    font-size: 14px;
-    outline: none;
-    background-color: #ffffff;
-    color: #2c3e50;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.buscador-input:focus {
-    border-color: #27ae60;
-    box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
-}
-
-.btn-nuevo-cliente {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    white-space: nowrap;
-    transition: background-color 0.2s;
-}
-
-.btn-nuevo-cliente:hover {
-    background-color: #219653;
-}
-
-
-/* ========================================== */
-/* ESTILOS PARA EL APARTADO DE VENTAS         */
-/* ========================================== */
-.ventas-resumen-card {
-    background: #ffffff;
-    border: 1px solid #e1e8ed;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    margin-bottom: 25px;
-}
-
-.ventas-metricas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-}
-
-.ventas-caja {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 15px;
-}
-
-.ventas-titulo-verde {
-    color: #27ae60;
-    border-bottom: 2px solid #27ae60;
-    padding-bottom: 6px;
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.ventas-titulo-azul {
-    color: #2980b9;
-    border-bottom: 2px solid #2980b9;
-    padding-bottom: 6px;
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.ventas-fila-total {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    color: #2c3e50;
-}
-
-.ventas-pills-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.ventas-pill {
-    background: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    color: #333333;
-}
-
-.ventas-pill-alerta {
-    border-color: #f5c6cb;
-    background: #fff3f3;
-}
-
-.ventas-header-solo-buscador {
-    justify-content: flex-end !important;
-}
-
-.acciones-superiores-container {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background-color: #ffffff;
-    /* Asegura que el fondo tape el contenido al hacer scroll */
-    padding: 12px 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-}
-
-/* ========================================== */
-/* ESTILOS PARA EL APARTADO DE LIBRO DIARIO   */
-/* ========================================== */
-
-.acciones-superiores-container {
-    position: -webkit-sticky; /* Safari */
-    position: sticky;
-    top: 70px; /* Altura de tu header (prueba subiendo a 75px o 80px si queda muy pegado) */
-    z-index: 1000;
-    background-color: #ffffff !important; /* Forzar fondo blanco para que no traspase la tabla */
-    padding: 12px 15px;
-    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid #e2e8f0;
-}
-
-
-
-
-.diario-card-superior {
-    background: #ffffff;
-    border: 1px solid #e1e8ed;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    margin-bottom: 25px;
-}
-
-.diario-fila-navegacion {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eaeaea;
-    margin-bottom: 20px;
-}
-
-.diario-label-fecha {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 13px;
-}
-
-.diario-grupo-botones {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.diario-grilla-metricas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
-}
-
-.diario-caja-metrica {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 15px;
-}
-
-.diario-caja-titulo-verde {
-    color: #27ae60;
-    border-bottom: 2px solid #27ae60;
-    padding-bottom: 6px;
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.diario-caja-titulo-azul {
-    color: #2980b9;
-    border-bottom: 2px solid #2980b9;
-    padding-bottom: 6px;
-    margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.diario-fila-total-principal {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    color: #2c3e50;
-}
-
-.diario-subgrilla-pills {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.diario-pill {
-    background: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 8px 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    color: #333333;
-}
-
-.diario-pill-alerta {
-    border-color: #f5c6cb;
-    background: #fff3f3;
-}
-
-.diario-texto-verde {
-    color: #27ae60;
-}
-
-.diario-texto-naranja {
-    color: #d35400;
-}
-
-.diario-texto-azul {
-    color: #2980b9;
-}
-
-
-
-
-/* ========================================== */
-/* NUEVA CLASE PARA LA TABLA DE VENTAS        */
-/* ========================================== */
-.tabla-ventas {
-    width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.tabla-ventas th,
-.tabla-ventas td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-}
-
-.tabla-ventas th {
-    background: #2c3e50;
-    color: white;
-}
-
-.tabla-ventas tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* ========================================== */
-/* ESTILOS DEFINITIVOS PARA TABLAS UNIFICADAS */
-/* ========================================== */
-table,
-.tabla-datos {
-    width: 100%;
-    max-width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-table th,
-table td,
-.tabla-datos th,
-.tabla-datos td {
-    padding: 12px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-}
-
-table thead tr,
-.tabla-datos thead tr,
-.tabla-datos th {
-    background: #2c3e50 !important;
-    color: white !important;
-}
-
-table tbody tr:hover,
-.tabla-datos tbody tr:hover {
-    background-color: #f1f1f1 !important;
-}
-
-.mapa-contenedor {
-    position: relative;
-}
-
-#mapa-ventas {
-    height: 450px;
-    width: 100%;
-    border-radius: 8px;
-    z-index: 1;
-}
-
-.btn-centrar-mapa {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    z-index: 1000;
-    background: #2c3e50;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: bold;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.btn-centrar-mapa:hover {
-    background: #34495e;
-}
-
-#panel-estadisticas-zonas {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 220px;
-    overflow-y: auto;
-}
-
-
-/* Header Principal y Navegación */
-.app-header {
-    background: #2c3e50;
-    color: white;
-    padding: 12px 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 100;
-}
-
-.app-header-left {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.app-title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.app-nav {
-    display: flex;
-    gap: 5px;
-}
-
-.app-nav-link {
-    color: white;
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 14px;
-    background: transparent;
-}
-
-.app-nav-link.active {
-    background: #34495e;
-}
-
-/* Zona de Perfil y Menú Desplegable */
-.app-header-right {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.rol-label {
-    font-size: 13px;
-    color: #bdc3c7;
-    font-weight: bold;
-}
-
-.user-avatar-container {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #3498db;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    cursor: pointer;
-    user-select: none;
-    border: 2px solid #ecf0f1;
-    overflow: hidden;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 48px;
-    background: white;
-    color: #333;
-    width: 220px;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    z-index: 2000;
-}
-
-.dropdown-item {
-    display: block;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #2c3e50;
-    font-size: 14px;
-    border-bottom: 1px solid #f1f1f1;
-}
-
-.dropdown-item.danger {
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-.dropdown-item:hover {
-    background: #f8f9fa;
-}
-
-/* Compensación del Body por el Header Fijo */
-body {
-    margin-top: 65px;
-}
-
-
-
-/* Header Fijo Superior */
-.estilos-header {
-    background: #2c3e50;
-    color: white;
-    padding: 12px 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    z-index: 100;
-}
-
-
-body {
-    margin-top: 85px;
-    /* Incrementa este valor según la altura real de tu header */
-}
-
-.acciones-superiores-container {
-    margin-top: 20px;
-    /* Espacio adicional de separación en la sección de ventas */
-}
-
-.acciones-superiores-container {
-    position: sticky;
-    top: 75px;
-    /* Distancia exacta desde arriba para respetar la altura del header */
-    z-index: 10;
-    background-color: #ffffff;
-    padding: 12px 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 15px;
-}
-
-/*Estilos CSS básicos para las notificaciones*/
-
-.alerta {
-    padding: 12px 20px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 14px;
-    transition: opacity 0.3s ease;
-}
-
-.alerta.oculto {
-    display: none;
-}
-
-.alerta.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.alerta.exito {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
- /*===============================================================================================*/
-
- /* ==========================================
-   ESTILOS PANEL SUPERIOR DE PEDIDOS
-   ========================================== */
-.panel-whatsapp {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-    background: #ffffff;
-    border: 1px solid #e1e8ed;
-    border-radius: 10px;
-    padding: 15px 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-    margin-bottom: 25px;
-}
-
-.whatsapp-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex: 1;
-    min-width: 280px;
-    border-right: 1px solid #eaeaea;
-    padding-right: 20px;
-}
-
-.whatsapp-info {
-    flex: 1;
-}
-
-.whatsapp-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-}
-
-.whatsapp-title {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 14px;
-}
-
-.btn-reiniciar-qr {
-    padding: 2px 6px;
-    font-size: 10px;
-    border-radius: 3px;
-}
-
-.whatsapp-status {
-    margin: 0 0 4px 0;
-    font-size: 12px;
-    color: #555;
-}
-
-.whatsapp-note {
-    color: #888;
-    font-size: 10px;
-    display: block;
-}
-
-.qr-box {
-    flex-shrink: 0;
-}
-
-/* Grilla de Métricas */
-.metrics-grid {
-    flex: 2;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-    gap: 10px;
-    align-items: stretch;
-}
-
-.metric-card {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: left;
-}
-
-.metric-center {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.metric-label {
-    color: #6c757d;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 4px;
-    text-align: center;
-}
-
-.metric-stock-text {
-    font-size: 11px;
-    color: #2c3e50;
-    line-height: 1.4;
-}
-
-.metric-val {
-    font-weight: 700;
-    font-size: 15px;
-    margin: 0;
-}
-
-.text-blue { color: #2980b9; }
-.text-green { color: #27ae60; }
-.text-orange { color: #d35400; }
-
-/* ==========================================
-   BOTONES DE ACCIÓN CON ICONOS EN TABLAS
-   ========================================== */
-.btn-accion {
-    background: transparent;
-    border: 1px solid transparent;
-    cursor: pointer;
-    font-size: 15px;
-    padding: 5px 8px;
-    border-radius: 6px;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn-accion:hover {
-    background-color: #f1f3f5;
-    transform: scale(1.05);
-}
-
-.btn-accion:active {
-    transform: scale(0.95);
-}
-
-/* ==========================================
-   ESTILOS Y MODALES DE CLIENTES
-   ========================================== */
-.modal-fondo {
-    display: none; /* Controlado dinámicamente por app.js con 'flex' */
-}
-
-.modal-caja-historial {
-    max-width: 800px;
-}
-
-.modal-header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.modal-historial-titulo {
-    margin: 0;
-    color: #2c3e50;
-}
-
-.btn-cerrar-historial {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #7f8c8d;
-}
-
-.btn-cerrar-historial:hover {
-    color: #2c3e50;
-}
-
-.tabla-scroll-historial {
-    max-height: 350px;
-    overflow-y: auto;
-}
-
-.modal-footer-acciones {
-    margin-top: 20px;
-    text-align: right;
-}
-
-.btn-cancelar {
-    padding: 8px 16px;
-    background-color: #95a5a6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.btn-cancelar:hover {
-    background-color: #7f8c8d;
-}
-
-
-/* ==========================================
-   ESTILOS DE LA VISTA DE VENTAS Y CANALES
-   ========================================== */
-.ventas-canales-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.canal-card {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 6px;
-}
-
-.canal-deposito {
-    border-left: 5px solid #3498db;
-}
-
-.canal-reparto {
-    border-left: 5px solid #e67e22;
-}
-
-.canal-comercios {
-    border-left: 5px solid #9b59b6;
-}
-
-.canal-card-titulo {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-}
-
-.canal-card-p {
-    margin: 5px 0;
-}
-
-.canal-monto {
-    color: #27ae60;
-    font-weight: bold;
-}
-
-.canal-detalle {
-    font-size: 0.9em;
-    color: #7f8c8d;
-}
-
-.modal-fondo {
-    display: none;
 }
