@@ -8,100 +8,100 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css">
     <script type="speculationrules">
-{
-  "prerender": [
     {
-      "source": "list",
-      "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
-      "eagerness": "conservative"
+      "prerender": [
+        {
+          "source": "list",
+          "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
+          "eagerness": "conservative"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 </head>
 <body>
     <main>        
         <div class="acciones-superiores-container">
-    <div class="grupo-filtros">
-        <div class="filtro-campo">
-            <label for="buscador-ventas">Buscar:</label>
-            <input type="text" id="buscador-ventas" class="input-buscador" placeholder="Cliente o detalle..." oninput="filtrarVentasTexto()">
-        </div>
-    </div>
-</div>
-
-    <!-- Añadir dentro de <main> en ventas.html -->
-<div class="ventas-resumen-card">
-    <h3 class="ventas-titulo-verde">🏢 Desglose de Ventas por Canal (Depósito vs Reparto vs Comercios)</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
-        
-        <!-- Tarjeta Depósito -->
-        <div style="background: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; border-radius: 6px;">
-            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🏭 Ventas en Depósito</h4>
-            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="deposito-cantidad">0 un.</span></p>
-            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="deposito-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
-            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="deposito-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+            <div class="grupo-filtros">
+                <div class="filtro-campo">
+                    <label for="buscador-ventas">Buscar:</label>
+                    <input type="text" id="buscador-ventas" class="input-buscador" placeholder="Cliente o detalle..." oninput="filtrarVentasTexto()">
+                </div>
+            </div>
         </div>
 
-        <!-- Tarjeta Reparto -->
-        <div style="background: #f8f9fa; border-left: 5px solid #e67e22; padding: 15px; border-radius: 6px;">
-            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Ventas en Reparto</h4>
-            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="reparto-cantidad">0 un.</span></p>
-            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="reparto-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
-            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="reparto-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+        <!-- Desglose de Ventas por Canal -->
+        <div class="ventas-resumen-card">
+            <h3 class="ventas-titulo-verde">🏢 Desglose de Ventas por Canal (Depósito vs Reparto vs Comercios)</h3>
+            <div class="ventas-canales-grid">
+                
+                <!-- Tarjeta Depósito -->
+                <div class="canal-card canal-deposito">
+                    <h4 class="canal-card-titulo">🏭 Ventas en Depósito</h4>
+                    <p class="canal-card-p"><strong>Cantidad:</strong> <span id="deposito-cantidad">0 un.</span></p>
+                    <p class="canal-card-p"><strong>Monto Total:</strong> <span id="deposito-monto" class="canal-monto">$0</span></p>
+                    <p class="canal-card-p canal-detalle" id="deposito-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+                </div>
+
+                <!-- Tarjeta Reparto -->
+                <div class="canal-card canal-reparto">
+                    <h4 class="canal-card-titulo">🚚 Ventas en Reparto</h4>
+                    <p class="canal-card-p"><strong>Cantidad:</strong> <span id="reparto-cantidad">0 un.</span></p>
+                    <p class="canal-card-p"><strong>Monto Total:</strong> <span id="reparto-monto" class="canal-monto">$0</span></p>
+                    <p class="canal-card-p canal-detalle" id="reparto-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+                </div>
+
+                <!-- Tarjeta Comercios -->
+                <div class="canal-card canal-comercios">
+                    <h4 class="canal-card-titulo">🏪 Ventas en Comercios</h4>
+                    <p class="canal-card-p"><strong>Cantidad:</strong> <span id="comercios-cantidad">0 un.</span></p>
+                    <p class="canal-card-p"><strong>Monto Total:</strong> <span id="comercios-monto" class="canal-monto">$0</span></p>
+                    <p class="canal-card-p canal-detalle" id="comercios-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
+                </div>
+
+            </div>
         </div>
 
-        <!-- Tarjeta Comercios -->
-        <div style="background: #f8f9fa; border-left: 5px solid #9b59b6; padding: 15px; border-radius: 6px;">
-            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🏪 Ventas en Comercios</h4>
-            <p style="margin: 5px 0;"><strong>Cantidad:</strong> <span id="comercios-cantidad">0 un.</span></p>
-            <p style="margin: 5px 0;"><strong>Monto Total:</strong> <span id="comercios-monto" style="color: #27ae60; font-weight: bold;">$0</span></p>
-            <p style="margin: 5px 0; font-size: 0.9em; color: #7f8c8d;" id="comercios-detalle">10kg: 0 | 15kg: 0 | 30kg: 0 | 45kg: 0</p>
-        </div>
-
-    </div>
-</div>
-
+        <!-- Tabla de Ventas -->
         <div class="table-responsive">
-    <table class="tabla-ventas">
-        <thead>
-    <tr>
-        <th>ID</th>
-        <th>Cliente</th>
-        <th>Tipo Venta</th>
-        <th>Tipo</th>
-        <th>Cantidad</th>
-        <th>Total</th>
-        <th>Forma de Pago</th>
-        <th>Fecha / Hora</th>
-        <th>Estado</th>
-    </tr>
-</thead>
-        <tbody id="cuerpo-tabla-ventas"></tbody>
-    </table>
-</div>
+            <table class="tabla-ventas">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Tipo Venta</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Forma de Pago</th>
+                        <th>Fecha / Hora</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-ventas"></tbody>
+            </table>
+        </div>
 
+        <!-- Mapa de Concentración -->
+        <div class="ventas-resumen-card">
+            <h3 class="ventas-titulo-verde">🗺️ Mapa de Concentración de Ventas - Nogoyá</h3>
+            <div class="mapa-contenedor">
+                <div id="mapa-ventas"></div>
+                <button class="btn-centrar-mapa" onclick="centrarMapaNogoya()">🎯 Centrar Mapa</button>
+            </div>
+        </div>
 
-<div class="ventas-resumen-card">
-    <h3 class="ventas-titulo-verde">🗺️ Mapa de Concentración de Ventas - Nogoyá</h3>
-    <div class="mapa-contenedor">
-        <div id="mapa-ventas"></div>
-        <button class="btn-centrar-mapa" onclick="centrarMapaNogoya()">🎯 Centrar Mapa</button>
-    </div>
-</div>
-
-<div class="ventas-resumen-card">
-    <h3 class="ventas-titulo-verde">📊 Ranking de Zonas y Sectores (Nogoyá)</h3>
-    <div id="panel-estadisticas-zonas">
-        <!-- Se rellena dinámicamente desde JavaScript -->
-    </div>
-</div>
+        <!-- Ranking de Zonas -->
+        <div class="ventas-resumen-card">
+            <h3 class="ventas-titulo-verde">📊 Ranking de Zonas y Sectores (Nogoyá)</h3>
+            <div id="panel-estadisticas-zonas">
+                <!-- Se rellena dinámicamente desde JavaScript -->
+            </div>
+        </div>
 
     </main>
 </body>
 <script src="app.js"></script>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script src="header.js"></script>
 </html>
