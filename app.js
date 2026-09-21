@@ -86,6 +86,9 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
 // ==========================================
 // LÓGICA DE STOCK
 // ==========================================
+// ==========================================
+// LÓGICA DE STOCK
+// ==========================================
 if (document.getElementById('cuerpo-tabla-stock')) {
     function cargarStock() {
         fetch('/api/stock')
@@ -103,7 +106,7 @@ if (document.getElementById('cuerpo-tabla-stock')) {
                             <td>$${s.precio}</td>
                             <td>${totalFisico}</td>
                             <td>
-                                <button class="btn-accion btn-editar" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">Editar</button>
+                                <button class="btn-accion btn-editar" title="Editar stock" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">✏️</button>
                             </td>
                         </tr>
                     `;
