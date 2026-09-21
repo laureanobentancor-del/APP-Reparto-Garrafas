@@ -344,48 +344,30 @@ body {
    ========================================== */
 
 /* Contenedor con altura fija (aprox. 10 filas) y barra de desplazamiento */
-.tabla-contenedor-scroll-ventas {
-    max-height: 420px;
-    overflow-y: auto;
-    overflow-x: auto;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    outline: none; /* Evita bordes feos al hacer clic (enfocar) */
+/* Convierte la tabla de ventas en una caja con altura fija y scroll */
+.tabla-ventas {
+    display: block !important;
+    max-height: 400px !important;
+    height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
 }
 
-/* Fija la cabecera (thead) para que no se mueva al hacer scroll */
-.tabla-contenedor-scroll-ventas .tabla-ventas thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #2c3e50 !important;
-    color: white !important;
+/* Asegura que el thead y el tbody se comporten correctamente dentro de la tabla con scroll */
+.tabla-ventas thead, 
+.tabla-ventas tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
-/* Estilo visual para la fila seleccionada con las flechas del teclado */
-.tabla-ventas tbody tr.fila-seleccionada {
-    background-color: #d5f5e3 !important; /* Verde suave de selección */
-    outline: 2px solid #27ae60;
-}
-
-
-/* Contenedor de la tabla con altura fija para 10 registros */
-.tabla-contenedor-scroll-ventas {
-    max-height: 450px; /* Altura justa para mostrar aprox. 10 filas */
-    overflow-y: auto;
-    overflow-x: auto;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    outline: none;
-    margin-bottom: 20px; /* Espacio para que respete el mapa de abajo */
-}
-
-/* Fija la cabecera arriba al hacer scroll dentro de esos 10 registros */
-.tabla-contenedor-scroll-ventas .tabla-ventas thead th {
+/* Fija la cabecera arriba al hacer scroll */
+.tabla-ventas thead th {
     position: sticky;
     top: 0;
     z-index: 10;
@@ -398,8 +380,6 @@ body {
     background-color: #d5f5e3 !important;
     outline: 2px solid #27ae60;
 }
-
-
 /* ==========================================
    5. TABLAS Y CONTENEDORES
    ========================================== */
