@@ -145,12 +145,61 @@ if (document.getElementById('cuerpo-tabla-stock')) {
 
     cargarStock();
 }
+// ==========================================
+// FUNCIÓN AUXILIAR DE RESUMEN (Global)
+// ==========================================
+function actualizarResumenPanelPedidos() {
+    // Cargar stock detallado por tipo (llenas y vacías)
+    fetch('/api/stock')
+        .then(res => res.json())
+        .then(stock => {
+            const elStock = document.getElementById('resumen-stock-pedidos');
+            if (elStock) {
+                let htmlStock = '';
+                stock.forEach(s => {
+                    htmlStock += `<div><strong>${s.tipo}:</strong> 🟢 ${s.llenas} | 🟠 ${s.vacias}</div>`;
+                });
+                elStock.innerHTML = htmlStock;
+            }
+        })
+        .catch(err => console.error("Error al cargar stock para el panel:", err));
+
+    // Cargar pedidos de hoy y separar cobrados de pendientes
+    fetch('/api/pedidos/hoy')
+        .then(res => res.json())
+        .then(pedidos => {
+            let garrafasHoy = 0;
+            let cobradoHoy = 0;
+            let pendienteHoy = 0;
+
+            pedidos.forEach(p => {
+                garrafasHoy += parseInt(p.cantidad) || 0;
+                const metodoPago = p.forma_pago ? p.forma_pago.trim() : 'Efectivo';
+                const monto = parseFloat(p.total) || 0;
+
+                if (metodoPago === 'Pendiente') {
+                    pendienteHoy += monto;
+                } else {
+                    cobradoHoy += monto;
+                }
+            });
+
+            const elGarrafas = document.getElementById('resumen-garrafas-pedidos');
+            const elCobrado = document.getElementById('resumen-cobrado-pedidos');
+            const elPendiente = document.getElementById('resumen-pendiente-pedidos');
+
+            if (elGarrafas) elGarrafas.textContent = `${garrafasHoy} un.`;
+            if (elCobrado) elCobrado.textContent = `$${cobradoHoy.toLocaleString()}`;
+            if (elPendiente) elPendiente.textContent = `$${pendienteHoy.toLocaleString()}`;
+        })
+        .catch(err => console.error("Error al cargar resumen de ventas de hoy:", err));
+}
 
 // ==========================================
 // LÓGICA DE PEDIDOS Y WHATSAPP
 // ==========================================
 if (document.getElementById('cuerpo-tabla-pedidos')) {
-  function renderizarPedidos(pedidos) {
+    function renderizarPedidos(pedidos) {
         const tbody = document.getElementById('cuerpo-tabla-pedidos');
         if (!tbody) return;
         tbody.innerHTML = '';
@@ -182,16 +231,15 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
             if (metodoPago === 'Transferencia') iconoPago = '🏦 Transferencia';
             if (metodoPago === 'Pendiente') iconoPago = '⏳ Pendiente';
 
-            // 🟢 NUEVO: Identificar el tipo de venta (deposito, reparto, comercios)
             let tipoVentaTexto = '🏭 Depósito';
-            let badgeColor = '#3498db'; // Azul por defecto
+            let badgeColor = '#3498db';
             
             if (p.tipo_venta === 'reparto') {
                 tipoVentaTexto = '🚚 Reparto';
-                badgeColor = '#e67e22'; // Naranja
+                badgeColor = '#e67e22';
             } else if (p.tipo_venta === 'comercios') {
                 tipoVentaTexto = '🏪 Comercios';
-                badgeColor = '#9b59b6'; // Morado
+                badgeColor = '#9b59b6';
             }
 
             let botonesAccion = '';
@@ -222,8 +270,9 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
                 </tr>`;
         });
     }
+
     function cargarPedidos() {
-     actualizarResumenPanelPedidos(); 
+        actualizarResumenPanelPedidos(); 
         
         const desde = document.getElementById('filtro-desde')?.value;
         const hasta = document.getElementById('filtro-hasta')?.value;
@@ -310,35 +359,35 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
     }
 
     document.getElementById('form-pedido').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const id = document.getElementById('pedido-id').value;
-    const tipo = document.getElementById('pedido-tipo').value;
-    const cantidad = document.getElementById('pedido-cantidad').value;
-    const forma_pago = document.getElementById('pedido-forma-pago').value;
-    const tipo_venta = document.getElementById('pedido-tipo-venta').value; // 👈 Capturamos el tipo de venta
+        e.preventDefault();
+        const id = document.getElementById('pedido-id').value;
+        const tipo = document.getElementById('pedido-tipo').value;
+        const cantidad = document.getElementById('pedido-cantidad').value;
+        const forma_pago = document.getElementById('pedido-forma-pago').value;
+        const tipo_venta = document.getElementById('pedido-tipo-venta').value;
 
-    if (id) {
-        fetch(`/api/pedidos/${id}`, { 
-            method: 'PUT', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ tipo, cantidad, tipo_venta }) 
-        })
-        .then(() => { cerrarModalPedido(); cargarPedidos(); });
-    } else {
-        fetch('/api/pedidos', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ cliente_id: document.getElementById('pedido-cliente').value, tipo, cantidad, forma_pago, tipo_venta }) 
-        })
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "No hay suficiente stock disponible");
-            return data;
-        })
-        .then(() => { cerrarModalPedido(); cargarPedidos(); })
-        .catch(err => alert(err.message));
-    }
-});
+        if (id) {
+            fetch(`/api/pedidos/${id}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ tipo, cantidad, tipo_venta }) 
+            })
+            .then(() => { cerrarModalPedido(); cargarPedidos(); });
+        } else {
+            fetch('/api/pedidos', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ cliente_id: document.getElementById('pedido-cliente').value, tipo, cantidad, forma_pago, tipo_venta }) 
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "No hay suficiente stock disponible");
+                return data;
+            })
+            .then(() => { cerrarModalPedido(); cargarPedidos(); })
+            .catch(err => alert(err.message));
+        }
+    });
 
     window.borrarPedido = function(id) { 
         if (confirm("¿Borrar pedido?")) fetch(`/api/pedidos/${id}`, { method: 'DELETE' }).then(() => cargarPedidos()); 
@@ -349,54 +398,26 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         fetch(`/api/pedidos/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevo }) }).then(() => cargarPedidos());
     }
 
-    cargarPedidos();
-    chequearWhatsApp();
-    setInterval(() => { cargarPedidos(); chequearWhatsApp(); }, 3000);
-}
-
-function actualizarResumenPanelPedidos() {
-        // Cargar stock detallado por tipo (llenas y vacías)
-        fetch('/api/stock')
-            .then(res => res.json())
-            .then(stock => {
-                const elStock = document.getElementById('resumen-stock-pedidos');
-                if (elStock) {
-                    let htmlStock = '';
-                    stock.forEach(s => {
-                        htmlStock += `<div><strong>${s.tipo}:</strong> 🟢 ${s.llenas} | 🟠 ${s.vacias}</div>`;
-                    });
-                    elStock.innerHTML = htmlStock;
-                }
-            })
-            .catch(err => console.error("Error al cargar stock para el panel:", err));
-
-        // Cargar pedidos de hoy y separar cobrados de pendientes
-        fetch('/api/pedidos/hoy')
-            .then(res => res.json())
-            .then(pedidos => {
-                let garrafasHoy = 0;
-                let cobradoHoy = 0;
-                let pendienteHoy = 0;
-
-                pedidos.forEach(p => {
-                    garrafasHoy += parseInt(p.cantidad) || 0;
-                    const metodoPago = p.forma_pago ? p.forma_pago.trim() : 'Efectivo';
-                    const monto = parseFloat(p.total) || 0;
-
-                    if (metodoPago === 'Pendiente') {
-                        pendienteHoy += monto;
-                    } else {
-                        cobradoHoy += monto;
-                    }
-                });
-
-                document.getElementById('resumen-garrafas-pedidos').textContent = `${garrafasHoy} un.`;
-                document.getElementById('resumen-cobrado-pedidos').textContent = `$${cobradoHoy.toLocaleString()}`;
-                document.getElementById('resumen-pendiente-pedidos').textContent = `$${pendienteHoy.toLocaleString()}`;
-            })
-            .catch(err => console.error("Error al cargar resumen de ventas de hoy:", err));
+    function iniciarModuloPedidos() {
+        cargarPedidos();
+        chequearWhatsApp();
+        
+        setInterval(() => { 
+            if (!document.hidden) {
+                cargarPedidos(); 
+                chequearWhatsApp(); 
+            }
+        }, 3000);
     }
 
+    if (document.prerendering) {
+        document.addEventListener('prerenderingchange', () => {
+            iniciarModuloPedidos();
+        }, { once: true });
+    } else {
+        iniciarModuloPedidos();
+    }
+}
 
 // ==========================================
 // HISTORIAL DE CLIENTES Y MODALES

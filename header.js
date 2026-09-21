@@ -1,9 +1,20 @@
+
+
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
     if (!user && !window.location.href.includes('login.html')) {
         window.location.href = 'login.html';
         return;
     }
+
+
+
+
 
     if (window.location.href.includes('login.html')) return;
 
@@ -13,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rolFormateado = user ? (user.rol && user.rol.toLowerCase() === 'admin' ? 'Administrador' : user.rol) : '';
 
     const estructuraHeader = `
+   
         <header class = "app-header">
             <div style="display: flex; gap: 20px; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Garrafas App</h2>

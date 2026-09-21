@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <title>Gestión de Garrafas - Inicio</title>
     <link rel="stylesheet" href="css/style.css">
+    <script type="speculationrules">
+{
+  "prerender": [
+    {
+      "source": "list",
+      "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
+      "eagerness": "conservative"
+    }
+  ]
+}
+</script>
 </head>
 <body>
     <header>
-        <h1>Panel de Control - Reparto de Garrafas</h1>
-        <nav>
-         
-        </nav>
+       
         
     <div class="header-usuario" style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
     <!-- Muestra el rol o usuario actual -->
