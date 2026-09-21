@@ -202,7 +202,7 @@ function actualizarResumenPanelPedidos() {
 // LÓGICA DE PEDIDOS Y WHATSAPP
 // ==========================================
 if (document.getElementById('cuerpo-tabla-pedidos')) {
-    function renderizarPedidos(pedidos) {
+    function renderizarPedidos(pedidos) {       
         const tbody = document.getElementById('cuerpo-tabla-pedidos');
         if (!tbody) return;
         tbody.innerHTML = '';
@@ -213,15 +213,25 @@ if (document.getElementById('cuerpo-tabla-pedidos')) {
         }
 
         // --- ORDENAR: Primero los Pendientes, luego los demás ---
-        pedidos.sort((a, b) => {
-            const estadoA = (a.estado || '').trim();
-            const estadoB = (b.estado || '').trim();
+       // --- ORDENAR: Primero Pendientes ordenados por fecha (antiguos arriba), luego completados ---
+pedidos.sort((a, b) => {
+    const estadoA = (a.estado || '').trim();
+    const estadoB = (b.estado || '').trim();
 
-            if (estadoA === 'Pendiente' && estadoB !== 'Pendiente') return -1;
-            if (estadoA !== 'Pendiente' && estadoB === 'Pendiente') return 1;
+    // 1. Prioridad absoluta a los Pendientes sobre los Completados
+    if (estadoA === 'Pendiente' && estadoB !== 'Pendiente') return -1;
+    if (estadoA !== 'Pendiente' && estadoB === 'Pendiente') return 1;
 
-            return b.id - a.id;
-        });
+    // 2. Si ambos son Pendientes, ordenar por fecha de forma ascendente (lo más viejo arriba)
+    if (estadoA === 'Pendiente' && estadoB === 'Pendiente') {
+        const fechaA = a.fecha ? new Date(a.fecha).getTime() : 0;
+        const fechaB = b.fecha ? new Date(b.fecha).getTime() : 0;
+        return fechaA - fechaB; // Ascendente: Entre más viejo el pendiente, más arriba aparece
+    }
+
+    // 3. Para los demás casos (ej. completados), mantener orden descendente por ID
+    return b.id - a.id;
+});
 
         pedidos.forEach(p => {
             const fechaFormateada = p.fecha ? p.fecha.substring(0, 10) : '';
