@@ -155,7 +155,6 @@ body {
     padding: 5px 8px;
     border-radius: 6px;
     transition: background-color 0.2s, transform 0.1s;
-    /* Quitamos el color white para que los emojis se vean perfectos y no se pongan blancos */
 }
 
 .btn-accion:hover {
@@ -168,7 +167,7 @@ body {
 }
 
 .btn-editar { background: #f39c12; }
-.btn-eliminar, .btn-borrar { background: #c0392b; }
+.btn-eliminar, .btn-borrar { background: #c0392b; color: white; }
 
 .btn-nuevo {
     background-color: #2980b9;
@@ -217,6 +216,7 @@ body {
     width: 100%;
     font-size: 16px;
 }
+.btn-guardar:hover { background-color: #219653; }
 
 .btn-cancelar {
     padding: 8px 16px;
@@ -239,10 +239,12 @@ body {
     cursor: pointer;
     font-weight: bold;
     font-size: 13px;
+    transition: background-color 0.2s;
 }
+.btn-nuevo-usuario:hover { background-color: #219653; }
 
-.btn-bloquear { background: #f39c12; margin-right: 5px; }
-.btn-desbloquear { background: #27ae60; margin-right: 5px; }
+.btn-bloquear { background: #f39c12; color: white; margin-right: 5px; }
+.btn-desbloquear { background: #27ae60; color: white; margin-right: 5px; }
 
 /* ==========================================
    4. CONTENEDORES SUPERIORES Y FILTROS (STICKY)
@@ -309,7 +311,7 @@ body {
 .clientes-acciones-container {
     position: -webkit-sticky;
     position: sticky;
-    top: 70px; /* Debe coincidir o estar justo debajo de tu header fijo (ajusta según la altura de tu app-header) */
+    top: 70px;
     z-index: 100;
     display: flex;
     justify-content: space-between;
@@ -318,7 +320,7 @@ body {
     margin-bottom: 20px;
     width: 100%;
     box-sizing: border-box;
-    background-color: #f4f7f6; /* Usar el mismo color de fondo del body para que no se traspase la tabla por debajo */
+    background-color: #f4f7f6;
     padding: 12px 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.08);
@@ -338,52 +340,9 @@ body {
 }
 .btn-nuevo-cliente:hover { background-color: #219653; }
 
-
-/* ==========================================
-   ESTILOS PARA LA TABLA CON SCROLL Y TECLADO
-   ========================================== */
-
-/* Contenedor con altura fija (aprox. 10 filas) y barra de desplazamiento */
-/* Convierte la tabla de ventas en una caja con altura fija y scroll */
-.tabla-ventas {
-    display: block !important;
-    max-height: 400px !important;
-    height: 400px !important;
-    overflow-y: auto !important;
-    overflow-x: auto !important;
-    width: 100% !important;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 4px;
-}
-
-/* Asegura que el thead y el tbody se comporten correctamente dentro de la tabla con scroll */
-.tabla-ventas thead, 
-.tabla-ventas tbody {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
-/* Fija la cabecera arriba al hacer scroll */
-.tabla-ventas thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #2c3e50 !important;
-    color: white !important;
-}
-
-/* Estilo para la fila seleccionada con las flechas del teclado */
-.tabla-ventas tbody tr.fila-seleccionada {
-    background-color: #d5f5e3 !important;
-    outline: 2px solid #27ae60;
-}
 /* ==========================================
    5. TABLAS Y CONTENEDORES
    ========================================== */
-
 .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -438,6 +397,34 @@ table tbody tr:hover,
     overflow-y: auto;
 }
 
+.tabla-ventas {
+    display: block !important;
+    max-height: 400px !important;
+    height: 400px !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+}
+
+.tabla-ventas thead, 
+.tabla-ventas tbody {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.tabla-ventas thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #2c3e50 !important;
+    color: white !important;
+}
+
+.tabla-ventas tbody tr.fila-seleccionada {
+    background-color: #d5f5e3 !important;
+    outline: 2px solid #27ae60;
+}
+
 /* ==========================================
    6. MODALES Y VENTANAS FLOTANTES
    ========================================== */
@@ -448,7 +435,7 @@ table tbody tr:hover,
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.6);
-    display: none; /* Controlado por JS con flex */
+    display: none;
     justify-content: center;
     align-items: center;
     padding: 15px;
@@ -470,6 +457,10 @@ table tbody tr:hover,
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     position: relative;
 }
+
+/* Clases de ancho personalizado para modales */
+.modal-ancho-650 { max-width: 650px !important; }
+.modal-ancho-400 { max-width: 400px !important; }
 
 .modal-contenido .grupo-form {
     margin-bottom: 15px;
@@ -551,8 +542,39 @@ table tbody tr:hover,
 }
 
 /* ==========================================
-   7. PANELES ESPECÍFICOS (WHATSAPP, VENTAS, DIARIO)
+   7. PANELES ESPECÍFICOS Y FORMULARIOS INTERNOS
    ========================================== */
+.form-panel-secundario {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.form-panel-secundario h4 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.form-fila-flex {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.form-fila-flex input,
+.form-fila-flex select {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
 .panel-whatsapp {
     background: white;
     padding: 15px 20px;
@@ -621,7 +643,6 @@ table tbody tr:hover,
     height: 160px;
 }
 
-/* Grilla de Métricas / Tarjetas */
 .metrics-grid {
     flex: 2;
     display: grid;
@@ -671,13 +692,12 @@ table tbody tr:hover,
 .text-green { color: #27ae60; }
 .text-orange { color: #d35400; }
 
-
 .diario-fila-navegacion {
     position: -webkit-sticky;
     position: sticky;
-    top: 70px; /* Queda fija justo debajo del header principal de la app */
+    top: 70px;
     z-index: 100;
-    background-color: #ffffff; /* Fondo blanco sólido para que la tabla no se traspase */
+    background-color: #ffffff;
     padding: 12px 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.08);
@@ -687,10 +707,9 @@ table tbody tr:hover,
     align-items: center;
     flex-wrap: wrap;
     gap: 15px;
-    margin-bottom: 20px; /* Mantiene la separación con las métricas al hacer scroll */
+    margin-bottom: 20px;
 }
 
-/* Ventas y Canales */
 .ventas-resumen-card,
 .diario-card-superior {
     background: #ffffff;
@@ -787,17 +806,6 @@ table tbody tr:hover,
     background: #fff3f3;
 }
 
-.diario-fila-navegacion {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eaeaea;
-    margin-bottom: 20px;
-}
-
 .diario-grupo-botones {
     display: flex;
     gap: 8px;
@@ -808,7 +816,6 @@ table tbody tr:hover,
 .diario-texto-naranja { color: #d35400; }
 .diario-texto-azul { color: #2980b9; }
 
-/* Mapa y Zonas */
 .mapa-contenedor { position: relative; }
 
 #mapa-ventas {
@@ -917,11 +924,16 @@ table tbody tr:hover,
    9. UTILIDADES Y RESPONSIVO (MÓVILES)
    ========================================== */
 .text-center { text-align: center; }
+.text-right { text-align: right; }
 .font-bold { font-weight: bold; }
 .text-uppercase { text-transform: uppercase; }
 .text-muted { color: #555; font-size: 12px; }
 .text-danger { color: #e74c3c; font-size: 11px; margin-left: 5px; }
 .p-15 { padding: 15px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-15 { margin-bottom: 15px; }
+.mt-20 { margin-top: 20px; }
+.flex-1 { flex: 1; }
 
 @media screen and (max-width: 768px) {
     header,
@@ -974,95 +986,48 @@ table tbody tr:hover,
         table-layout: auto !important;
     }
 }
-/*=========================================
-        IMPRMIR REPORTE DE VENTAS
- =========================================*/
 
+/* ==========================================
+   10. IMPRESIÓN Y REPORTES
+   ========================================== */
 @media print {
-/* 1. Ocultar todo lo que sea navegación, menús o botones */
-header, nav, .diario-fila-navegacion, .btn-limpiar, .btn-principal, .btn-hoy {
-display: none !important;
-}
+    header, nav, .diario-fila-navegacion, .btn-limpiar, .btn-principal, .btn-hoy {
+        display: none !important;
+    }
 
-/* 2. Forzar fondo blanco y tipografía limpia para impresión */
-body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt;
-}
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 11pt;
+    }
 
-/* 3. Primera Página: Tarjetas de métricas y resúmenes arriba */
-.diario-card-superior, .ventas-resumen-card {
-    border: none !important;
-    box-shadow: none !important;
-    width: 100% !important;
-    margin-bottom: 20px;
-}
+    .diario-card-superior, .ventas-resumen-card {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        margin-bottom: 20px;
+    }
 
-/* 4. Forzar un salto de página limpio antes de la tabla de movimientos */
-.table-responsive, table {
-    break-before: page !important;
-    page-break-before: always !important;
-}
+    .table-responsive, table {
+        break-before: page !important;
+        page-break-before: always !important;
+    }
 
-/* 5. Asegurar que la tabla ocupe todo el ancho de la hoja A4 */
-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-}
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
 
-th, td {
-    border: 1px solid #b2b2b2 !important;
-    padding: 8px !important;
-    color: black !important;
-    font-size: 10pt;
-}
+    th, td {
+        border: 1px solid #b2b2b2 !important;
+        padding: 8px !important;
+        color: black !important;
+        font-size: 10pt;
+    }
 
-th {
-    background-color: #f0f0f0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-}
-
-
-
-/* 2. Forzar fondo blanco y tipografía limpia para impresión */
-body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt;
-}
-
-/* 3. Primera Página: Tarjetas de métricas y resúmenes arriba */
-.diario-card-superior, .ventas-resumen-card {
-    border: none !important;
-    box-shadow: none !important;
-    width: 100% !important;
-    margin-bottom: 20px;
-}
-
-/* 4. Forzar un salto de página limpio antes de la tabla de movimientos */
-.table-responsive, table {
-    break-before: page !important;
-    page-break-before: always !important;
-}
-
-/* 5. Asegurar que la tabla ocupe todo el ancho de la hoja A4 */
-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-}
-
-th, td {
-    border: 1px solid #b2b2b2 !important;
-    padding: 8px !important;
-    color: black !important;
-    font-size: 10pt;
-}
-
-th {
-    background-color: #f0f0f0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-}
+    th {
+        background-color: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
 }

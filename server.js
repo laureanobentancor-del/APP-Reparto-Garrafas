@@ -118,49 +118,19 @@ db.serialize(() => {
 // RUTAS API DE USUARIOS Y AUTENTICACIÓN
 // ==========================================
 
+// Middleware para verificar si el usuario es Administrador de forma segura
+function verificarAdmin(req, res, next) {
+    const rol = req.headers['x-user-rol']; // Esto viene del header del fetch
+    if (rol === 'admin') {
+        return next();
+    }
+    return res.status(403).json({ error: "Acceso denegado." });
+}
+
 
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
-    
-    console.log("🔍 Intentando login - Usuario recibido:", usuario);
-    console.log("🔍 Contraseña plana recibida:", password);
 
-    db.get(`SELECT * FROM usuarios WHERE usuario = ?`, [usuario], (err, user) => {
-        if (err) {
-            console.log("❌ Error en BD:", err.message);
-            return res.status(500).json({ error: err.message });
-        }
-        if (!user) {
-            console.log("❌ Usuario no encontrado en la base de datos.");
-            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
-        }
-        if (user.bloqueado === 1) {
-            console.log("❌ Usuario bloqueado.");
-            return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
-        }
-
-        console.log("🔑 Hash guardado en la BD:", user.password);
-
-        bcrypt.compare(password, user.password, (err, esValida) => {
-            if (err) {
-                console.log("❌ Error en bcrypt.compare:", err);
-                return res.status(500).json({ error: "Error al validar la contraseña" });
-            }
-            if (!esValida) {
-                console.log("❌ La contraseña NO coincide con el hash.");
-                return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
-            }
-
-            console.log("✅ ¡Login exitoso!");
-            res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
-        });
-    });
-});
-
-
-/*app.post('/api/login', (req, res) => {
-    const { usuario, password } = req.body;
-    
     db.get(`SELECT * FROM usuarios WHERE usuario = ?`, [usuario], (err, user) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
@@ -174,9 +144,8 @@ app.post('/api/login', (req, res) => {
         });
     });
 });
-*/
 
-app.post('/api/usuarios', (req, res) => {
+app.post('/api/usuarios', verificarAdmin, (req, res) => {
     const { usuario, password, rol } = req.body;
     
     if (!password) {
@@ -196,14 +165,15 @@ app.post('/api/usuarios', (req, res) => {
     });
 });
 
-app.get('/api/usuarios', (req, res) => {
+app.get('/api/usuarios', verificarAdmin, (req, res) => {
     db.all(`SELECT id, usuario, rol, bloqueado FROM usuarios`, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows || []);
     });
 });
 
-app.put('/api/usuarios/:id/bloquear', (req, res) => {
+
+app.put('/api/usuarios/:id/bloquear', verificarAdmin, (req, res) => {
     const { bloqueado } = req.body;
     db.run(`UPDATE usuarios SET bloqueado = ? WHERE id = ?`, [bloqueado, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -211,12 +181,31 @@ app.put('/api/usuarios/:id/bloquear', (req, res) => {
     });
 });
 
-app.delete('/api/usuarios/:id', (req, res) => {
-    db.run(`DELETE FROM usuarios WHERE id = ?`, [req.params.id], function(err) {
+
+app.delete('/api/usuarios/:id', verificarAdmin, (req, res) => {
+    const idUsuarioAEliminar = Number(req.params.id);
+    const idUsuarioLogueado = Number(req.headers['x-user-id']);
+
+    // Un administrador puede borrar otros usuarios, pero nunca su propia cuenta.
+    if (!Number.isInteger(idUsuarioLogueado)) {
+        return res.status(401).json({ error: "No se pudo identificar al usuario logueado." });
+    }
+
+    if (idUsuarioAEliminar === idUsuarioLogueado) {
+        return res.status(403).json({ error: "No puedes borrar el usuario con el que estás conectado." });
+    }
+
+    db.run(`DELETE FROM usuarios WHERE id = ?`, [idUsuarioAEliminar], function(err) {
         if (err) return res.status(500).json({ error: err.message });
+
+        if (this.changes === 0) {
+            return res.status(404).json({ error: "Usuario no encontrado." });
+        }
+
         res.json({ mensaje: "Usuario borrado con éxito" });
     });
 });
+
 
 // --- RUTAS API: CLIENTES ---
 app.get('/api/clientes', (req, res) => {
@@ -262,11 +251,11 @@ app.delete('/api/clientes/:id', (req, res) => db.run("DELETE FROM clientes WHERE
 
 // --- RUTAS API: STOCK ---
 app.get('/api/stock', (req, res) => db.all("SELECT * FROM stock", [], (err, rows) => res.json(rows || [])));
-app.put('/api/stock/:tipo', (req, res) => {
+
+app.put('/api/stock/:tipo', verificarAdmin, (req, res) => {
     const { llenas, vacias, precio } = req.body;
     db.run("UPDATE stock SET llenas = ?, vacias = ?, precio = ? WHERE tipo = ?", [llenas, vacias, precio, req.params.tipo], () => res.json({ mensaje: "Actualizado" }));
 });
-
 // --- RUTAS API: PEDIDOS ---
 
 app.get('/api/pedidos', (req, res) => {
@@ -382,4 +371,189 @@ app.delete('/api/pedidos/:id', (req, res) => {
 });
 
 app.get('/', (req, res) => res.redirect('/pedidos.html'));
+
+// ==========================================
+// MÓDULO DE WHATSAPP Y QR
+// ==========================================
+let qrCodeActual = "";
+let estadoWhatsApp = "Desconectado";
+let sockGlobal = null;
+let chatsNuevos = {}; 
+
+app.get('/api/whatsapp/qr', (req, res) => res.json({ estado: estadoWhatsApp, qr: qrCodeActual }));
+
+app.post('/api/whatsapp/reiniciar', async (req, res) => {
+    if (sockGlobal) { 
+        await sockGlobal.logout().catch(() => {}); 
+        sockGlobal.end(undefined); 
+    }
+    const fs = require('fs');
+    if (fs.existsSync('./auth_info_baileys')) {
+        fs.rmSync('./auth_info_baileys', { recursive: true, force: true });
+    }
+    estadoWhatsApp = "Desconectado"; 
+    qrCodeActual = ""; 
+    iniciarWhatsApp(); 
+    res.json({ mensaje: "Ok" });
+});
+
+async function iniciarWhatsApp() {
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
+        const sock = makeWASocket({ auth: state, logger: pino({ level: 'silent' }) });
+        sockGlobal = sock;
+
+        sock.ev.on('creds.update', saveCreds);
+        sock.ev.on('connection.update', async (update) => {
+            const { connection, lastDisconnect, qr } = update;
+            if (qr) { 
+                qrCodeActual = await QRCode.toDataURL(qr); 
+                estadoWhatsApp = "Esperando escaneo"; 
+            }
+            if (connection === 'close' && lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) {
+                iniciarWhatsApp();
+            } else if (connection === 'open') { 
+                estadoWhatsApp = "Conectado"; 
+                qrCodeActual = ""; 
+            }
+        });
+
+        sock.ev.on('messages.upsert', async (m) => {
+            const msg = m.messages[0];
+            if (!msg.message || msg.key.fromMe) return;
+
+            let remoteJid = msg.key.remoteJid;
+            if (remoteJid.includes('@g.us')) return; 
+            
+            let idLimpio = remoteJid.split('@')[0].replace(/\D/g, '');
+            const textoOriginal = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+            const texto = textoOriginal.toLowerCase();
+
+            db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
+                if (cliente) {
+                    const esPedido = /(garrafa|10|15|30|45|kilo|kg|pedido)/i.test(texto);
+                    if (esPedido) {
+                        const especifica10 = texto.includes("10");
+                        const especifica15 = texto.includes("15");
+                        const especifica30 = texto.includes("30");
+                        const especifica45 = texto.includes("45");
+
+                        if (!especifica10 && !especifica15 && !especifica30 && !especifica45) {
+                            await sockGlobal.sendMessage(remoteJid, { 
+                                text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*\n\n(Responde con el tamaño deseado).` 
+                            });
+                            return;
+                        }
+                        procesarPedidoCliente(cliente, texto, remoteJid);
+                    }
+                } else {
+                    if (!chatsNuevos[idLimpio]) {
+                        chatsNuevos[idLimpio] = { paso: 1, pedidoInicial: texto, celular: "" };
+                        await sockGlobal.sendMessage(remoteJid, { text: "¡Hola! 👋 Veo que es la primera vez que nos escribes desde este número.\n\nPara tomar tu pedido, ¿me podrías decir tu *número de celular* (con código de área)?" });
+                    } 
+                    else if (chatsNuevos[idLimpio].paso === 1) {
+                        const celularIngresado = textoOriginal.replace(/\D/g, '');
+                        if (celularIngresado.length < 6) return await sockGlobal.sendMessage(remoteJid, { text: "Por favor, ingresa solo números." });
+                        
+                        chatsNuevos[idLimpio].celular = celularIngresado;
+                        const ultimosDigitos = celularIngresado.slice(-7);
+                        
+                        db.get("SELECT * FROM clientes WHERE telefono LIKE ?", [`%${ultimosDigitos}%`], async (err, clienteExistente) => {
+                            if (clienteExistente) {
+                                const nuevoTelefono = clienteExistente.telefono + "," + idLimpio;
+                                db.run("UPDATE clientes SET telefono = ? WHERE id = ?", [nuevoTelefono, clienteExistente.id], () => {
+                                    sockGlobal.sendMessage(remoteJid, { text: `¡Hola de nuevo ${clienteExistente.nombre}! Encontramos tus datos. ✅` });
+                                    procesarPedidoCliente(clienteExistente, chatsNuevos[idLimpio].pedidoInicial, remoteJid);
+                                    delete chatsNuevos[idLimpio];
+                                });
+                            } else {
+                                chatsNuevos[idLimpio].paso = 2;
+                                await sockGlobal.sendMessage(remoteJid, { text: "¡Gracias! 😊 Ahora dime tu *Nombre y Apellido*:" });
+                            }
+                        });
+                    }
+                    else if (chatsNuevos[idLimpio].paso === 2) {
+                        chatsNuevos[idLimpio].nombre = textoOriginal;
+                        chatsNuevos[idLimpio].paso = 3;
+                        await sockGlobal.sendMessage(remoteJid, { text: `Perfecto ${textoOriginal}. Por último, dime tu *Dirección exacta* (calle, número, barrio):` });
+                    } 
+                    else if (chatsNuevos[idLimpio].paso === 3) {
+                        const { nombre, celular, pedidoInicial } = chatsNuevos[idLimpio];
+                        const direccion = textoOriginal;
+                        const telefonoGuardado = celular + "," + idLimpio; 
+                        
+                        db.run("INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)", [nombre, telefonoGuardado, direccion], function(err) {
+                            if (!err) {
+                                const nuevoCliente = { id: this.lastID, nombre: nombre, telefono: telefonoGuardado };
+                                sockGlobal.sendMessage(remoteJid, { text: "¡Listo! Ya registré tus datos en el sistema. ✅" });
+                                procesarPedidoCliente(nuevoCliente, pedidoInicial, remoteJid);
+                                delete chatsNuevos[idLimpio];
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    } catch (e) {
+        console.error("Error WhatsApp:", e);
+    }
+}
+
+function procesarPedidoCliente(cliente, texto, jid) {
+    let tipo = "10kg"; 
+    if (texto.includes("45")) {
+        tipo = "45kg";
+    } else if (texto.includes("30")) {
+        tipo = "30kg";
+    } else if (texto.includes("15")) {
+        tipo = "15kg";
+    }
+
+    let cantidad = 1;
+    const match = texto.match(/\d+/);
+    if (match) {
+        const numeroDetectado = parseInt(match[0]);
+        if (numeroDetectado > 0 && numeroDetectado < 10) {
+            cantidad = numeroDetectado;
+        }
+    }
+
+    db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+        if (stock) {
+            const llenasActuales = parseInt(stock.llenas) || 0;
+            const vaciasActuales = parseInt(stock.vacias) || 0;
+            
+            if (llenasActuales < cantidad) {
+                if (sockGlobal && jid) {
+                    sockGlobal.sendMessage(jid, { text: `Hola \({cliente.nombre}, recibimos tu pedido pero lamentablemente no tenemos stock suficiente de garrafas de\){tipo} (Disponibles: ${llenasActuales}).` });
+                }
+                return;
+            }
+
+            const total = (parseFloat(stock.precio) || 0) * cantidad;
+            db.serialize(() => {
+                db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, fecha) 
+                        VALUES (?, ?, ?, ?, 'Pendiente', 'Efectivo', DATETIME('now', 'localtime'))`, 
+                        [cliente.id, tipo, cantidad, total], function(err) {
+                    if (!err) {
+                        const nuevasLlenas = llenasActuales - cantidad;
+                        const nuevasVacias = vaciasActuales + cantidad;
+                        db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
+                            if (sockGlobal && jid) {
+                                sockGlobal.sendMessage(jid, { 
+                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*\({cantidad}x Garrafa(s) de\){tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Iniciar el bot al encender el servidor
+iniciarWhatsApp();
+
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
+

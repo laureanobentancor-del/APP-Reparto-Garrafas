@@ -1,4 +1,3 @@
-
 // ==========================================
 // VARIABLES GLOBALES
 // ==========================================
@@ -94,45 +93,51 @@ if (formCliente) {
 // ==========================================
 // LÓGICA DE STOCK
 // ==========================================
-if (document.getElementById('cuerpo-tabla-stock')) {
-    function cargarStock() {
-        fetch('/api/stock')
-            .then(res => res.json())
-            .then(stock => {
-                const tbody = document.getElementById('cuerpo-tabla-stock');
-                tbody.innerHTML = '';
-                stock.forEach(s => {
-                    const totalFisico = s.llenas + s.vacias;
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>Garrafa de ${s.tipo}</strong></td>
-                            <td style="color: #27ae60; font-weight: bold;">${s.llenas}</td>
-                            <td style="color: #e67e22; font-weight: bold;">${s.vacias}</td>
-                            <td>$${s.precio}</td>
-                            <td>${totalFisico}</td>
-                            <td>
-                                <button class="btn-accion btn-editar" title="Editar stock" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">✏️</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+function cargarStock() {
+    const tbody = document.getElementById('cuerpo-tabla-stock');
+
+    // Verificación de seguridad interna (si no está en la página, sale silenciosamente)
+    if (!tbody) return;
+
+    fetch('/api/stock')
+        .then(res => res.json())
+        .then(stock => {
+            tbody.innerHTML = '';
+            stock.forEach(s => {
+                const total = (s.llenas || 0) + (s.vacias || 0);
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${s.tipo}</strong></td>
+                        <td>${s.llenas}</td>
+                        <td>${s.vacias}</td>
+                        <td>$${Number(s.precio).toLocaleString()}</td>
+                        <td>${total}</td>
+                        <td>
+                            <button class="btn-accion btn-editar" title="Editar stock" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">✏️</button>
+                        </td>
+                    </tr>
+                `;
             });
-    }
+        })
+        .catch(err => console.error("Error al cargar stock:", err));
+}
 
-    window.abrirModalStock = function(tipo, llenas, vacias, precio) {
-        document.getElementById('titulo-modal-stock').textContent = "Editar Stock - Garrafa de " + tipo;
-        document.getElementById('stock-tipo').value = tipo;
-        document.getElementById('stock-llenas').value = llenas;
-        document.getElementById('stock-vacias').value = vacias;
-        document.getElementById('stock-precio').value = precio;
-        document.getElementById('modal-stock').style.display = 'flex';
-    }
+window.abrirModalStock = function(tipo, llenas, vacias, precio) {
+    document.getElementById('titulo-modal-stock').textContent = `Actualizar Stock: ${tipo}`;
+    document.getElementById('stock-tipo').value = tipo;
+    document.getElementById('stock-llenas').value = llenas;
+    document.getElementById('stock-vacias').value = vacias;
+    document.getElementById('stock-precio').value = precio;
+    document.getElementById('modal-stock').style.display = 'flex';
+}
 
-    window.cerrarModalStock = function() { 
-        document.getElementById('modal-stock').style.display = 'none'; 
-    }
+window.cerrarModalStock = function() {
+    document.getElementById('modal-stock').style.display = 'none';
+}
 
-    document.getElementById('form-stock').addEventListener('submit', (e) => {
+const formStock = document.getElementById('form-stock');
+if (formStock) 
+    formStock.addEventListener('submit', (e) => {
         e.preventDefault();
         const tipo = document.getElementById('stock-tipo').value;
         const data = {
@@ -141,9 +146,15 @@ if (document.getElementById('cuerpo-tabla-stock')) {
             precio: parseFloat(document.getElementById('stock-precio').value)
         };
         
+        // Obtenemos el rol del usuario logueado actual
+        const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
+
         fetch(`/api/stock/${tipo}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-user-rol': usuarioLogueado.rol // 👈 Esto viaja al servidor para que el middleware lo valide
+            },
             body: JSON.stringify(data)
         }).then(() => {
             cerrarModalStock();
@@ -151,8 +162,7 @@ if (document.getElementById('cuerpo-tabla-stock')) {
         });
     });
 
-    cargarStock();
-}
+cargarStock();
 // ==========================================
 // FUNCIÓN AUXILIAR DE RESUMEN (Global)
 // ==========================================
@@ -1224,3 +1234,23 @@ function renderizarPanelEstadisticasZonas(zonas) {
     });
 }
 
+// ==========================================
+// LÓGICA DE GESTIÓN DE USUARIOS (ADMIN)
+// ==========================================
+function cargarUsuarios() {
+    fetch('/api/usuarios', {
+        method: 'GET',
+        headers: { 
+            'Content-Type': 'application/json',
+            'x-user-rol': usuarioLogueado.rol 
+        }
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("No autorizado para ver usuarios");
+        return res.json();
+    })
+    .then(usuarios => {
+        tbody.innerHTML = '';
+        if (usuarios.length === 0) {
+            tbody.innerHTML = ''}
+        })}
