@@ -1031,3 +1031,20 @@ table tbody tr:hover,
         print-color-adjust: exact;
     }
 }
+
+.select-rol {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #ccc !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+}
+
+.select-rol:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
