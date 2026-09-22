@@ -4,9 +4,11 @@ const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whis
 const pino = require('pino');
 const QRCode = require('qrcode');
 const path = require('path');
+const bcrypt = require('bcrypt'); // 👈 1. IMPORTAMOS BCRYPT ARRIBA DEL TODO
 
 const app = express();
 const PORT = 3000;
+const saltRounds = 10;
 
 app.use(express.json()); 
 app.use(express.static(__dirname));
@@ -25,9 +27,69 @@ db.serialize(() => {
         bloqueado INTEGER DEFAULT 0
     )`);
 
+    // ==========================================
+    // DATOS DE PRUEBA (SEED) SI LA DB ESTÁ VACÍA
+    // ==========================================
+    db.get("SELECT COUNT(*) as count FROM clientes", (err, row) => {
+        if (row && row.count === 0) {
+            console.log("🌱 Insertando datos de muestra en la base de datos...");
+            
+            // 1. Insertar 10 clientes de prueba (sin la columna tipo)
+            const clientesPrueba = [
+                ['Juan Pérez', '3435112233', 'San Martín 234'],
+                ['María Gómez', '3435998877', 'Belgrano 1230'],
+                ['Carlos Alberto Ruiz', '3435445566', 'San Martin 238'],
+                ['Laura Fernández', '3435332211', 'San Martín 340'],
+                ['Pedro Ocampo', '3435411111', 'Concordia 1345'],
+                ['Angie Bentancor', '3435528916', 'Nuevo barrio AGMER casa 11'],
+                ['Esteban Quito', '3435778899', 'Av. pre Perón 235'],
+                ['Griselda Villanueva', '3435408622', 'Nuevo barrio AGMER Casa 11'],
+                ['Regino Bentancor', '3435415752', 'Diamante 141'],
+                ['Federico Gonzales', '3435554476', 'San Martin 1390']
+            ];
+            
+            clientesPrueba.forEach(c => {
+                db.run(`INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)`, c);
+            });
+
+            // 2. Configurar stock inicial con precios y cantidades
+            db.run(`UPDATE stock SET llenas = 20, vacias = 10, precio = 8500 WHERE tipo = '10kg'`);
+            db.run(`UPDATE stock SET llenas = 15, vacias = 5, precio = 12000 WHERE tipo = '15kg'`);
+            db.run(`UPDATE stock SET llenas = 8, vacias = 4, precio = 35000 WHERE tipo = '30kg'`);
+            db.run(`UPDATE stock SET llenas = 5, vacias = 2, precio = 50000 WHERE tipo = '45kg'`);
+
+            // 3. Insertar 10 pedidos con diferentes fechas, estados y canales
+            const pedidosPrueba = [
+                [1, '10kg', 1, 8500, 'Completado', 'Efectivo', 'deposito', '2026-09-10 10:33:23'],
+                [2, '15kg', 1, 12000, 'Completado', 'Transferencia', 'deposito', '2026-09-11 18:48:41'],
+                [3, '45kg', 1, 50000, 'Completado', 'Mercado Pago', 'comercios', '2026-09-14 09:13:28'],
+                [4, '10kg', 2, 17000, 'Completado', 'Efectivo', 'deposito', '2026-09-15 11:15:00'],
+                [5, '30kg', 1, 35000, 'Completado', 'Efectivo', 'reparto', '2026-09-16 14:20:00'],
+                [6, '15kg', 3, 36000, 'Completado', 'Efectivo', 'deposito', '2026-09-17 10:12:34'],
+                [7, '10kg', 3, 25500, 'Completado', 'Transferencia', 'comercios', '2026-09-18 16:30:00'],
+                [8, '30kg', 2, 70000, 'Pendiente', 'Pendiente', 'reparto', '2026-09-20 12:00:00'],
+                [9, '15kg', 2, 24000, 'Completado', 'Mercado Pago', 'reparto', '2026-09-21 11:50:44'],
+                [10, '10kg', 2, 17000, 'Completado', 'Mercado Pago', 'deposito', '2026-09-22 08:08:30']
+            ];
+
+            pedidosPrueba.forEach(p => {
+                db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, tipo_venta, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, p);
+            });
+            
+            console.log("✅ ¡Datos de prueba insertados con éxito!");
+        }
+    });
+
+    // Forzar la actualización o creación del admin con un hash seguro y válido
+    const hashedPassword = bcrypt.hashSync('1234', 10);
+    
     db.get(`SELECT * FROM usuarios WHERE usuario = 'admin'`, (err, row) => {
         if (!row) {
-            db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES ('admin', '1234', 'admin')`);
+            // Si no existe, lo insertamos con su hash
+            db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES ('admin', ?, 'admin')`, [hashedPassword]);
+        } else {
+            // Si ya existe (aunque tuviera la clave vieja en texto plano), la actualizamos con el hash correcto
+            db.run(`UPDATE usuarios SET password = ? WHERE usuario = 'admin'`, [hashedPassword]);
         }
     });
 
@@ -47,99 +109,90 @@ db.serialize(() => {
         total REAL, 
         estado TEXT DEFAULT 'Pendiente', 
         forma_pago TEXT DEFAULT 'Efectivo', 
+        tipo_venta TEXT DEFAULT 'deposito',
         fecha TEXT,
         FOREIGN KEY(cliente_id) REFERENCES clientes(id)
     )`);
-
-    db.run(`ALTER TABLE pedidos ADD COLUMN forma_pago TEXT DEFAULT 'Efectivo'`, (err) => {});
-    db.run(`ALTER TABLE pedidos ADD COLUMN fecha TEXT`, (err) => {});
 });
-
-
-db.run(`CREATE TABLE IF NOT EXISTS pedidos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    cliente_id INTEGER, 
-    tipo TEXT, -- Este es el tipo de garrafa (10kg, 15kg, etc.)
-    cantidad INTEGER, 
-    total REAL, 
-    estado TEXT DEFAULT 'Pendiente', 
-    forma_pago TEXT DEFAULT 'Efectivo', 
-    tipo_venta TEXT DEFAULT 'deposito', -- 👈 NUEVO CAMPO: 'deposito', 'reparto' o 'comercios'
-    fecha TEXT,
-    FOREIGN KEY(cliente_id) REFERENCES clientes(id)
-)`);
-
-// Migración automática por si la tabla ya existe
-db.run(`ALTER TABLE pedidos ADD COLUMN tipo_venta TEXT DEFAULT 'deposito'`, (err) => {});
-
-
-
-// --- RUTAS API DE USUARIOS Y AUTENTICACIÓN ---
-
-
-async function enviarDatosConFeedback(url, datos) {
-    const contenedorAlerta = document.getElementById('alerta-sistema');
-    
-    // Limpiamos cualquier alerta anterior y ocultamos el contenedor
-    contenedorAlerta.className = "alerta oculto";
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-
-        // Verificamos si el servidor devolvió un error HTTP
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.mensaje || `Error del servidor: ${response.status}`);
-        }
-
-        const resultado = await response.json();
-        
-        // Mostramos feedback visual de éxito en la pantalla
-        contenedorAlerta.textContent = "¡Operación realizada con éxito!";
-        contenedorAlerta.className = "alerta exito";
-        
-        return resultado;
-
-    } catch (error) {
-        // Capturamos tanto errores de red como los lanzados por response.ok
-        contenedorAlerta.textContent = `Atención: ${error.message}`;
-        contenedorAlerta.className = "alerta error";
-    }
-}
-
-
-function esAdministrador(req, res, next) {
-    if (req.session && req.session.rol === 'admin') {
-        return next();
-    }
-    return res.status(403).json({ error: 'Acceso exclusivo para administradores' });
-}
-
-// Aplicar el filtro a las rutas del diario
-app.get('/api/diario', esAdministrador, (req, res) => {
-    // Lógica para retornar los registros del diario
-});
+// ==========================================
+// RUTAS API DE USUARIOS Y AUTENTICACIÓN
+// ==========================================
 
 
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
-    db.get(`SELECT * FROM usuarios WHERE usuario = ? AND password = ?`, [usuario, password], (err, user) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
-        if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
-        res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+    
+    console.log("🔍 Intentando login - Usuario recibido:", usuario);
+    console.log("🔍 Contraseña plana recibida:", password);
+
+    db.get(`SELECT * FROM usuarios WHERE usuario = ?`, [usuario], (err, user) => {
+        if (err) {
+            console.log("❌ Error en BD:", err.message);
+            return res.status(500).json({ error: err.message });
+        }
+        if (!user) {
+            console.log("❌ Usuario no encontrado en la base de datos.");
+            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        }
+        if (user.bloqueado === 1) {
+            console.log("❌ Usuario bloqueado.");
+            return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
+        }
+
+        console.log("🔑 Hash guardado en la BD:", user.password);
+
+        bcrypt.compare(password, user.password, (err, esValida) => {
+            if (err) {
+                console.log("❌ Error en bcrypt.compare:", err);
+                return res.status(500).json({ error: "Error al validar la contraseña" });
+            }
+            if (!esValida) {
+                console.log("❌ La contraseña NO coincide con el hash.");
+                return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+            }
+
+            console.log("✅ ¡Login exitoso!");
+            res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+        });
     });
 });
 
+
+/*app.post('/api/login', (req, res) => {
+    const { usuario, password } = req.body;
+    
+    db.get(`SELECT * FROM usuarios WHERE usuario = ?`, [usuario], (err, user) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
+
+        bcrypt.compare(password, user.password, (err, esValida) => {
+            if (err) return res.status(500).json({ error: "Error al validar la contraseña" });
+            if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+
+            res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+        });
+    });
+});
+*/
+
 app.post('/api/usuarios', (req, res) => {
     const { usuario, password, rol } = req.body;
-    db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`, [usuario, password, rol || 'repartidor'], function(err) {
-        if (err) return res.status(500).json({ error: "El usuario ya existe o hubo un error" });
-        res.json({ id: this.lastID, mensaje: "Usuario creado con éxito" });
+    
+    if (!password) {
+        return res.status(400).json({ error: "La contraseña es obligatoria" });
+    }
+
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) return res.status(500).json({ error: "Error al encriptar la contraseña" });
+
+        db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`, 
+            [usuario, hash, rol || 'repartidor'], 
+            function(err) {
+                if (err) return res.status(500).json({ error: "El usuario ya existe o hubo un error" });
+                res.json({ id: this.lastID, mensaje: "Usuario creado con éxito" });
+            }
+        );
     });
 });
 
@@ -275,9 +328,6 @@ app.get('/api/pedidos/filtrar', (req, res) => {
     });
 });
 
-
-
-
 app.post('/api/pedidos', (req, res) => {
     let { cliente_id, tipo, cantidad, forma_pago, tipo_venta } = req.body;
     cantidad = parseInt(req.body.cantidad) || 1; 
@@ -290,27 +340,27 @@ app.post('/api/pedidos', (req, res) => {
         const precio = parseFloat(stock.precio) || 0;
 
         if (llenasActuales < cantidad) {
-            return res.status(400).json({ error: `No hay suficiente stock de garrafas llenas de ${tipo}. Disponibles: ${llenasActuales}` });
+            return res.status(400).json({ error: `No hay suficiente stock de garrafas llenas de \({tipo}. Disponibles:\){llenasActuales}` });
         }
 
-      const total = precio * cantidad;
-    const pagoFinal = forma_pago || 'Efectivo';
-    const ventaFinal = tipo_venta || 'deposito';
-    
-    db.serialize(() => {
-        db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, tipo_venta, fecha) 
-                VALUES (?, ?, ?, ?, 'Pendiente', ?, ?, DATETIME('now', 'localtime'))`, 
-                [cliente_id, tipo, cantidad, total, pagoFinal, ventaFinal], function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                const pedidoId = this.lastID;
+        const total = precio * cantidad;
+        const pagoFinal = forma_pago || 'Efectivo';
+        const ventaFinal = tipo_venta || 'deposito';
+        
+        db.serialize(() => {
+            db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, tipo_venta, fecha) 
+                    VALUES (?, ?, ?, ?, 'Pendiente', ?, ?, DATETIME('now', 'localtime'))`, 
+                    [cliente_id, tipo, cantidad, total, pagoFinal, ventaFinal], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    const pedidoId = this.lastID;
 
-                const nuevasLlenas = llenasActuales - cantidad;
-                const nuevasVacias = vaciasActuales + cantidad;
+                    const nuevasLlenas = llenasActuales - cantidad;
+                    const nuevasVacias = vaciasActuales + cantidad;
 
-                db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
-                    res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
+                    db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
+                        res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
+                    });
                 });
-            });
         });
     });
 });
@@ -330,170 +380,6 @@ app.put('/api/pedidos/:id/estado', (req, res) => {
 app.delete('/api/pedidos/:id', (req, res) => {
     db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
 });
-
-// --- WHATSAPP & QR ---
-let qrCodeActual = "";
-let estadoWhatsApp = "Desconectado";
-let sockGlobal = null;
-let chatsNuevos = {}; 
-
-app.get('/api/whatsapp/qr', (req, res) => res.json({ estado: estadoWhatsApp, qr: qrCodeActual }));
-app.post('/api/whatsapp/reiniciar', async (req, res) => {
-    if (sockGlobal) { await sockGlobal.logout().catch(() => {}); sockGlobal.end(undefined); }
-    const fs = require('fs');
-    if (fs.existsSync('./auth_info_baileys')) fs.rmSync('./auth_info_baileys', { recursive: true, force: true });
-    estadoWhatsApp = "Desconectado"; qrCodeActual = ""; iniciarWhatsApp(); res.json({ mensaje: "Ok" });
-});
-
-async function iniciarWhatsApp() {
-    try {
-        const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
-        const sock = makeWASocket({ auth: state, logger: pino({ level: 'silent' }) });
-        sockGlobal = sock;
-
-        sock.ev.on('creds.update', saveCreds);
-        sock.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect, qr } = update;
-            if (qr) { qrCodeActual = await QRCode.toDataURL(qr); estadoWhatsApp = "Esperando escaneo"; }
-            if (connection === 'close' && lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut) iniciarWhatsApp();
-            else if (connection === 'open') { estadoWhatsApp = "Conectado"; qrCodeActual = ""; }
-        });
-
-        sock.ev.on('messages.upsert', async (m) => {
-            const msg = m.messages[0];
-            if (!msg.message || msg.key.fromMe) return;
-
-            let remoteJid = msg.key.remoteJid;
-            if (remoteJid.includes('@g.us')) return; 
-            
-            let idLimpio = remoteJid.split('@')[0].replace(/\D/g, '');
-            const textoOriginal = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
-            const texto = textoOriginal.toLowerCase();
-
-            db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
-                if (cliente) {
-                    const esPedido = /(garrafa|10|15|30|45|kilo|kg|pedido)/i.test(texto);
-                    if (esPedido) {
-                        const especifica10 = texto.includes("10");
-                        const especifica15 = texto.includes("15");
-                        const especifica30 = texto.includes("30");
-                        const especifica45 = texto.includes("45");
-
-                        if (!especifica10 && !especifica15 && !especifica30 && !especifica45) {
-                            await sockGlobal.sendMessage(remoteJid, { 
-                                text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*\n\n(Responde con el tamaño deseado).` 
-                            });
-                            return;
-                        }
-                        procesarPedidoCliente(cliente, texto, remoteJid);
-                    }
-                } else {
-                    if (!chatsNuevos[idLimpio]) {
-                        chatsNuevos[idLimpio] = { paso: 1, pedidoInicial: texto, celular: "" };
-                        await sockGlobal.sendMessage(remoteJid, { text: "¡Hola! 👋 Veo que es la primera vez que nos escribes desde este número.\n\nPara tomar tu pedido, ¿me podrías decir tu *número de celular* (con código de área)?" });
-                    } 
-                    else if (chatsNuevos[idLimpio].paso === 1) {
-                        const celularIngresado = textoOriginal.replace(/\D/g, '');
-                        if (celularIngresado.length < 6) return await sockGlobal.sendMessage(remoteJid, { text: "Por favor, ingresa solo números." });
-                        
-                        chatsNuevos[idLimpio].celular = celularIngresado;
-                        const ultimosDigitos = celularIngresado.slice(-7);
-                        
-                        db.get("SELECT * FROM clientes WHERE telefono LIKE ?", [`%${ultimosDigitos}%`], async (err, clienteExistente) => {
-                            if (clienteExistente) {
-                                const nuevoTelefono = clienteExistente.telefono + "," + idLimpio;
-                                db.run("UPDATE clientes SET telefono = ? WHERE id = ?", [nuevoTelefono, clienteExistente.id], () => {
-                                    sockGlobal.sendMessage(remoteJid, { text: `¡Hola de nuevo ${clienteExistente.nombre}! Encontramos tus datos. ✅` });
-                                    procesarPedidoCliente(clienteExistente, chatsNuevos[idLimpio].pedidoInicial, remoteJid);
-                                    delete chatsNuevos[idLimpio];
-                                });
-                            } else {
-                                chatsNuevos[idLimpio].paso = 2;
-                                await sockGlobal.sendMessage(remoteJid, { text: "¡Gracias! 😊 Ahora dime tu *Nombre y Apellido*:" });
-                            }
-                        });
-                    }
-                    else if (chatsNuevos[idLimpio].paso === 2) {
-                        chatsNuevos[idLimpio].nombre = textoOriginal;
-                        chatsNuevos[idLimpio].paso = 3;
-                        await sockGlobal.sendMessage(remoteJid, { text: `Perfecto ${textoOriginal}. Por último, dime tu *Dirección exacta* (calle, número, barrio):` });
-                    } 
-                    else if (chatsNuevos[idLimpio].paso === 3) {
-                        const { nombre, celular, pedidoInicial } = chatsNuevos[idLimpio];
-                        const direccion = textoOriginal;
-                        const telefonoGuardado = celular + "," + idLimpio; 
-                        
-                        db.run("INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)", [nombre, telefonoGuardado, direccion], function(err) {
-                            if (!err) {
-                                const nuevoCliente = { id: this.lastID, nombre: nombre, telefono: telefonoGuardado };
-                                sockGlobal.sendMessage(remoteJid, { text: "¡Listo! Ya registré tus datos en el sistema. ✅" });
-                                procesarPedidoCliente(nuevoCliente, pedidoInicial, remoteJid);
-                                delete chatsNuevos[idLimpio];
-                            }
-                        });
-                    }
-                }
-            });
-        });
-    } catch (e) {
-        console.error("Error WhatsApp:", e);
-    }
-}
-
-function procesarPedidoCliente(cliente, texto, jid) {
-    let tipo = "10kg"; 
-    if (texto.includes("45")) {
-        tipo = "45kg";
-    } else if (texto.includes("30")) {
-        tipo = "30kg";
-    } else if (texto.includes("15")) {
-        tipo = "15kg";
-    }
-
-    let cantidad = 1;
-    const match = texto.match(/\d+/);
-    if (match) {
-        const numeroDetectado = parseInt(match[0]);
-        if (numeroDetectado > 0 && numeroDetectado < 10) {
-            cantidad = numeroDetectado;
-        }
-    }
-
-    db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-        if (stock) {
-            const llenasActuales = parseInt(stock.llenas) || 0;
-            const vaciasActuales = parseInt(stock.vacias) || 0;
-            
-            if (llenasActuales < cantidad) {
-                if (sockGlobal && jid) {
-                    sockGlobal.sendMessage(jid, { text: `Hola ${cliente.nombre}, recibimos tu pedido pero lamentablemente no tenemos stock suficiente de garrafas de ${tipo} (Disponibles: ${llenasActuales}).` });
-                }
-                return;
-            }
-
-            const total = (parseFloat(stock.precio) || 0) * cantidad;
-            db.serialize(() => {
-                db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, fecha) 
-                        VALUES (?, ?, ?, ?, 'Pendiente', 'Efectivo', DATETIME('now', 'localtime'))`, 
-                        [cliente.id, tipo, cantidad, total], function(err) {
-                    if (!err) {
-                        const nuevasLlenas = llenasActuales - cantidad;
-                        const nuevasVacias = vaciasActuales + cantidad;
-                        db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
-                            if (sockGlobal && jid) {
-                                sockGlobal.sendMessage(jid, { 
-                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*${cantidad}x Garrafa(s) de ${tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
-                                });
-                            }
-                        });
-                    }
-                });
-            });
-        }
-    });
-}
-
-iniciarWhatsApp();
 
 app.get('/', (req, res) => res.redirect('/pedidos.html'));
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
