@@ -76,8 +76,11 @@
         <!-- Acciones Superiores y Filtros -->
         <div class="acciones-superiores-container">
             <div class="grupo-izquierdo">
+                
+                <button onclick="abrirModalCliente()" class="btn-nuevo-cliente">+ Nuevo Cliente</button>
                 <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido</button>
                 <button class="btn-principal btn-hoy" onclick="filtrarPedidosHoy()">📅 Pedidos de Hoy</button>
+
             </div>
 
             <div class="grupo-filtros">
@@ -159,7 +162,31 @@
             </div>
         </div>
     </main>
-
+     <!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
+    <div id="modal-cliente" class="modal-fondo">
+        <div class="modal-contenido">
+            <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
+            <h2 id="titulo-modal-cliente">Registrar Nuevo Cliente</h2>
+            <form id="form-cliente">
+                <!-- Este campo oculto guarda el ID cuando editamos -->
+                <input type="hidden" id="cliente-id">
+                
+                <div class="grupo-form">
+                    <label>Nombre:</label>
+                    <input type="text" id="cliente-nombre" required>
+                </div>
+                <div class="grupo-form">
+                    <label>Teléfono:</label>
+                    <input type="text" id="cliente-telefono" required>
+                </div>
+                <div class="grupo-form">
+                    <label>Dirección:</label>
+                    <input type="text" id="cliente-direccion">
+                </div>
+                <button type="submit" class="btn-guardar">Guardar Cliente</button>
+            </form>
+        </div>
+    </div>
 </body>
 <script src="app.js"></script>
 <script src="header.js"></script>

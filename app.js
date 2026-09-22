@@ -8,15 +8,18 @@ let pedidosGlobales = [];
 // ==========================================
 // LÓGICA DE CLIENTES
 // ==========================================
-if (document.getElementById('cuerpo-tabla-clientes')) {
-    function cargarClientes() {
-        fetch('/api/clientes')
-            .then(res => res.json())
-            .then(clientes => {
-                const tbody = document.getElementById('cuerpo-tabla-clientes');
-                tbody.innerHTML = '';
-                clientes.forEach(c => {
-                    tbody.innerHTML += `
+function cargarClientes() {
+    const tbody = document.getElementById('cuerpo-tabla-clientes');
+    
+    // Verificación de seguridad interna (si no está en la página, sale silenciosamente)
+    if (!tbody) return; 
+
+    fetch('/api/clientes')
+        .then(res => res.json())
+        .then(clientes => {
+            tbody.innerHTML = '';
+            clientes.forEach(c => {
+                tbody.innerHTML += `
                         <tr>
                             <td><strong>${c.nombre}</strong></td>
                             <td>${c.telefono}</td>
@@ -31,6 +34,7 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
                 });
             });
     }
+
 
     window.abrirModalCliente = function() { 
         document.getElementById('titulo-modal-cliente').textContent = "Registrar Nuevo Cliente";
@@ -52,7 +56,9 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
         document.getElementById('modal-cliente').style.display = 'none'; 
     }
 
-    document.getElementById('form-cliente').addEventListener('submit', (e) => {
+    const formCliente = document.getElementById('form-cliente');
+if (formCliente) {
+    formCliente.addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('cliente-id').value;
         const data = {
@@ -68,11 +74,13 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
             method: metodo,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-        }).then(() => {
+        })
+        .then(() => {
             cerrarModalCliente();
             cargarClientes();
         });
     });
+}
 
     window.borrarCliente = function(id) {
         if (confirm("¿Estás seguro de borrar este cliente?")) {
@@ -81,11 +89,8 @@ if (document.getElementById('cuerpo-tabla-clientes')) {
     }
 
     cargarClientes();
-}
 
-// ==========================================
-// LÓGICA DE STOCK
-// ==========================================
+
 // ==========================================
 // LÓGICA DE STOCK
 // ==========================================
@@ -1057,8 +1062,9 @@ function actualizarMetricasDiario(cobrado, efec, mp, transf, pend, totUnidades, 
         if (elCant) elCant.textContent = `${canales[c].cantidad} un.`;
         if (elMonto) elMonto.textContent = `$${canales[c].monto.toLocaleString()}`;
         if (elDet) {
-            elDet.textContent = `10kg: \({canales[c].c10} | 15kg:\){canales[c].c15} | 30kg: \({canales[c].c30} | 45kg:\){canales[c].c45}`;
+           elDet.textContent = `10kg: \({canales[c].c10} | 15kg:\){canales[c].c15} | 30kg: \({canales[c].c30} | 45kg:\){canales[c].c45}`;
         }
+
     });
 }
 
@@ -1083,8 +1089,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarLibroDiario();
     }
 });
-
-
 
 let mapaVentas = null;
 const centroNogoya = [-32.3947, -59.7894];
@@ -1219,5 +1223,4 @@ function renderizarPanelEstadisticasZonas(zonas) {
         `;
     });
 }
-
 
