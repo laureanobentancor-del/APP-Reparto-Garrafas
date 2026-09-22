@@ -59,12 +59,15 @@
 
                         </div>
                     </div>
+                     
                     <button class="btn-limpiar" onclick="limpiarFiltrosDiario()">Limpiar</button>
+                   
                 </div>
                 <div class="diario-grupo-botones">
                     <button class="btn-principal" onclick="cambiarDia(-1)">⬅️ Día Anterior</button>
                     <button class="btn-hoy" onclick="ponerDiaHoy()">📅 Hoy</button>
                     <button class="btn-principal" onclick="cambiarDia(1)">Día Siguiente ➡️</button>
+                   
                 </div>
             </div>
         <div class="diario-card-superior">
@@ -149,6 +152,8 @@
                         <th>Total</th>
                         <th>Forma de Pago</th>
                         <th>Estado Pedido</th>
+                        <th> <button class="btn btn- primary" onclick="window.print()"> 🖨️</button></th>
+                       
                     </tr>
                 </thead>
                 <tbody id="cuerpo-tabla-diario"></tbody>

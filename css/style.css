@@ -974,3 +974,95 @@ table tbody tr:hover,
         table-layout: auto !important;
     }
 }
+/*=========================================
+        IMPRMIR REPORTE DE VENTAS
+ =========================================*/
+
+@media print {
+/* 1. Ocultar todo lo que sea navegación, menús o botones */
+header, nav, .diario-fila-navegacion, .btn-limpiar, .btn-principal, .btn-hoy {
+display: none !important;
+}
+
+/* 2. Forzar fondo blanco y tipografía limpia para impresión */
+body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+}
+
+/* 3. Primera Página: Tarjetas de métricas y resúmenes arriba */
+.diario-card-superior, .ventas-resumen-card {
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    margin-bottom: 20px;
+}
+
+/* 4. Forzar un salto de página limpio antes de la tabla de movimientos */
+.table-responsive, table {
+    break-before: page !important;
+    page-break-before: always !important;
+}
+
+/* 5. Asegurar que la tabla ocupe todo el ancho de la hoja A4 */
+table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+th, td {
+    border: 1px solid #b2b2b2 !important;
+    padding: 8px !important;
+    color: black !important;
+    font-size: 10pt;
+}
+
+th {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+
+
+/* 2. Forzar fondo blanco y tipografía limpia para impresión */
+body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+}
+
+/* 3. Primera Página: Tarjetas de métricas y resúmenes arriba */
+.diario-card-superior, .ventas-resumen-card {
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    margin-bottom: 20px;
+}
+
+/* 4. Forzar un salto de página limpio antes de la tabla de movimientos */
+.table-responsive, table {
+    break-before: page !important;
+    page-break-before: always !important;
+}
+
+/* 5. Asegurar que la tabla ocupe todo el ancho de la hoja A4 */
+table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+th, td {
+    border: 1px solid #b2b2b2 !important;
+    padding: 8px !important;
+    color: black !important;
+    font-size: 10pt;
+}
+
+th {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+}
