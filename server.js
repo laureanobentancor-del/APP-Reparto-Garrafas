@@ -40,6 +40,31 @@ db.serialize(() => {
         bloqueado INTEGER DEFAULT 0
     )`);
 
+    // Las tablas se crean PRIMERO, antes de que cualquier consulta las use.
+    // Si esto va después del bloque de siembra, en una base de datos nueva
+    // el SELECT/UPDATE de más abajo fallan porque la tabla todavía no
+    // existe, y la siembra se salta en silencio (esto ya pasó una vez).
+    db.run(`CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, telefono TEXT, direccion TEXT)`);
+    db.run(`CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT UNIQUE, llenas INTEGER, vacias INTEGER, precio REAL)`);
+
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('10kg', 0, 0, 0)");
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('15kg', 0, 0, 0)");
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('30kg', 0, 0, 0)");
+    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('45kg', 0, 0, 0)");
+
+    db.run(`CREATE TABLE IF NOT EXISTS pedidos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        cliente_id INTEGER, 
+        tipo TEXT, 
+        cantidad INTEGER, 
+        total REAL, 
+        estado TEXT DEFAULT 'Pendiente', 
+        forma_pago TEXT DEFAULT 'Efectivo', 
+        tipo_venta TEXT DEFAULT 'deposito',
+        fecha TEXT,
+        FOREIGN KEY(cliente_id) REFERENCES clientes(id)
+    )`);
+
     // ==========================================
     // DATOS DE PRUEBA (SEED) SI LA DB ESTÁ VACÍA
     // ==========================================
@@ -99,27 +124,6 @@ db.serialize(() => {
             db.run(`UPDATE usuarios SET password = ? WHERE usuario = 'admin'`, [hashedPassword]);
         }
     });
-
-    db.run(`CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, telefono TEXT, direccion TEXT)`);
-    db.run(`CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT UNIQUE, llenas INTEGER, vacias INTEGER, precio REAL)`);
-    
-    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('10kg', 0, 0, 0)");
-    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('15kg', 0, 0, 0)");
-    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('30kg', 0, 0, 0)");
-    db.run("INSERT OR IGNORE INTO stock (tipo, llenas, vacias, precio) VALUES ('45kg', 0, 0, 0)");
-    
-    db.run(`CREATE TABLE IF NOT EXISTS pedidos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        cliente_id INTEGER, 
-        tipo TEXT, 
-        cantidad INTEGER, 
-        total REAL, 
-        estado TEXT DEFAULT 'Pendiente', 
-        forma_pago TEXT DEFAULT 'Efectivo', 
-        tipo_venta TEXT DEFAULT 'deposito',
-        fecha TEXT,
-        FOREIGN KEY(cliente_id) REFERENCES clientes(id)
-    )`);
 });
 
 // ==========================================

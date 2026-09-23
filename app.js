@@ -93,6 +93,33 @@ if (formCliente) {
 // ==========================================
 // LÓGICA DE STOCK
 // ==========================================
+function cargarStock() {
+    const tbody = document.getElementById('cuerpo-tabla-stock');
+    if (!tbody) return; // No estamos en stock.html, salimos sin hacer nada
+
+    fetch('/api/stock')
+        .then(res => res.json())
+        .then(stock => {
+            tbody.innerHTML = '';
+            stock.forEach(s => {
+                const total = (s.llenas || 0) + (s.vacias || 0);
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${s.tipo}</strong></td>
+                        <td>${s.llenas}</td>
+                        <td>${s.vacias}</td>
+                        <td>$${Number(s.precio).toLocaleString()}</td>
+                        <td>${total}</td>
+                        <td>
+                            <button class="btn-accion btn-editar" title="Editar stock" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(err => console.error("Error al cargar stock:", err));
+}
+
 const formStock = document.getElementById('form-stock');
 if (formStock) {
     formStock.addEventListener('submit', (e) => {
@@ -137,6 +164,8 @@ window.abrirModalStock = function(tipo, llenas, vacias, precio) {
 window.cerrarModalStock = function() {
     document.getElementById('modal-stock').style.display = 'none';
 }
+
+cargarStock();
 
 // ==========================================
 // FUNCIÓN AUXILIAR DE RESUMEN (Global)
