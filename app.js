@@ -93,33 +93,36 @@ if (formCliente) {
 // ==========================================
 // LÓGICA DE STOCK
 // ==========================================
-function cargarStock() {
-    const tbody = document.getElementById('cuerpo-tabla-stock');
+const formStock = document.getElementById('form-stock');
+if (formStock) {
+    formStock.addEventListener('submit', (e) => {
+        e.preventDefault(); 
+        const tipo = document.getElementById('stock-tipo').value;
+        const data = {
+            llenas: parseInt(document.getElementById('stock-llenas').value),
+            vacias: parseInt(document.getElementById('stock-vacias').value),
+            precio: parseFloat(document.getElementById('stock-precio').value)
+        };
 
-    // Verificación de seguridad interna (si no está en la página, sale silenciosamente)
-    if (!tbody) return;
-
-    fetch('/api/stock')
-        .then(res => res.json())
-        .then(stock => {
-            tbody.innerHTML = '';
-            stock.forEach(s => {
-                const total = (s.llenas || 0) + (s.vacias || 0);
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${s.tipo}</strong></td>
-                        <td>${s.llenas}</td>
-                        <td>${s.vacias}</td>
-                        <td>$${Number(s.precio).toLocaleString()}</td>
-                        <td>${total}</td>
-                        <td>
-                            <button class="btn-accion btn-editar" title="Editar stock" onclick="abrirModalStock('${s.tipo}', ${s.llenas}, ${s.vacias}, ${s.precio})">✏️</button>
-                        </td>
-                    </tr>
-                `;
-            });
+        // 👇 ¡Es aquí adentro donde debe ir 'credentials: 'include''! 👇
+        fetch(`/api/stock/${tipo}`, {
+            method: 'PUT',
+            credentials: 'include', // 👈 Esto le avisa al navegador que mande la cookie de sesión
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
         })
-        .catch(err => console.error("Error al cargar stock:", err));
+        .then(res => {
+            if (!res.ok) throw new Error("No autorizado o error al actualizar stock");
+            return res.json();
+        })
+        .then(() => {
+            if (typeof cerrarModalStock === 'function') cerrarModalStock();
+            cargarStock(); // Recarga la tabla para que se vea el cambio
+        })
+        .catch(err => alert(err.message));
+    });
 }
 
 window.abrirModalStock = function(tipo, llenas, vacias, precio) {
@@ -135,34 +138,6 @@ window.cerrarModalStock = function() {
     document.getElementById('modal-stock').style.display = 'none';
 }
 
-const formStock = document.getElementById('form-stock');
-if (formStock) 
-    formStock.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const tipo = document.getElementById('stock-tipo').value;
-        const data = {
-            llenas: parseInt(document.getElementById('stock-llenas').value),
-            vacias: parseInt(document.getElementById('stock-vacias').value),
-            precio: parseFloat(document.getElementById('stock-precio').value)
-        };
-        
-        // Obtenemos el rol del usuario logueado actual
-        const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
-
-        fetch(`/api/stock/${tipo}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'x-user-rol': usuarioLogueado.rol // 👈 Esto viaja al servidor para que el middleware lo valide
-            },
-            body: JSON.stringify(data)
-        }).then(() => {
-            cerrarModalStock();
-            cargarStock();
-        });
-    });
-
-cargarStock();
 // ==========================================
 // FUNCIÓN AUXILIAR DE RESUMEN (Global)
 // ==========================================
@@ -1233,24 +1208,3 @@ function renderizarPanelEstadisticasZonas(zonas) {
         `;
     });
 }
-
-// ==========================================
-// LÓGICA DE GESTIÓN DE USUARIOS (ADMIN)
-// ==========================================
-function cargarUsuarios() {
-    fetch('/api/usuarios', {
-        method: 'GET',
-        headers: { 
-            'Content-Type': 'application/json',
-            'x-user-rol': usuarioLogueado.rol 
-        }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("No autorizado para ver usuarios");
-        return res.json();
-    })
-    .then(usuarios => {
-        tbody.innerHTML = '';
-        if (usuarios.length === 0) {
-            tbody.innerHTML = ''}
-        })}

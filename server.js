@@ -4,7 +4,8 @@ const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whis
 const pino = require('pino');
 const QRCode = require('qrcode');
 const path = require('path');
-const bcrypt = require('bcrypt'); // 👈 1. IMPORTAMOS BCRYPT ARRIBA DEL TODO
+const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +13,18 @@ const saltRounds = 10;
 
 app.use(express.json()); 
 app.use(express.static(__dirname));
+
+// Configuración de Express Session
+app.use(session({
+    secret: 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: false, 
+        httpOnly: true, 
+        maxAge: 1000 * 60 * 60 * 8 
+    }
+}));
 
 const db = new sqlite3.Database('./database.db', (err) => {
     if (err) console.error("Error BD:", err.message);
@@ -34,7 +47,6 @@ db.serialize(() => {
         if (row && row.count === 0) {
             console.log("🌱 Insertando datos de muestra en la base de datos...");
             
-            // 1. Insertar 10 clientes de prueba (sin la columna tipo)
             const clientesPrueba = [
                 ['Juan Pérez', '3435112233', 'San Martín 234'],
                 ['María Gómez', '3435998877', 'Belgrano 1230'],
@@ -52,13 +64,11 @@ db.serialize(() => {
                 db.run(`INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)`, c);
             });
 
-            // 2. Configurar stock inicial con precios y cantidades
             db.run(`UPDATE stock SET llenas = 20, vacias = 10, precio = 8500 WHERE tipo = '10kg'`);
             db.run(`UPDATE stock SET llenas = 15, vacias = 5, precio = 12000 WHERE tipo = '15kg'`);
             db.run(`UPDATE stock SET llenas = 8, vacias = 4, precio = 35000 WHERE tipo = '30kg'`);
             db.run(`UPDATE stock SET llenas = 5, vacias = 2, precio = 50000 WHERE tipo = '45kg'`);
 
-            // 3. Insertar 10 pedidos con diferentes fechas, estados y canales
             const pedidosPrueba = [
                 [1, '10kg', 1, 8500, 'Completado', 'Efectivo', 'deposito', '2026-09-10 10:33:23'],
                 [2, '15kg', 1, 12000, 'Completado', 'Transferencia', 'deposito', '2026-09-11 18:48:41'],
@@ -80,15 +90,12 @@ db.serialize(() => {
         }
     });
 
-    // Forzar la actualización o creación del admin con un hash seguro y válido
     const hashedPassword = bcrypt.hashSync('1234', 10);
     
     db.get(`SELECT * FROM usuarios WHERE usuario = 'admin'`, (err, row) => {
         if (!row) {
-            // Si no existe, lo insertamos con su hash
             db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES ('admin', ?, 'admin')`, [hashedPassword]);
         } else {
-            // Si ya existe (aunque tuviera la clave vieja en texto plano), la actualizamos con el hash correcto
             db.run(`UPDATE usuarios SET password = ? WHERE usuario = 'admin'`, [hashedPassword]);
         }
     });
@@ -114,20 +121,27 @@ db.serialize(() => {
         FOREIGN KEY(cliente_id) REFERENCES clientes(id)
     )`);
 });
-// ==========================================
-// RUTAS API DE USUARIOS Y AUTENTICACIÓN
-// ==========================================
 
-// Middleware para verificar si el usuario es Administrador de forma segura
-function verificarAdmin(req, res, next) {
-    const rol = req.headers['x-user-rol']; // Esto viene del header del fetch
-    if (rol === 'admin') {
+// ==========================================
+// MIDDLEWARES DE AUTENTICACIÓN
+// ==========================================
+function verificarAutenticacion(req, res, next) {
+    if (req.session && req.session.userId) {
         return next();
     }
-    return res.status(403).json({ error: "Acceso denegado." });
+    return res.status(401).json({ error: "No autorizado. Inicie sesión nuevamente." });
 }
 
+function verificarAdminSesion(req, res, next) {
+    if (req.session && req.session.rol === 'admin') {
+        return next();
+    }
+    return res.status(403).json({ error: "Acceso denegado. Se requieren permisos de administrador." });
+}
 
+// ==========================================
+// RUTAS API: USUARIOS Y AUTENTICACIÓN
+// ==========================================
 app.post('/api/login', (req, res) => {
     const { usuario, password } = req.body;
 
@@ -140,12 +154,23 @@ app.post('/api/login', (req, res) => {
             if (err) return res.status(500).json({ error: "Error al validar la contraseña" });
             if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
 
+            req.session.userId = user.id;
+            req.session.usuario = user.usuario;
+            req.session.rol = user.rol;
+
             res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
         });
     });
 });
 
-app.post('/api/usuarios', verificarAdmin, (req, res) => {
+app.get('/api/usuarios', verificarAutenticacion, verificarAdminSesion, (req, res) => {
+    db.all(`SELECT id, usuario, rol, bloqueado FROM usuarios`, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows || []);
+    });
+});
+
+app.post('/api/usuarios', verificarAutenticacion, verificarAdminSesion, (req, res) => {
     const { usuario, password, rol } = req.body;
     
     if (!password) {
@@ -165,15 +190,7 @@ app.post('/api/usuarios', verificarAdmin, (req, res) => {
     });
 });
 
-app.get('/api/usuarios', verificarAdmin, (req, res) => {
-    db.all(`SELECT id, usuario, rol, bloqueado FROM usuarios`, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows || []);
-    });
-});
-
-
-app.put('/api/usuarios/:id/bloquear', verificarAdmin, (req, res) => {
+app.put('/api/usuarios/:id/bloquear', verificarAutenticacion, verificarAdminSesion, (req, res) => {
     const { bloqueado } = req.body;
     db.run(`UPDATE usuarios SET bloqueado = ? WHERE id = ?`, [bloqueado, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -181,33 +198,16 @@ app.put('/api/usuarios/:id/bloquear', verificarAdmin, (req, res) => {
     });
 });
 
-
-app.delete('/api/usuarios/:id', verificarAdmin, (req, res) => {
-    const idUsuarioAEliminar = Number(req.params.id);
-    const idUsuarioLogueado = Number(req.headers['x-user-id']);
-
-    // Un administrador puede borrar otros usuarios, pero nunca su propia cuenta.
-    if (!Number.isInteger(idUsuarioLogueado)) {
-        return res.status(401).json({ error: "No se pudo identificar al usuario logueado." });
-    }
-
-    if (idUsuarioAEliminar === idUsuarioLogueado) {
-        return res.status(403).json({ error: "No puedes borrar el usuario con el que estás conectado." });
-    }
-
-    db.run(`DELETE FROM usuarios WHERE id = ?`, [idUsuarioAEliminar], function(err) {
+app.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdminSesion, (req, res) => {
+    db.run(`DELETE FROM usuarios WHERE id = ?`, [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-
-        if (this.changes === 0) {
-            return res.status(404).json({ error: "Usuario no encontrado." });
-        }
-
         res.json({ mensaje: "Usuario borrado con éxito" });
     });
 });
 
-
-// --- RUTAS API: CLIENTES ---
+// ==========================================
+// RUTAS API: CLIENTES
+// ==========================================
 app.get('/api/clientes', (req, res) => {
     db.all("SELECT * FROM clientes", [], (err, rows) => {
         if (rows) rows.forEach(r => { if(r.telefono) r.telefono = r.telefono.split(',')[0]; });
@@ -249,15 +249,19 @@ app.get('/api/clientes/:id/pedidos', (req, res) => {
 
 app.delete('/api/clientes/:id', (req, res) => db.run("DELETE FROM clientes WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" })));
 
-// --- RUTAS API: STOCK ---
+// ==========================================
+// RUTAS API: STOCK
+// ==========================================
 app.get('/api/stock', (req, res) => db.all("SELECT * FROM stock", [], (err, rows) => res.json(rows || [])));
 
-app.put('/api/stock/:tipo', verificarAdmin, (req, res) => {
+app.put('/api/stock/:tipo', verificarAutenticacion, verificarAdminSesion, (req, res) => {
     const { llenas, vacias, precio } = req.body;
     db.run("UPDATE stock SET llenas = ?, vacias = ?, precio = ? WHERE tipo = ?", [llenas, vacias, precio, req.params.tipo], () => res.json({ mensaje: "Actualizado" }));
 });
-// --- RUTAS API: PEDIDOS ---
 
+// ==========================================
+// RUTAS API: PEDIDOS
+// ==========================================
 app.get('/api/pedidos', (req, res) => {
     const sql = `SELECT pedidos.*, 
                  COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
@@ -552,8 +556,6 @@ function procesarPedidoCliente(cliente, texto, jid) {
     });
 }
 
-// Iniciar el bot al encender el servidor
 iniciarWhatsApp();
 
 app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
-
