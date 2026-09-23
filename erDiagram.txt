@@ -1,0 +1,154 @@
+erDiagram
+    CLIENTES ||--o{ PEDIDOS : realiza
+    
+    CLIENTES {
+        INTEGER id PK
+        TEXT nombre
+        TEXT telefono
+        TEXT direccion
+    }
+
+    PEDIDOS {
+        INTEGER id PK
+        INTEGER cliente_id FK
+        TEXT tipo
+        INTEGER cantidad
+        REAL total
+        TEXT estado
+        TEXT forma_pago
+        TEXT tipo_venta
+        TEXT fecha
+    }
+
+    STOCK {
+        INTEGER id PK
+        TEXT tipo UK
+        INTEGER llenas
+        INTEGER vacias
+        REAL precio
+    }
+
+    USUARIOS {
+        INTEGER id PK
+        TEXT usuario UK
+        TEXT password
+        TEXT rol
+        INTEGER bloqueado
+    }
+
+
+
+Descripción de las Tablas y Atributos
+clientes: Almacena la información de los clientes del negocio.   
+Desconocido
+
+id: Identificador único (Clave Primaria).   
+Desconocido
+
+nombre: Nombre del cliente.   
+Desconocido
+
+telefono: Número de contacto.   
+Desconocido
+
+direccion: Dirección de entrega o ubicación.   
+Desconocido
+
+pedidos: Registra las transacciones o pedidos realizados.   
+Desconocido
+
+id: Identificador único del pedido (Clave Primaria).   
+Desconocido
+
+cliente_id: Relaciona el pedido con un cliente específico (Clave Foránea hacia clientes.id).   
+Desconocido
+
+tipo: Tipo de producto o envase del pedido.   
+Desconocido
+
+cantidad: Cantidad solicitada.   
+Desconocido
+
+total: Monto total a pagar.   
+Desconocido
+
+estado: Estado actual (por defecto 'Pendiente').   
+Desconocido
+
+forma_pago: Método de pago (por defecto 'Efectivo').   
+Desconocido
+
+tipo_venta: Modalidad de venta (por defecto 'deposito').   
+Desconocido
+
+fecha: Fecha y hora en que se registró el pedido.   
+Desconocido
+
+stock: Controla el inventario de los productos.   
+Desconocido
+
+id: Identificador único (Clave Primaria).   
+Desconocido
+
+tipo: Tipo de producto único (Clave Única).   
+Desconocido
+
+llenas: Cantidad de unidades llenas disponibles.   
+Desconocido
+
+vacias: Cantidad de unidades vacías.   
+Desconocido
+
+precio: Precio unitario.   
+Desconocido
+
+usuarios: Gestiona el acceso al sistema del personal o administradores.   
+Desconocido
+
+id: Identificador único (Clave Primaria).   
+Desconocido
+
+usuario: Nombre de usuario único para el login.   
+Desconocido
+
+password: Contraseña cifrada.   
+Desconocido
+
+rol: Rol del usuario en el sistema (ej. admin, repartidor).   
+Desconocido
+
+bloqueado: Indicador de estado de bloqueo (0 o 1).   
+Desconocido
+
+Relación Principal
+clientes a pedidos (1 a Muchos): Un cliente puede realizar múltiples pedidos a lo largo del tiempo, pero cada pedido está asociado a un único cliente mediante el campo cliente_id.   
+Desconocido
+
+
++-------------------+             1          N             +-------------------+
+|     CLIENTES      |------------------------------------->|      PEDIDOS      |
+|-------------------|                                      |-------------------|
+| PK id             |                                      | PK id             |
+|    nombre         |                                      | FK cliente_id     |--+
+|    telefono       |                                      |    tipo           |  |
+|    direccion      |                                      |    cantidad       |  |
++-------------------+                                      |    total          |  |
+                                                           |    estado         |  |
+                                                           |    forma_pago     |  |
+                                                           |    tipo_venta     |  |
+                                                           |    fecha          |  |
+                                                           +-------------------+  |
+                                                                                  |
++-------------------+                                     +-------------------+   |
+|       STOCK       |                                     |     USUARIOS      |   |
+|-------------------|                                     |-------------------|   |
+| PK id             |                                     | PK id             |   |
+| UK tipo           |  (Sin conexiones directas)          | UK usuario        |   |
+|    llenas         |                                     |    password       |   |
+|    vacias         |                                     |    rol            |   |
+|    precio         |                                     |    bloqueado      |   |
++-------------------+                                     +-------------------+   |
+                                                                                  v
+
+Detalle de la Gráfica y sus Conexiones:La única conexión directa (Relación 1 a N):Verás una línea que une la tabla CLIENTES con la tabla PEDIDOS.   Del lado de CLIENTES suele terminar con un indicador de 1 y del lado de PEDIDOS con un símbolo de "pata de gallo" (crow's foot) que indica muchos (N). Esto significa gráficamente que un cliente puede desplegar múltiples líneas de pedidos.   El campo cliente_id dentro de pedidos es el puente (Clave Foránea) que dibuja esa línea hacia el id de la tabla clientes.   Tablas Independientes (Sin líneas de conexión):STOCK: Aparece como una caja flotante separada. Controla los productos, precios y envases disponibles, pero en esta estructura no depende de ninguna otra tabla por medio de IDs.   USUARIOS: También aparece como una caja independiente. Sirve puramente para la autenticación (login, roles y contraseñas del personal), por lo que no requiere enlazarse mediante claves foráneas a los clientes o pedidos en este esquema base.   
+
