@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
-    if (!user && !window.location.href.includes('login.html')) {
+    if (!user && !window.location.href.includes('login')) {
         window.location.href = 'login.html';
         return;
     }
 
-    if (window.location.href.includes('login.html')) return;
+    if (window.location.href.includes('login')) return;
 
     const headerViejo = document.querySelector('header');
     if (headerViejo) headerViejo.remove();
@@ -18,12 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="app-header-left">
                 <h2 class="app-title">Garrafas App</h2>
                 <nav class="app-nav">
-                    <a href="pedidos.html" class="app-nav-link ${window.location.href.includes('pedidos.html') ? 'active' : ''}">Pedidos</a>
-                    <a href="clientes.html" class="app-nav-link ${window.location.href.includes('clientes.html') ? 'active' : ''}">Clientes</a>
-                    <a href="ventas.html" id="nav-ventas" class="app-nav-link ${window.location.href.includes('ventas.html') ? 'active' : ''}">Ventas</a>
-                    <a href="Diario.html" id="nav-diario" class="app-nav-link ${window.location.href.includes('diario.html') ? 'active' : ''}">Diario</a>
-                    <a href="stock.html" id="nav-stock" class="app-nav-link ${window.location.href.includes('stock.html') ? 'active' : ''}">Stock</a>
-                </nav>
+    <a href="/pedidos" class="app-nav-link ${window.location.pathname === '/pedidos' ? 'active' : ''}">Pedidos</a>
+    <a href="/clientes" class="app-nav-link ${window.location.pathname === '/clientes' ? 'active' : ''}">Clientes</a>
+    <a href="/ventas" class="app-nav-link ${window.location.pathname === '/ventas' ? 'active' : ''}">Ventas</a>
+    <a href="/diario" class="app-nav-link ${window.location.pathname === '/diario' ? 'active' : ''}">Diario</a>
+    <a href="/stock" class="app-nav-link ${window.location.pathname === '/stock' ? 'active' : ''}">Stock</a>
+</nav>
+
             </div>
 
             <div class="header-user-container">
@@ -139,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-window.toggleMenuPerfil = function(event) {
+window.toggleMenuPerfil = function (event) {
     event.stopPropagation();
     const dropdown = document.getElementById('dropdown-perfil');
     if (dropdown) {
@@ -153,7 +154,7 @@ window.addEventListener('click', () => {
     if (dropdown) dropdown.style.display = 'none';
 });
 
-window.abrirModalAdministrarPerfiles = function() {
+window.abrirModalAdministrarPerfiles = function () {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
     if (!user || user.rol !== 'admin') {
         alert("Acceso denegado. Solo los administradores pueden gestionar perfiles.");
@@ -163,11 +164,11 @@ window.abrirModalAdministrarPerfiles = function() {
     cargarPerfilesEnTabla();
 }
 
-window.cerrarModalAdminPerfiles = function() {
+window.cerrarModalAdminPerfiles = function () {
     document.getElementById('modal-admin-perfiles').style.display = 'none';
 }
 
-window.toggleFormularioNuevoUsuario = function() {
+window.toggleFormularioNuevoUsuario = function () {
     const form = document.getElementById('form-nuevo-repartidor');
     if (form) {
         const oculto = getComputedStyle(form).display === 'none';
@@ -175,34 +176,34 @@ window.toggleFormularioNuevoUsuario = function() {
     }
 }
 
-window.cargarPerfilesEnTabla = function() {
+window.cargarPerfilesEnTabla = function () {
     fetch('/api/usuarios', {
         method: 'GET',
         credentials: 'include'
     })
-    .then(res => {
-        if (!res.ok) throw new Error("No autorizado para ver usuarios");
-        return res.json();
-    })
-    .then(usuarios => {
-        const tbody = document.getElementById('tabla-cuerpo-perfiles');
-        if (!tbody) return;
-        tbody.innerHTML = ''; 
+        .then(res => {
+            if (!res.ok) throw new Error("No autorizado para ver usuarios");
+            return res.json();
+        })
+        .then(usuarios => {
+            const tbody = document.getElementById('tabla-cuerpo-perfiles');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-        const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
+            const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
 
-        usuarios.forEach(u => {
-            const esBloqueado = u.bloqueado === 1;
-            const iconoEstado = esBloqueado ? "🔓 Desbloquear" : "🔒 Bloquear";
+            usuarios.forEach(u => {
+                const esBloqueado = u.bloqueado === 1;
+                const iconoEstado = esBloqueado ? "🔓 Desbloquear" : "🔒 Bloquear";
 
-            const esUsuarioActual = usuarioLogueado && Number(u.id) === Number(usuarioLogueado.id);
+                const esUsuarioActual = usuarioLogueado && Number(u.id) === Number(usuarioLogueado.id);
 
-            let botonesAccion = '';
-            if (esUsuarioActual) {
-                botonesAccion = '🔒 Vos';
-            } else {
-                const claseEstado = esBloqueado ? 'btn-desbloquear' : 'btn-bloquear';
-                botonesAccion = `
+                let botonesAccion = '';
+                if (esUsuarioActual) {
+                    botonesAccion = '🔒 Vos';
+                } else {
+                    const claseEstado = esBloqueado ? 'btn-desbloquear' : 'btn-bloquear';
+                    botonesAccion = `
                     <button onclick="toggleBloqueoUsuario(${u.id}, ${esBloqueado ? 0 : 1}, '${u.usuario}')"
                             class="btn-accion ${claseEstado}">
                         ${iconoEstado}
@@ -211,9 +212,9 @@ window.cargarPerfilesEnTabla = function() {
                         🗑️ Borrar
                     </button>
                 `;
-            }
+                }
 
-            tbody.innerHTML += `
+                tbody.innerHTML += `
                 <tr>
                     <td>${u.id}</td>
                     <td>${u.usuario}</td>
@@ -223,14 +224,14 @@ window.cargarPerfilesEnTabla = function() {
                     </td>
                 </tr>
             `;
-        });
-    })
-    .catch(err => console.error("Error al cargar usuarios:", err));
+            });
+        })
+        .catch(err => console.error("Error al cargar usuarios:", err));
 };
 
-window.crearNuevoUsuario = function(event) {
+window.crearNuevoUsuario = function (event) {
     event.preventDefault();
-    
+
     const nombreInput = document.getElementById('nuevo-usuario-nombre');
     const passInput = document.getElementById('nuevo-usuario-pass');
     const rolInput = document.getElementById('nuevo-usuario-rol');
@@ -249,94 +250,94 @@ window.crearNuevoUsuario = function(event) {
     fetch('/api/usuarios', {
         method: 'POST',
         credentials: 'include', // 👈 Indispensable para express-session
-        headers: { 
+        headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-    .then(async res => {
-        const resultado = await res.json();
-        if (!res.ok) throw new Error(resultado.error || "Error al crear el usuario");
-        return resultado;
-    })
-    .then(data => {
-        alert(data.mensaje || "Usuario creado correctamente");
-        const form = document.getElementById('form-nuevo-repartidor');
-        if (form) form.reset();
-        toggleFormularioNuevoUsuario();
-        cargarPerfilesEnTabla(); // Recarga la tabla de usuarios
-    })
-    .catch(err => {
-        console.error("Error al crear usuario:", err);
-        alert("No se pudo crear el usuario: " + err.message);
-    });
+        .then(async res => {
+            const resultado = await res.json();
+            if (!res.ok) throw new Error(resultado.error || "Error al crear el usuario");
+            return resultado;
+        })
+        .then(data => {
+            alert(data.mensaje || "Usuario creado correctamente");
+            const form = document.getElementById('form-nuevo-repartidor');
+            if (form) form.reset();
+            toggleFormularioNuevoUsuario();
+            cargarPerfilesEnTabla(); // Recarga la tabla de usuarios
+        })
+        .catch(err => {
+            console.error("Error al crear usuario:", err);
+            alert("No se pudo crear el usuario: " + err.message);
+        });
 };
 
-window.toggleBloqueoUsuario = function(id, nuevoEstado, nombreUsuario) {
+window.toggleBloqueoUsuario = function (id, nuevoEstado, nombreUsuario) {
     const accion = nuevoEstado === 1 ? "bloquear" : "desbloquear";
-    
+
     if (confirm(`¿Estás seguro de \({accion} al usuario "\){nombreUsuario}"?`)) {
         fetch(`/api/usuarios/${id}/bloquear`, {
             method: 'PUT',
             credentials: 'include', // 👈 Indispensable para enviar la sesión
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ bloqueado: nuevoEstado })
         })
-        .then(async res => {
-            if (!res.ok) throw new Error("No autorizado o error al actualizar estado");
-            return res.json();
-        })
-        .then(data => {
-            alert(`El usuario ha sido ${accion}do correctamente.`);
-            cargarPerfilesEnTabla();
-        })
-        .catch(err => {
-            console.error("Error al cambiar estado:", err);
-            alert("No se pudo actualizar el estado del usuario.");
-        });
+            .then(async res => {
+                if (!res.ok) throw new Error("No autorizado o error al actualizar estado");
+                return res.json();
+            })
+            .then(data => {
+                alert(`El usuario ha sido ${accion}do correctamente.`);
+                cargarPerfilesEnTabla();
+            })
+            .catch(err => {
+                console.error("Error al cambiar estado:", err);
+                alert("No se pudo actualizar el estado del usuario.");
+            });
     }
 };
 
-window.borrarUsuario = function(id) {
+window.borrarUsuario = function (id) {
     if (confirm("¿Estás seguro de que deseas borrar este perfil de forma permanente?")) {
-        fetch(`/api/usuarios/${id}`, { 
+        fetch(`/api/usuarios/${id}`, {
             method: 'DELETE',
             credentials: 'include' // 👈 Envía la cookie de sesión del servidor
         })
-        .then(async res => {
-            // Verificamos si la respuesta es JSON antes de parsearla para evitar excepciones
-            const contentType = res.headers.get("content-type");
-            let data = {};
-            if (contentType && contentType.includes("application/json")) {
-                data = await res.json();
-            } else {
-                data = { error: await res.text() };
-            }
+            .then(async res => {
+                // Verificamos si la respuesta es JSON antes de parsearla para evitar excepciones
+                const contentType = res.headers.get("content-type");
+                let data = {};
+                if (contentType && contentType.includes("application/json")) {
+                    data = await res.json();
+                } else {
+                    data = { error: await res.text() };
+                }
 
-            if (!res.ok) {
-                throw new Error(data.error || "No autorizado o error al eliminar el usuario");
-            }
-            return data;
-        })
-        .then(data => {
-            alert(data.mensaje || "Usuario eliminado con éxito.");
-            cargarPerfilesEnTabla();
-        })
-        .catch(err => {
-            console.error("Error al borrar usuario (Línea 251):", err);
-            alert("No se pudo borrar el usuario: " + err.message);
-        });
+                if (!res.ok) {
+                    throw new Error(data.error || "No autorizado o error al eliminar el usuario");
+                }
+                return data;
+            })
+            .then(data => {
+                alert(data.mensaje || "Usuario eliminado con éxito.");
+                cargarPerfilesEnTabla();
+            })
+            .catch(err => {
+                console.error("Error al borrar usuario (Línea 251):", err);
+                alert("No se pudo borrar el usuario: " + err.message);
+            });
     }
 };
 
-window.abrirModalRecuperar = function() {
+window.abrirModalRecuperar = function () {
     document.getElementById('nueva-pass').value = '';
     document.getElementById('modal-password').style.display = 'flex';
 }
 
-window.cerrarModalRecuperar = function() {
+window.cerrarModalRecuperar = function () {
     document.getElementById('modal-password').style.display = 'none';
 }
 
@@ -348,7 +349,7 @@ document.addEventListener('submit', (e) => {
     }
 });
 
-window.cerrarSesion = function() {
+window.cerrarSesion = function () {
     localStorage.removeItem('usuarioLogueado');
     window.location.href = 'login.html';
 }

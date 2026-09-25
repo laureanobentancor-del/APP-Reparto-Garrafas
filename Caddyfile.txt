@@ -1,0 +1,3 @@
+control-stock-garrafas.local {
+    reverse_proxy localhost:80
+}

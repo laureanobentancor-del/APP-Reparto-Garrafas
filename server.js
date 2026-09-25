@@ -8,13 +8,13 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 
 const app = express();
-const PORT = 3000;
+const PORT = 80;
 const saltRounds = 10;
 
+// 1. Primero defines tus middlewares generales
 app.use(express.json()); 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuración de Express Session
 app.use(session({
     secret: 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
     resave: false,
@@ -25,6 +25,17 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 8 
     }
 }));
+
+// 2. Luego importas el enrutador
+const vistasRouter = require('./routes/vistas');
+
+// 3. Y finalmente lo usas con app.use
+app.use('/', vistasRouter);
+
+app.listen(PORT, '127.0.0.1', () => {
+    console.log(`Servidor seguro corriendo en http://control-stock-garrafas.local`);
+});
+
 
 const db = new sqlite3.Database('./database.db', (err) => {
     if (err) console.error("Error BD:", err.message);
@@ -378,8 +389,6 @@ app.delete('/api/pedidos/:id', (req, res) => {
     db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
 });
 
-app.get('/', (req, res) => res.redirect('/pedidos.html'));
-
 // ==========================================
 // MÓDULO DE WHATSAPP Y QR
 // ==========================================
@@ -561,5 +570,3 @@ function procesarPedidoCliente(cliente, texto, jid) {
 }
 
 iniciarWhatsApp();
-
-app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));
