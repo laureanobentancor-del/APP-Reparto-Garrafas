@@ -14,6 +14,7 @@ const saltRounds = 10;
 // 1. Primero defines tus middlewares generales
 app.use(express.json()); 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'pages')));
 
 app.use(session({
     secret: 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
