@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 
 const app = express();
-const PORT = 80;
+const PORT = process.env.PORT || 80;
 const saltRounds = 10;
 
 // 1. Primero defines tus middlewares generales
@@ -17,12 +17,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'pages')));
 
 app.use(session({
-    secret: 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
+    secret: process.env.SESSION_SECRET || 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: false, 
+        secure: process.env.NODE_ENV === 'production', 
         httpOnly: true, 
+        sameSite: 'lax',
         maxAge: 1000 * 60 * 60 * 8 
     }
 }));
@@ -52,10 +53,6 @@ db.serialize(() => {
         bloqueado INTEGER DEFAULT 0
     )`);
 
-    // Las tablas se crean PRIMERO, antes de que cualquier consulta las use.
-    // Si esto va después del bloque de siembra, en una base de datos nueva
-    // el SELECT/UPDATE de más abajo fallan porque la tabla todavía no
-    // existe, y la siembra se salta en silencio (esto ya pasó una vez).
     db.run(`CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, telefono TEXT, direccion TEXT)`);
     db.run(`CREATE TABLE IF NOT EXISTS stock (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT UNIQUE, llenas INTEGER, vacias INTEGER, precio REAL)`);
 
@@ -231,7 +228,7 @@ app.get('/api/clientes', (req, res) => {
     });
 });
 
-app.post('/api/clientes', (req, res) => {
+app.post('/api/clientes', verificarAutenticacion, (req, res) => {
     const { nombre, telefono, direccion } = req.body;
     db.run("INSERT INTO clientes (nombre, telefono, direccion) VALUES (?, ?, ?)", [nombre, telefono, direccion], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -239,7 +236,7 @@ app.post('/api/clientes', (req, res) => {
     });
 });
 
-app.put('/api/clientes/:id', (req, res) => {
+app.put('/api/clientes/:id', verificarAutenticacion, (req, res) => {
     const { nombre, telefono, direccion } = req.body;
     db.get("SELECT telefono FROM clientes WHERE id = ?", [req.params.id], (err, row) => {
         let telefonoFinal = telefono;
@@ -254,7 +251,7 @@ app.put('/api/clientes/:id', (req, res) => {
     });
 });
 
-app.get('/api/clientes/:id/pedidos', (req, res) => {
+app.get('/api/clientes/:id/pedidos', verificarAutenticacion, (req, res) => {
     const clienteId = req.params.id;
     const sql = `SELECT pedidos.*, clientes.nombre as cliente_nombre FROM pedidos JOIN clientes ON pedidos.cliente_id = clientes.id WHERE clientes.id = ? ORDER BY pedidos.id DESC`;
     db.all(sql, [clienteId], (err, rows) => {
@@ -263,7 +260,9 @@ app.get('/api/clientes/:id/pedidos', (req, res) => {
     });
 });
 
-app.delete('/api/clientes/:id', (req, res) => db.run("DELETE FROM clientes WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" })));
+app.delete('/api/clientes/:id', verificarAutenticacion, verificarAdminSesion, (req, res) => {
+    db.run("DELETE FROM clientes WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
+});
 
 // ==========================================
 // RUTAS API: STOCK
@@ -294,7 +293,7 @@ app.get('/api/pedidos', (req, res) => {
     });
 });
 
-app.put('/api/pedidos/:id/pago', (req, res) => {
+app.put('/api/pedidos/:id/pago', verificarAutenticacion, (req, res) => {
     const { forma_pago } = req.body;
     db.run("UPDATE pedidos SET forma_pago = ? WHERE id = ?", [forma_pago, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -374,19 +373,20 @@ app.post('/api/pedidos', (req, res) => {
     });
 });
 
-app.put('/api/pedidos/:id', (req, res) => {
+app.put('/api/pedidos/:id', verificarAutenticacion, (req, res) => {
     const { tipo, cantidad } = req.body;
     db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+        if (!stock) return res.status(400).json({ error: "Tipo de stock no encontrado" });
         const total = stock.precio * cantidad;
         db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => res.json({ mensaje: "Editado" }));
     });
 });
 
-app.put('/api/pedidos/:id/estado', (req, res) => {
+app.put('/api/pedidos/:id/estado', verificarAutenticacion, (req, res) => {
     db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [req.body.estado, req.params.id], () => res.json({ mensaje: "Ok" }));
 });
 
-app.delete('/api/pedidos/:id', (req, res) => {
+app.delete('/api/pedidos/:id', verificarAutenticacion, (req, res) => {
     db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
 });
 
@@ -400,7 +400,7 @@ let chatsNuevos = {};
 
 app.get('/api/whatsapp/qr', (req, res) => res.json({ estado: estadoWhatsApp, qr: qrCodeActual }));
 
-app.post('/api/whatsapp/reiniciar', async (req, res) => {
+app.post('/api/whatsapp/reiniciar', verificarAutenticacion, verificarAdminSesion, async (req, res) => {
     if (sockGlobal) { 
         await sockGlobal.logout().catch(() => {}); 
         sockGlobal.end(undefined); 
