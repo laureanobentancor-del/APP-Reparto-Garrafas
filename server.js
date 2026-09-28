@@ -1,3 +1,5 @@
+const session = require('express-session')
+const SQLiteStore = require('connect-sqlite3')(session); // 👈 Importamos el conector para SQLite
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
@@ -5,8 +7,6 @@ const pino = require('pino');
 const QRCode = require('qrcode');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const session = require('express-session');
-
 const app = express();
 const PORT = process.env.PORT || 80;
 const saltRounds = 10;
@@ -16,7 +16,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'pages')));
 
+// 2. Configuramos la sesión para que se guarde en SQLite de forma persistente
 app.use(session({
+    store: new SQLiteStore({
+        db: 'database.db', // Utiliza tu misma base de datos
+        dir: './',        // En la raíz del proyecto
+        table: 'sessions'  // Tabla donde se guardarán las sesiones de forma segura
+    }),
     secret: process.env.SESSION_SECRET || 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
     resave: false,
     saveUninitialized: false,
@@ -24,7 +30,7 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production', 
         httpOnly: true, 
         sameSite: 'lax',
-        maxAge: 1000 * 60 * 60 * 2 // Cambiado a 2 horas (o ajústalo a tu preferencia)
+        maxAge: 1000 * 60 * 60 * 8 // 8 horas completas
     }
 }));
 
@@ -152,6 +158,20 @@ function verificarAdminSesion(req, res, next) {
     return res.status(403).json({ error: "Acceso denegado. Se requieren permisos de administrador." });
 }
 
+
+// ==========================================
+// RUTA API: LOGOUT / CERRAR SESIÓN
+// ==========================================
+app.post('/api/logout', verificarAutenticacion, (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: "Error al cerrar la sesión" });
+        }
+        res.clearCookie('connect.sid'); // Limpia la cookie de express-session
+        res.json({ mensaje: "Sesión cerrada con éxito" });
+    });
+});
+
 // ==========================================
 // RUTAS API: USUARIOS Y AUTENTICACIÓN
 // ==========================================
@@ -188,6 +208,17 @@ app.post('/api/usuarios', verificarAutenticacion, verificarAdminSesion, (req, re
     
     if (!password) {
         return res.status(400).json({ error: "La contraseña es obligatoria" });
+    }
+
+    // Expresión regular para contraseña fuerte:
+    // - Mínimo 8 caracteres
+    // - Al menos una minúscula, una mayúscula, un número y un carácter especial
+    const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+    if (!regexPassword.test(password)) {
+        return res.status(400).json({ 
+            error: "La contraseña no es segura. Debe tener al menos 8 caracteres, incluir letras mayúsculas, minúsculas, números y al menos un carácter especial." 
+        });
     }
 
     bcrypt.hash(password, saltRounds, (err, hash) => {

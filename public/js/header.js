@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <!-- Modal de Administrar Perfiles -->
         <div id="modal-admin-perfiles" class="modal-fondo">
-            <div class="modal-contenido modal-ancho-650">
+            <div class="modal-contenido modal-ancho-550">
                 <div class="modal-header-flex">
                     <h3 class="modal-historial-titulo">Administrar Perfiles de Usuario</h3>
                     <button onclick="cerrarModalAdminPerfiles()" class="btn-cerrar-historial">&times;</button>
@@ -61,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <form id="form-nuevo-repartidor" class="form-panel-secundario" onsubmit="crearNuevoUsuario(event)">
                     <h4>Crear Nueva Cuenta</h4>
                     <div class="form-fila-flex">
-                        <input type="text" id="nuevo-usuario-nombre" placeholder="Nombre de usuario" required>
-                        <input type="password" id="nuevo-usuario-pass" placeholder="Contraseña" required>
+                        <input type="text" id="nuevo-usuario-nombre" autocomplete = "username"  placeholder="Nombre de usuario" required>
+                        <input type="password" id="nueva-pass" autocomplete="new-password" placeholder="Contraseña" required>
                     </div>
                     <div class="mb-10">
                         <label>Rol del Sistema:</label>
@@ -98,21 +98,25 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <!-- Modal de Cambiar Contraseña -->
-        <div id="modal-password" class="modal-fondo">
-            <div class="modal-contenido modal-ancho-400">
-                <h3 class="modal-historial-titulo">Cambiar Contraseña</h3>
-                <form id="form-password">
-                    <div class="form-group">
-                        <label>Nueva Contraseña:</label>
-                        <input type="password" id="nueva-pass" required>
-                    </div>
-                    <div class="form-fila-flex mt-20">
-                        <button type="submit" class="btn-guardar flex-1">Actualizar</button>
-                        <button type="button" onclick="cerrarModalRecuperar()" class="btn-cancelar flex-1">Cancelar</button>
-                    </div>
-                </form>
+<div id="modal-password" class="modal-fondo">
+    <div class="modal-contenido modal-ancho-400">
+        <h3 class="modal-historial-titulo">Cambiar Contraseña</h3>
+        <form id="form-password">
+            <!-- Campo de usuario oculto para accesibilidad y gestores de contraseñas -->
+            <input type="text" autocomplete="username" style="display: none;" value="" aria-hidden="true">
+
+            <div class="form-group">
+                <label>Nueva Contraseña:</label>
+                <input type="password" id="input-cambiar-pass" autocomplete="new-password" required>
             </div>
-        </div>
+            <div class="form-fila-flex mt-20">
+                <button type="submit" class="btn-guardar flex-1">Actualizar</button>
+                <button type="button" onclick="cerrarModalRecuperar()" class="btn-cancelar flex-1">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
     `;
 
     document.body.insertAdjacentHTML('afterbegin', estructuraHeader);

@@ -5,6 +5,76 @@ let pedidosGlobales = [];
 
 
 // ==========================================
+// RESTRICCIÓN GLOBAL AUTOMÁTICA POR ID/NOMBRE
+// ==========================================
+document.addEventListener('input', function (e) {
+    const input = e.target;
+    if (input.tagName !== 'INPUT') return;
+
+    // Unimos el ID y el nombre del input en minúsculas para analizarlos
+    const identificador = (input.id + ' ' + (input.name || '')).toLowerCase();
+
+    // 1. RESTRICCIÓN DE NÚMEROS: Si el ID o nombre contiene 'telefono', 'cantidad', 'llenas', 'vacias' o 'precio'
+    if (
+        identificador.includes('telefono') || 
+        identificador.includes('cantidad') || 
+        identificador.includes('llenas') || 
+        identificador.includes('vacias') || 
+        identificador.includes('precio')
+    ) {
+        input.value = input.value.replace(/\D/g, '');
+    }
+
+    // 2. RESTRICCIÓN DE LETRAS: Si el ID o nombre contiene 'nombre'
+    else if (identificador.includes('nombre')) {
+        input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+    }
+});
+
+// ==========================================
+// VALIDACIÓN DE CONTRASEÑA EN TIEMPO REAL
+// ==========================================
+const passwordInput = document.getElementById('nueva-pass'); // <--- Acá corregimos al ID real de tu HTML
+const errorPassword = document.getElementById('error-password');
+const formUsuario = document.getElementById('form-usuario'); 
+
+if (passwordInput && errorPassword) {
+    function evaluarPassword(password) {
+        const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        return regexPassword.test(password);
+    }
+
+    passwordInput.addEventListener('input', function() {
+        const valor = passwordInput.value;
+
+        if (valor === "") {
+            errorPassword.style.display = 'none';
+            passwordInput.style.borderColor = '';
+        } else if (!evaluarPassword(valor)) {
+            errorPassword.textContent = "Debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y un carácter especial.";
+            errorPassword.style.display = 'block';
+            passwordInput.style.borderColor = '#e74c3c';
+        } else {
+            errorPassword.style.display = 'none';
+            passwordInput.style.borderColor = '#27ae60';
+        }
+    });
+
+    if (formUsuario) {
+        formUsuario.addEventListener('submit', function(e) {
+            const valor = passwordInput.value;
+            if (!evaluarPassword(valor)) {
+                e.preventDefault();
+                errorPassword.textContent = "La contraseña no cumple con los requisitos de seguridad.";
+                errorPassword.style.display = 'block';
+                passwordInput.style.borderColor = '#e74c3c';
+                passwordInput.focus();
+            }
+        });
+    }
+}
+
+// ==========================================
 // LÓGICA DE CLIENTES
 // ==========================================
 function cargarClientes() {

@@ -1,10 +1,10 @@
-// Tiempo límite de inactividad en milisegundos (Ejemplo: 2 horas = 2 * 60 * 60 * 1000)
-const TIEMPO_INACTIVIDAD = 2 * 60 * 60 * 1000; 
-
+// ==========================================
+// CONTROL DE INACTIVIDAD (8 HORAS)
+// ==========================================
+const TIEMPO_INACTIVIDAD = 8 * 60 * 60 * 1000; // 8 horas exactas
 let temporizadorInactividad;
 
 function reiniciarTemporizador() {
-    // Cada vez que el usuario hace algo, borramos el temporizador anterior y lo ponemos en cero
     clearTimeout(temporizadorInactividad);
     
     temporizadorInactividad = setTimeout(() => {
@@ -14,22 +14,19 @@ function reiniciarTemporizador() {
 
 async function cerrarSesionPorInactividad() {
     try {
-        // Opcional: Avisar al servidor que destruya la sesión
-        await fetch('/api/logout', { method: 'POST' }); // Asegúrate de tener o crear esta ruta si lo deseas, o simplemente limpiar y redirigir
+        await fetch('/api/logout', { method: 'POST' });
     } catch (e) {
         console.error("Error al cerrar sesión", e);
     }
 
-    alert("Tu sesión se ha cerrado automáticamente por inactividad prolongada.");
-    window.location.href = '/'; // Redirige al login o index principal
+    alert("Tu sesión se ha cerrado automáticamente por inactividad prolongada (8 horas).");
+    window.location.href = '/'; 
 }
 
-// Eventos que detectan si hay alguien usando la aplicación
-const eventosUsuario = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
-
-eventosUsuario.forEach(evento => {
+// Escuchamos la actividad del mouse, teclado y toques
+['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'].forEach(evento => {
     window.addEventListener(evento, reiniciarTemporizador, true);
 });
 
-// Iniciar el temporizador al cargar la página
+// Arranca el temporizador al cargar
 reiniciarTemporizador();
