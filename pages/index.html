@@ -17,34 +17,6 @@
 </script>
 </head>
 <body>
-    <header>
-       
-        
-    <div class="header-usuario" style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
-    <!-- Muestra el rol o usuario actual -->
-    <span id="badge-rol" style="background: #2c3e50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;"></span>
-    
-    <!-- Botón para abrir el modal de perfil/datos personales -->
-    <button onclick="abrirModalPerfil()" class="btn-accion" style="background-color: #3498db; color: white;">Mi Perfil</button>
-    
-    <!-- Botón para cerrar sesión -->
-    <button onclick="cerrarSesion()" class="btn-accion btn-eliminar">Cerrar Sesión</button>
-    </div>
-
-
-
-    </header>
-
-    <main class="contenedor" style="padding: 20px; display: flex; justify-content: center;">
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px;">
-            <h2>Estado de WhatsApp</h2>
-            <p id="whatsapp-estado" style="font-weight: bold; margin: 20px 0; font-size: 16px;">Verificando estado...</p>
-            <div id="contenedor-qr" style="margin: 20px 0; min-height: 160px; display: flex; justify-content: center; align-items: center;">
-                <!-- Aquí se cargará el QR -->
-            </div>
-            <button onclick="reiniciarWhatsApp()" style="background-color: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Reiniciar Conexión</button>
-        </div>
-
         <!-- Formulario de Login -->
 <div id="seccion-login" style="max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
     <h2>Iniciar Sesión</h2>
