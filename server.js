@@ -24,7 +24,7 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production', 
         httpOnly: true, 
         sameSite: 'lax',
-        maxAge: 1000 * 60 * 60 * 8 
+        maxAge: 1000 * 60 * 60 * 2 // Cambiado a 2 horas (o ajústalo a tu preferencia)
     }
 }));
 

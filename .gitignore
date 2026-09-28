@@ -3,3 +3,6 @@ database.sqlite
 auth_info_baileys
 node_modules/
 .env
+.text
+.sh
+.docx
