@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <!-- Modal de Administrar Perfiles -->
         <div id="modal-admin-perfiles" class="modal-fondo">
-            <div class="modal-contenido modal-ancho-550">
+            <div class="modal-contenido modal-ancho-650" style="max-height: 85vh; display: flex; flex-direction: column; overflow-y: auto;">
                 <div class="modal-header-flex">
                     <h3 class="modal-historial-titulo">Administrar Perfiles de Usuario</h3>
                     <button onclick="cerrarModalAdminPerfiles()" class="btn-cerrar-historial">&times;</button>
