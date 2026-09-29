@@ -7,6 +7,7 @@ let qrCodeActual = "";
 let estadoWhatsApp = "Desconectado";
 let sockGlobal = null;
 let chatsNuevos = {}; 
+let pedidosEnProceso = {}; // Para manejar estados intermedios de pedidos (tamaño y pago)
 
 // Función para inicializar WhatsApp recibiendo la base de datos como dependencia
 function iniciarWhatsApp(db) {
@@ -42,6 +43,48 @@ function iniciarWhatsApp(db) {
                 const textoOriginal = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
                 const texto = textoOriginal.toLowerCase();
 
+                // 1. Si el usuario está respondiendo para elegir tipo de garrafa o forma de pago estando a mitad de un pedido
+                if (pedidosEnProceso[idLimpio]) {
+                    let estadoPedido = pedidosEnProceso[idLimpio];
+
+                    if (estadoPedido.paso === 'elegir_tipo') {
+                        let tipoSeleccionado = "";
+                        if (texto.includes("1") || texto.includes("10")) tipoSeleccionado = "10kg";
+                        else if (texto.includes("2") || texto.includes("15")) tipoSeleccionado = "15kg";
+                        else if (texto.includes("3") || texto.includes("30")) tipoSeleccionado = "30kg";
+                        else if (texto.includes("4") || texto.includes("45")) tipoSeleccionado = "45kg";
+
+                        if (!tipoSeleccionado) {
+                            await sockGlobal.sendMessage(remoteJid, { 
+                                text: `⚠️ Por favor, selecciona una opción válida respondiendo con el número o tamaño:\n\n1️⃣ Garrafa de 10kg\n2️⃣ Garrafa de 15kg\n3️⃣ Garrafa de 30kg\n4️⃣ Garrafa de 45kg` 
+                            });
+                            return;
+                        }
+
+                        estadoPedido.tipo = tipoSeleccionado;
+                        estadoPedido.paso = 'elegir_pago';
+                        await sockGlobal.sendMessage(remoteJid, { 
+                            text: `💳 ¿Cómo vas a abonar el pedido?\n\n1️⃣ *Efectivo*\n2️⃣ *Transferencia / Mercado Pago*\n\n(Responde con la opción deseada).` 
+                        });
+                        return;
+                    }
+                    
+                    else if (estadoPedido.paso === 'elegir_pago') {
+                        let formaPago = "Efectivo";
+                        if (texto.includes("2") || texto.includes("transferencia") || texto.includes("mercado") || texto.includes("mp")) {
+                            formaPago = "Transferencia";
+                        }
+
+                        const clienteObj = estadoPedido.cliente;
+                        const tipoGarrafa = estadoPedido.tipo;
+                        const cantidadGarrafas = estadoPedido.cantidad || 1;
+
+                        delete pedidosEnProceso[idLimpio];
+                        procesarPedidoFinal(db, clienteObj, tipoGarrafa, cantidadGarrafas, formaPago, remoteJid);
+                        return;
+                    }
+                }
+
                 db.get("SELECT id, nombre, telefono FROM clientes WHERE telefono LIKE ?", [`%${idLimpio}%`], async (err, cliente) => {
                     if (cliente) {
                         const esPedido = /(garrafa|10|15|30|45|kilo|kg|pedido)/i.test(texto);
@@ -51,15 +94,52 @@ function iniciarWhatsApp(db) {
                             const especifica30 = texto.includes("30");
                             const especifica45 = texto.includes("45");
 
-                            if (!especifica10 && !especifica15 && !especifica30 && !especifica45) {
+                            let tipoDetectado = "10kg";
+                            if (especifica45) tipoDetectado = "45kg";
+                            else if (especifica30) tipoDetectado = "30kg";
+                            else if (especifica15) tipoDetectado = "15kg";
+                            else if (!especifica10) {
+                                // Si menciona que quiere garrafa pero no el tamaño, le preguntamos
+                                let cantidad = 1;
+                                const match = texto.match(/\d+/);
+                                if (match) {
+                                    const num = parseInt(match[0]);
+                                    if (num > 0 && num < 10) cantidad = num;
+                                }
+
+                                pedidosEnProceso[idLimpio] = {
+                                    paso: 'elegir_tipo',
+                                    cliente: cliente,
+                                    cantidad: cantidad
+                                };
+
                                 await sockGlobal.sendMessage(remoteJid, { 
-                                    text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*\n\n(Responde con el tamaño deseado).` 
+                                    text: `¡Hola ${cliente.nombre}! 👋 Para avanzar con tu pedido, indícanos por favor qué tipo de garrafa necesitas:\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*\n\n(Responde con el número o tamaño deseado).` 
                                 });
                                 return;
                             }
-                            procesarPedidoCliente(db, cliente, texto, remoteJid);
+
+                            // Si especificó el tamaño de una vez, pasamos a preguntar la forma de pago
+                            let cantidad = 1;
+                            const match = texto.match(/\d+/);
+                            if (match) {
+                                const num = parseInt(match[0]);
+                                if (num > 0 && num < 10 && !texto.includes(num + "kg")) cantidad = num;
+                            }
+
+                            pedidosEnProceso[idLimpio] = {
+                                paso: 'elegir_pago',
+                                cliente: cliente,
+                                tipo: tipoDetectado,
+                                cantidad: cantidad
+                            };
+
+                            await sockGlobal.sendMessage(remoteJid, { 
+                                text: `💳 ¿Cómo vas a abonar tu garrafa de ${tipoDetectado}?\n\n1️⃣ *Efectivo*\n2️⃣ *Transferencia / Mercado Pago*\n\n(Responde con la opción deseada).` 
+                            });
                         }
                     } else {
+                        // Flujo de registro para clientes nuevos
                         if (!chatsNuevos[idLimpio]) {
                             chatsNuevos[idLimpio] = { paso: 1, pedidoInicial: texto, celular: "" };
                             await sockGlobal.sendMessage(remoteJid, { text: "¡Hola! 👋 Veo que es la primera vez que nos escribes desde este número.\n\nPara tomar tu pedido, ¿me podrías decir tu *número de celular* (con código de área)?" });
@@ -76,8 +156,17 @@ function iniciarWhatsApp(db) {
                                     const nuevoTelefono = clienteExistente.telefono + "," + idLimpio;
                                     db.run("UPDATE clientes SET telefono = ? WHERE id = ?", [nuevoTelefono, clienteExistente.id], () => {
                                         sockGlobal.sendMessage(remoteJid, { text: `¡Hola de nuevo ${clienteExistente.nombre}! Encontramos tus datos. ✅` });
-                                        procesarPedidoCliente(db, clienteExistente, chatsNuevos[idLimpio].pedidoInicial, remoteJid);
+                                        
+                                        // Guardamos al cliente y activamos el pedido pendiente de tipo/pago
                                         delete chatsNuevos[idLimpio];
+                                        pedidosEnProceso[idLimpio] = {
+                                            paso: 'elegir_tipo',
+                                            cliente: clienteExistente,
+                                            cantidad: 1
+                                        };
+                                        sockGlobal.sendMessage(remoteJid, { 
+                                            text: `¿Qué tipo de garrafa necesitas?\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*` 
+                                        });
                                     });
                                 } else {
                                     chatsNuevos[idLimpio].paso = 2;
@@ -99,8 +188,17 @@ function iniciarWhatsApp(db) {
                                 if (!err) {
                                     const nuevoCliente = { id: this.lastID, nombre: nombre, telefono: telefonoGuardado };
                                     sockGlobal.sendMessage(remoteJid, { text: "¡Listo! Ya registré tus datos en el sistema. ✅" });
-                                    procesarPedidoCliente(db, nuevoCliente, pedidoInicial, remoteJid);
                                     delete chatsNuevos[idLimpio];
+                                    
+                                    // Una vez registrado, le preguntamos el tipo de garrafa
+                                    pedidosEnProceso[idLimpio] = {
+                                        paso: 'elegir_tipo',
+                                        cliente: nuevoCliente,
+                                        cantidad: 1
+                                    };
+                                    sockGlobal.sendMessage(remoteJid, { 
+                                        text: `¿Qué tipo de garrafa necesitas?\n\n1️⃣ *Garrafa de 10kg*\n2️⃣ *Garrafa de 15kg*\n3️⃣ *Garrafa de 30kg*\n4️⃣ *Garrafa de 45kg*` 
+                                    });
                                 }
                             });
                         }
@@ -115,19 +213,7 @@ function iniciarWhatsApp(db) {
     conectar();
 }
 
-function procesarPedidoCliente(db, cliente, texto, jid) {
-    let tipo = "10kg"; 
-    if (texto.includes("45")) tipo = "45kg";
-    else if (texto.includes("30")) tipo = "30kg";
-    else if (texto.includes("15")) tipo = "15kg";
-
-    let cantidad = 1;
-    const match = texto.match(/\d+/);
-    if (match) {
-        const numeroDetectado = parseInt(match[0]);
-        if (numeroDetectado > 0 && numeroDetectado < 10) cantidad = numeroDetectado;
-    }
-
+function procesarPedidoFinal(db, cliente, tipo, cantidad, formaPago, jid) {
     db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
         if (stock) {
             const llenasActuales = parseInt(stock.llenas) || 0;
@@ -143,15 +229,15 @@ function procesarPedidoCliente(db, cliente, texto, jid) {
             const total = (parseFloat(stock.precio) || 0) * cantidad;
             db.serialize(() => {
                 db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, fecha) 
-                        VALUES (?, ?, ?, ?, 'Pendiente', 'Efectivo', DATETIME('now', 'localtime'))`, 
-                        [cliente.id, tipo, cantidad, total], function(err) {
+                        VALUES (?, ?, ?, ?, 'Pendiente', ?, DATETIME('now', 'localtime'))`, 
+                        [cliente.id, tipo, cantidad, total, formaPago], function(err) {
                     if (!err) {
                         const nuevasLlenas = llenasActuales - cantidad;
                         const nuevasVacias = vaciasActuales + cantidad;
                         db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
                             if (sockGlobal && jid) {
                                 sockGlobal.sendMessage(jid, { 
-                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*\({cantidad}x Garrafa(s) de\){tipo}*\n\n💰 Total a pagar: $${total}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
+                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*\({cantidad}x Garrafa(s) de\){tipo}*\n💰 Total a pagar: $\({total}\n💳 Forma de pago:\){formaPago}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
                                 });
                             }
                         });
@@ -184,4 +270,3 @@ module.exports = {
     getQrCodeActual,
     reiniciarWhatsApp
 };
-

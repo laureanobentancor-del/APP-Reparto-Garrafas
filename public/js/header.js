@@ -1,3 +1,10 @@
+function escHtml(valor) {
+    const mapa = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(valor == null ? '' : valor).replace(/[&<>"']/g, c => mapa[c]);
+}
+
+let perfilesCache = [];
+
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
     if (!user && !window.location.href.includes('login')) {
@@ -18,11 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="app-header-left">
                 <h2 class="app-title">Garrafas App</h2>
                 <nav class="app-nav">
-    <a href="/pedidos" class="app-nav-link ${window.location.pathname === '/pedidos' ? 'active' : ''}">Pedidos</a>
-    <a href="/clientes" class="app-nav-link ${window.location.pathname === '/clientes' ? 'active' : ''}">Clientes</a>
-    <a href="/ventas" class="app-nav-link ${window.location.pathname === '/ventas' ? 'active' : ''}">Ventas</a>
-    <a href="/diario" class="app-nav-link ${window.location.pathname === '/diario' ? 'active' : ''}">Diario</a>
-    <a href="/stock" class="app-nav-link ${window.location.pathname === '/stock' ? 'active' : ''}">Stock</a>
+    <a href="/pedidos" id="nav-pedidos" class="app-nav-link ${window.location.pathname === '/pedidos' ? 'active' : ''}">Pedidos</a>
+    <a href="/clientes" id="nav-clientes" class="app-nav-link ${window.location.pathname === '/clientes' ? 'active' : ''}">Clientes</a>
+    <a href="/ventas" id="nav-ventas" class="app-nav-link ${window.location.pathname === '/ventas' ? 'active' : ''}">Ventas</a>
+    <a href="/diario" id="nav-diario" class="app-nav-link ${window.location.pathname === '/diario' ? 'active' : ''}">Diario</a>
+    <a href="/stock" id="nav-stock" class="app-nav-link ${window.location.pathname === '/stock' ? 'active' : ''}">Stock</a>
 </nav>
 
             </div>
@@ -137,9 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (linkDiario) linkDiario.style.display = 'none';
 
         // Bloquear acceso por URL a Stock y Diario
-        if (window.location.href.includes('stock.html') || window.location.href.includes('diario.html')) {
+        if (window.location.pathname.includes('stock') || window.location.pathname.includes('diario')) {
             alert("No tienes permisos para acceder a este apartado.");
-            window.location.href = 'pedidos.html';
+            window.location.href = '/pedidos';
         }
     }
 });
@@ -194,41 +201,28 @@ window.cargarPerfilesEnTabla = function () {
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            perfilesCache = usuarios;
             const usuarioLogueado = JSON.parse(localStorage.getItem('usuarioLogueado')) || {};
 
-            usuarios.forEach(u => {
-                const esBloqueado = u.bloqueado === 1;
+            tbody.innerHTML = usuarios.map(u => {
+                const esBloqueado = Number(u.bloqueado) === 1;
                 const iconoEstado = esBloqueado ? "🔓 Desbloquear" : "🔒 Bloquear";
+                const claseEstado = esBloqueado ? 'btn-desbloquear' : 'btn-bloquear';
+                const esUsuarioActual = Number(u.id) === Number(usuarioLogueado.id);
 
-                const esUsuarioActual = usuarioLogueado && Number(u.id) === Number(usuarioLogueado.id);
+                const botonesAccion = esUsuarioActual
+                    ? '🔒 Vos'
+                    : `<button onclick="toggleBloqueoUsuario(${Number(u.id)}, ${esBloqueado ? 0 : 1})" class="btn-accion ${claseEstado}">${iconoEstado}</button>
+                       <button onclick="borrarUsuario(${Number(u.id)})" class="btn-accion btn-borrar">🗑️ Borrar</button>`;
 
-                let botonesAccion = '';
-                if (esUsuarioActual) {
-                    botonesAccion = '🔒 Vos';
-                } else {
-                    const claseEstado = esBloqueado ? 'btn-desbloquear' : 'btn-bloquear';
-                    botonesAccion = `
-                    <button onclick="toggleBloqueoUsuario(${u.id}, ${esBloqueado ? 0 : 1}, '${u.usuario}')"
-                            class="btn-accion ${claseEstado}">
-                        ${iconoEstado}
-                    </button>
-                    <button onclick="borrarUsuario(${u.id})" class="btn-accion btn-borrar">
-                        🗑️ Borrar
-                    </button>
-                `;
-                }
-
-                tbody.innerHTML += `
+                return `
                 <tr>
-                    <td>${u.id}</td>
-                    <td>${u.usuario}</td>
-                    <td>${u.rol}</td>
-                    <td class="text-center">
-                        ${botonesAccion}
-                    </td>
-                </tr>
-            `;
-            });
+                    <td>${Number(u.id)}</td>
+                    <td>${escHtml(u.usuario)}</td>
+                    <td>${escHtml(u.rol)}</td>
+                    <td class="text-center">${botonesAccion}</td>
+                </tr>`;
+            }).join('');
         })
         .catch(err => console.error("Error al cargar usuarios:", err));
 };
@@ -237,7 +231,7 @@ window.crearNuevoUsuario = function (event) {
     event.preventDefault();
 
     const nombreInput = document.getElementById('nuevo-usuario-nombre');
-    const passInput = document.getElementById('nuevo-usuario-pass');
+    const passInput = document.getElementById('nueva-pass');
     const rolInput = document.getElementById('nuevo-usuario-rol');
 
     if (!nombreInput || !passInput || !rolInput) {
@@ -278,9 +272,11 @@ window.crearNuevoUsuario = function (event) {
 };
 
 window.toggleBloqueoUsuario = function (id, nuevoEstado, nombreUsuario) {
+    const perfil = perfilesCache.find(x => Number(x.id) === Number(id));
+    nombreUsuario = nombreUsuario || (perfil ? perfil.usuario : '');
     const accion = nuevoEstado === 1 ? "bloquear" : "desbloquear";
 
-    if (confirm(`¿Estás seguro de \({accion} al usuario "\){nombreUsuario}"?`)) {
+    if (confirm(`¿Estás seguro de ${accion} al usuario "${nombreUsuario}"?`)) {
         fetch(`/api/usuarios/${id}/bloquear`, {
             method: 'PUT',
             credentials: 'include', // 👈 Indispensable para enviar la sesión
@@ -337,7 +333,7 @@ window.borrarUsuario = function (id) {
 };
 
 window.abrirModalRecuperar = function () {
-    document.getElementById('nueva-pass').value = '';
+    document.getElementById('input-cambiar-pass').value = '';
     document.getElementById('modal-password').style.display = 'flex';
 }
 
@@ -355,5 +351,8 @@ document.addEventListener('submit', (e) => {
 
 window.cerrarSesion = function () {
     localStorage.removeItem('usuarioLogueado');
-    window.location.href = 'login.html';
+    // Cierra también la sesión del servidor (si la ruta no existe, no pasa nada)
+    fetch('/api/logout', { method: 'POST', credentials: 'include' })
+        .catch(() => {})
+        .finally(() => { window.location.href = 'login.html'; });
 }

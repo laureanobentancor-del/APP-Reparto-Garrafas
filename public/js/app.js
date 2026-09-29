@@ -163,6 +163,85 @@ function textoDetalleCanal(c) {
 }
 
 
+// ---- Forma de pago editable (se usa en las tablas de Pedidos y de Ventas)
+const PAGOS_COBRADOS = ['efectivo', 'mercado pago', 'transferencia'];
+
+// Pendiente = cualquier forma de pago que NO sea una de las tres formas de cobro conocidas
+function esPagoPendiente(valor) {
+    return !PAGOS_COBRADOS.includes(normalizarPago(valor).toLowerCase());
+}
+
+// Un pedido "tiene pendientes" si falta entregarlo o falta cobrarlo
+function tienePendientes(pedido) {
+    return (pedido.estado || '').trim() === 'Pendiente' || esPagoPendiente(pedido.forma_pago);
+}
+
+// Orden: primero todo lo pendiente (lo más viejo arriba), después el resto (lo más nuevo arriba)
+function compararPendientesPrimero(a, b) {
+    const pa = tienePendientes(a);
+    const pb = tienePendientes(b);
+    if (pa !== pb) return pa ? -1 : 1;
+
+    if (pa && pb) {
+        const fa = a.fecha ? new Date(a.fecha).getTime() : 0;
+        const fb = b.fecha ? new Date(b.fecha).getTime() : 0;
+        if (fa !== fb) return fa - fb;
+    }
+    return b.id - a.id;
+}
+
+function estiloFila(pedido) {
+    return tienePendientes(pedido) ? 'background: #fff4e5;' : '';
+}
+
+// Si el pago está "Pendiente" muestra una lista desplegable para registrar cómo pagó el cliente
+function celdaFormaPago(pedido) {
+    const pago = normalizarPago(pedido.forma_pago);
+
+    if (!esPagoPendiente(pago)) {
+        const clave = Object.keys(ICONOS_PAGO).find((k) => k.toLowerCase() === pago.toLowerCase());
+        return `<span style="font-weight: bold; color: #27ae60;">${ICONOS_PAGO[clave] || escaparHTML(pago)}</span>`;
+    }
+
+    return `
+        <select onchange="cambiarFormaPago(${pedido.id}, this.value)" style="padding: 4px; border: 2px solid #e67e22; border-radius: 4px; font-weight: bold;">
+            <option value="Pendiente" selected>⏳ Pendiente</option>
+            <option value="Efectivo">💵 Efectivo</option>
+            <option value="Mercado Pago">📱 Mercado Pago</option>
+            <option value="Transferencia">🏦 Transferencia</option>
+        </select>`;
+}
+
+function refrescarTablasSinRecargar() {
+    if ($('cuerpo-tabla-ventas')) refrescarTablaVentas();
+    if ($('cuerpo-tabla-pedidos')) renderizarPedidos(pedidosGlobales);
+}
+
+window.cambiarFormaPago = async function (id, forma) {
+    if (forma === 'Pendiente') return;
+
+    if (!confirm(`¿Marcar este pedido como pagado con ${forma}?`)) {
+        refrescarTablasSinRecargar(); // vuelve a dibujar el select en "Pendiente"
+        return;
+    }
+
+    try {
+        await api(`/api/pedidos/${id}/pago`, { method: 'PUT', body: { forma_pago: forma } });
+        if ($('cuerpo-tabla-ventas')) await cargarVentas({ actualizarMapa: false });
+        if ($('cuerpo-tabla-pedidos')) await cargarPedidos();
+    } catch (err) {
+        alert(err.message || 'No se pudo actualizar la forma de pago');
+        refrescarTablasSinRecargar();
+    }
+};
+
+// Devuelve true si el usuario tiene abierta una lista desplegable dentro de una tabla
+function hayListaAbierta() {
+    const activo = document.activeElement;
+    return !!(activo && activo.tagName === 'SELECT' && activo.closest('tbody'));
+}
+
+
 /* =====================================================================
    1. VALIDACIÓN DE INPUTS (automática por id/name)
    ===================================================================== */
@@ -179,7 +258,7 @@ document.addEventListener('input', (e) => {
     } else if (['telefono', 'cantidad', 'llenas', 'vacias'].some((k) => identificador.includes(k))) {
         const limpio = input.value.replace(/\D/g, '');
         if (limpio !== input.value) input.value = limpio;
-    } else if (identificador.includes('nombre')) {
+    } else if (identificador.includes('nombre') && !identificador.includes('usuario')) {
         const limpio = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
         if (limpio !== input.value) input.value = limpio;
     }
@@ -260,25 +339,11 @@ function verificarPermisos() {
         return;
     }
 
-    if (usuario.rol === 'repartidor') {
-        const linkStock = $('nav-stock');
-        if (linkStock) linkStock.style.display = 'none';
-
-        if (location.pathname.includes('stock')) {
-            alert('No tienes permisos para acceder a este apartado.');
-            location.href = 'pedidos.html';
-        }
+    if (usuario.rol === 'repartidor' && (location.pathname.includes('stock') || location.pathname.includes('diario'))) {
+        alert('No tienes permisos para acceder a este apartado.');
+        location.href = '/pedidos';
     }
 }
-
-window.cerrarSesion = function () {
-    localStorage.removeItem('usuarioLogueado');
-    // Intenta cerrar también la sesión del servidor (si la ruta no existe, no pasa nada)
-    fetch('/api/logout', { method: 'POST', credentials: 'same-origin' })
-        .catch(() => {})
-        .finally(() => { location.href = 'login.html'; });
-};
-
 
 /* =====================================================================
    3. CLIENTES
@@ -563,7 +628,7 @@ async function actualizarResumenPanelPedidos() {
         pedidos.forEach((p) => {
             garrafas += parseInt(p.cantidad) || 0;
             const monto = parseFloat(p.total) || 0;
-            if (normalizarPago(p.forma_pago) === 'Pendiente') pendiente += monto;
+            if (esPagoPendiente(p.forma_pago)) pendiente += monto;
             else cobrado += monto;
         });
 
@@ -584,24 +649,9 @@ function renderizarPedidos(pedidos) {
         return;
     }
 
-    // Pendientes primero (los más viejos arriba); luego los demás por ID descendente
-    const ordenados = [...pedidos].sort((a, b) => {
-        const pendA = (a.estado || '').trim() === 'Pendiente';
-        const pendB = (b.estado || '').trim() === 'Pendiente';
-
-        if (pendA && !pendB) return -1;
-        if (!pendA && pendB) return 1;
-        if (pendA && pendB) {
-            const fa = a.fecha ? new Date(a.fecha).getTime() : 0;
-            const fb = b.fecha ? new Date(b.fecha).getTime() : 0;
-            return fa - fb;
-        }
-        return b.id - a.id;
-    });
+    const ordenados = [...pedidos].sort(compararPendientesPrimero);
 
     tbody.innerHTML = ordenados.map((p) => {
-        const pago = ICONOS_PAGO[normalizarPago(p.forma_pago)] || ICONOS_PAGO['Efectivo'];
-
         let botonesAccion = '';
         let columnaEstado;
 
@@ -615,13 +665,13 @@ function renderizarPedidos(pedidos) {
         }
 
         return `
-            <tr>
+            <tr style="${estiloFila(p)}">
                 <td><strong>${escaparHTML(p.cliente_nombre) || 'Desconocido'}</strong><br><small>${escaparHTML(p.cliente_telefono)}</small></td>
                 <td>${escaparHTML(p.tipo)}</td>
                 <td>${badgeCanal(normalizarCanal(p.tipo_venta))}</td>
                 <td>${p.cantidad}</td>
                 <td>${dinero(p.total)}</td>
-                <td>${pago}</td>
+                <td>${celdaFormaPago(p)}</td>
                 <td>${formatoFechaHora(p.fecha)}</td>
                 <td>${columnaEstado}</td>
                 <td>${botonesAccion}</td>
@@ -760,7 +810,7 @@ function initPedidos() {
     cuandoSeaVisible(() => {
         cargarPedidos();
         setInterval(() => {
-            if (!document.hidden) cargarPedidos();
+            if (!document.hidden && !hayListaAbierta()) cargarPedidos();
         }, 3000);
     });
 }
@@ -772,40 +822,6 @@ function initPedidos() {
 let ventasGlobales = [];
 let indiceFilaActiva = -1;
 let temporizadorMapa = null;
-
-// Si el pago está "Pendiente" muestra una lista desplegable para registrar cómo pagó el cliente
-function celdaFormaPago(venta) {
-    const pago = normalizarPago(venta.forma_pago);
-
-    if (pago !== 'Pendiente') {
-        return `<span style="font-weight: bold; color: #27ae60;">${ICONOS_PAGO[pago] || escaparHTML(pago)}</span>`;
-    }
-
-    return `
-        <select onchange="cambiarFormaPago(${venta.id}, this.value)" style="padding: 4px; border: 2px solid #e67e22; border-radius: 4px; font-weight: bold;">
-            <option value="Pendiente" selected>⏳ Pendiente</option>
-            <option value="Efectivo">💵 Efectivo</option>
-            <option value="Mercado Pago">📱 Mercado Pago</option>
-            <option value="Transferencia">🏦 Transferencia</option>
-        </select>`;
-}
-
-window.cambiarFormaPago = async function (id, forma) {
-    if (forma === 'Pendiente') return;
-
-    if (!confirm(`¿Marcar este pedido como pagado con ${forma}?`)) {
-        refrescarTablaVentas(); // vuelve a dibujar el select en "Pendiente"
-        return;
-    }
-
-    try {
-        await api(`/api/pedidos/${id}/pago`, { method: 'PUT', body: { forma_pago: forma } });
-        await cargarVentas({ actualizarMapa: false }); // no hace falta redibujar el mapa
-    } catch (err) {
-        alert(err.message || 'No se pudo actualizar');
-        refrescarTablaVentas();
-    }
-};
 
 function ventasFiltradas() {
     const texto = ($('buscador-ventas')?.value || '').trim().toLowerCase();
@@ -840,8 +856,8 @@ function renderizarVentas(ventas) {
         return;
     }
 
-    tbody.innerHTML = ventas.map((v) => `
-        <tr>
+    tbody.innerHTML = [...ventas].sort(compararPendientesPrimero).map((v) => `
+        <tr style="${estiloFila(v)}">
             <td>#${v.id}</td>
             <td><strong>${escaparHTML(v.cliente_nombre) || 'Desconocido'}</strong><br><small>${escaparHTML(v.cliente_telefono)}</small></td>
             <td>${badgeCanal(normalizarCanal(v.tipo_venta))}</td>
