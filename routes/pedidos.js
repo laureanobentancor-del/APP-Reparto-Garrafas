@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
+// 1. IMPORTAR EL MÓDULO DE TRAZABILIDAD EXTERNO
+const { registrarTrazabilidad } = require('../models/trazabilidad');
+
 module.exports = function(db, verificarAutenticacion) {
    
     // ==========================================
@@ -96,6 +99,9 @@ module.exports = function(db, verificarAutenticacion) {
                         const nuevasVacias = vaciasActuales + cantidad;
 
                         db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
+                            
+                            // 2. LLAMAR AL MÓDULO EXTERNO DE TRAZABILIDAD
+                            registrarTrazabilidad(db, req, 'CAMBIAR_ESTADO', `Pedido ID \({req.params.id} cambiado a estado:\){nuevoEstado}`);
                             res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
                         });
                     });
@@ -111,16 +117,35 @@ module.exports = function(db, verificarAutenticacion) {
         db.get("SELECT precio FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
             if (!stock) return res.status(400).json({ error: "Tipo de stock no encontrado" });
             const total = stock.precio * cantidad;
-            db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => res.json({ mensaje: "Editado" }));
+            db.run("UPDATE pedidos SET tipo = ?, cantidad = ?, total = ? WHERE id = ?", [tipo, cantidad, total, req.params.id], () => {
+                registrarTrazabilidad(db, req, 'EDITAR_PEDIDO', `Se editó el pedido ID ${req.params.id}`);
+                res.json({ mensaje: "Editado" });
+            });
         });
     });
 
+ 
     // ==========================================
     // ACTUALIZAR ESTADO (Pendiente / Completado)
     // ==========================================
     router.put('/api/pedidos/:id/estado', verificarAutenticacion, (req, res) => {
-        db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [req.body.estado, req.params.id], () => res.json({ mensaje: "Ok" }));
+        // Capturamos el estado de forma segura (por si viene como 'estado' o 'nuevoEstado')
+        const nuevoEstado = req.body.estado || req.body.nuevoEstado || 'Desconocido';
+        const pedidoId = req.params.id;
+
+        db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [nuevoEstado, pedidoId], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            // Construimos los detalles de manera explícita para asegurarnos de que no lleguen vacíos
+            const detalles = `Pedido ID \({pedidoId} cambiado a estado:\){nuevoEstado}`;
+            
+            // Registramos la trazabilidad
+            registrarTrazabilidad(db, req, 'CAMBIAR_ESTADO', detalles);
+
+            res.json({ mensaje: "Ok" });
+        });
     });
+
 
     // ==========================================
     // ACTUALIZAR FORMA DE PAGO
@@ -129,6 +154,7 @@ module.exports = function(db, verificarAutenticacion) {
         const { forma_pago } = req.body;
         db.run("UPDATE pedidos SET forma_pago = ? WHERE id = ?", [forma_pago, req.params.id], function(err) {
             if (err) return res.status(500).json({ error: err.message });
+            registrarTrazabilidad(db, req, 'ACTUALIZAR_PAGO', `Pedido ID \({req.params.id} actualizado a forma de pago:\){forma_pago}`);
             res.json({ mensaje: "Forma de pago actualizada con éxito" });
         });
     });
@@ -137,7 +163,11 @@ module.exports = function(db, verificarAutenticacion) {
     // BORRAR PEDIDO
     // ==========================================
     router.delete('/api/pedidos/:id', verificarAutenticacion, (req, res) => {
-        db.run("DELETE FROM pedidos WHERE id = ?", [req.params.id], () => res.json({ mensaje: "Borrado" }));
+        const pedidoId = req.params.id;
+        db.run("DELETE FROM pedidos WHERE id = ?", [pedidoId], () => {
+            registrarTrazabilidad(db, req, 'BORRAR_PEDIDO', `Se eliminó el pedido ID ${pedidoId}`);
+            res.json({ mensaje: "Borrado" });
+        });
     });
 
     return router;
