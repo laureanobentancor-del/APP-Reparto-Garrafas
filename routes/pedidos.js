@@ -66,7 +66,7 @@ module.exports = function(db, verificarAutenticacion) {
         });
     });
 
-    // ==========================================
+   // ==========================================
     // CREAR NUEVO PEDIDO Y DESCONTAR STOCK
     // ==========================================
     router.post('/api/pedidos', (req, res) => {
@@ -81,7 +81,7 @@ module.exports = function(db, verificarAutenticacion) {
             const precio = parseFloat(stock.precio) || 0;
 
             if (llenasActuales < cantidad) {
-                return res.status(400).json({ error: `No hay suficiente stock de garrafas llenas de \({tipo}. Disponibles:\){llenasActuales}` });
+                return res.status(400).json({ error: `No hay suficiente stock de garrafas llenas de ${tipo}. Disponibles: ${llenasActuales}` });
             }
 
             const total = precio * cantidad;
@@ -100,8 +100,8 @@ module.exports = function(db, verificarAutenticacion) {
 
                         db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
                             
-                            // 2. LLAMAR AL MÓDULO EXTERNO DE TRAZABILIDAD
-                            registrarTrazabilidad(db, req, 'CAMBIAR_ESTADO', `Pedido ID \({req.params.id} cambiado a estado:\){nuevoEstado}`);
+                            // CORRECCIÓN: Usar el ID recién creado y el estado correcto
+                            registrarTrazabilidad(db, req, 'CREAR_PEDIDO', `Se creó el pedido ID ${pedidoId} con estado: Pendiente`);
                             res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
                         });
                     });
