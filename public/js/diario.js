@@ -11,12 +11,24 @@ window.cargarLibroDiario = async function () {
     }
 };
 
-function fijarRangoDiario(desde, hasta) {
-    const inputDesde = $('filtro-diario-desde');
-    const inputHasta = $('filtro-diario-hasta');
 
-    // Usa la fecha local en formato ISO correcto o un valor por defecto seguro
-    const fechaActual = fechaLocalISO();
+// Función auxiliar segura para obtener elementos por ID
+function $id(id) {
+    return document.getElementById(id);
+}
+
+// Función segura para obtener fecha local en formato YYYY-MM-DD sin desfases horarios
+function obtenerFechaLocalISO(fechaObj = new Date()) {
+    const anio = fechaObj.getFullYear();
+    const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaObj.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+}
+
+function fijarRangoDiario(desde, hasta) {
+    const inputDesde = $id('filtro-diario-desde');
+    const inputHasta = $id('filtro-diario-hasta');
+    const fechaActual = obtenerFechaLocalISO();
 
     if (inputDesde) {
         inputDesde.value = desde ? desde : fechaActual;
@@ -26,29 +38,41 @@ function fijarRangoDiario(desde, hasta) {
     }
 }
 
-
 window.ponerDiaHoy = function () {
-    const buscador = document.getElementById('buscador-diario');
+    const buscador = $id('buscador-diario');
     if (buscador) {
         buscador.value = '';
     }
-    const hoy = fechaLocalISO();
+    const hoy = obtenerFechaLocalISO();
     fijarRangoDiario(hoy, hoy);
     filtrarYRenderizarDiario();
 };
 window.filtrarDiarioHoy = window.ponerDiaHoy;
 
 window.cambiarDia = function (dias) {
-    const inputDesde = $('filtro-diario-desde');
+    const inputDesde = $id('filtro-diario-desde');
     if (!inputDesde) return;
 
-    const base = inputDesde.value ? new Date(inputDesde.value + 'T00:00:00') : new Date();
-    base.setDate(base.getDate() + dias);
+    // Tomar la fecha actual del input o la de hoy si está vacío
+    let fechaBase;
+    if (inputDesde.value) {
+        fechaBase = new Date(inputDesde.value + 'T00:00:00');
+    } else {
+        fechaBase = new Date();
+    }
 
-    const nuevaFecha = fechaLocalISO(base);
+    if (isNaN(fechaBase.getTime())) {
+        fechaBase = new Date();
+    }
+
+    // Sumar o restar los días
+    fechaBase.setDate(fechaBase.getDate() + dias);
+
+    const nuevaFecha = obtenerFechaLocalISO(fechaBase);
     fijarRangoDiario(nuevaFecha, nuevaFecha);
     filtrarYRenderizarDiario();
 };
+
 
 window.limpiarFiltrosDiario = function () {
     fijarRangoDiario('', '');
