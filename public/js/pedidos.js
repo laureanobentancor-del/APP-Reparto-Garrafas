@@ -80,7 +80,10 @@ function renderizarPedidos(pedidos) {
         }
 
         return '<tr style="' + estiloFila(p) + '">' +
-            '<td><strong>' + (escaparHTML(p.cliente_nombre) || 'Desconocido') + '</strong><br><small>' + escaparHTML(p.cliente_telefono) + '</small></td>' +
+           '<td><strong>' + (escaparHTML(p.cliente_nombre) || 'Desconocido') + '</strong>' +
+    (p.direccion ? '<br><small>📍 ' + escaparHTML(p.direccion) + '</small>' : '') +
+    (p.cliente_telefono ? '<br><small>📞 ' + escaparHTML(p.cliente_telefono) + '</small>' : '') +
+'</td>' +
             '<td>' + escaparHTML(p.tipo) + '</td>' +
             '<td>' + badgeCanal(normalizarCanal(p.tipo_venta)) + '</td>' +
             '<td>' + p.cantidad + '</td>' +
