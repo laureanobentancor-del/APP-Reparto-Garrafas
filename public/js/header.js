@@ -5,6 +5,65 @@ function escHtml(valor) {
 
 let perfilesCache = [];
 
+// ---------- Helpers de seguridad de contraseña ----------
+const REQUISITOS_PASSWORD = [
+    { id: 'len',   texto: 'Al menos 8 caracteres',        ok: p => p.length >= 8 },
+    { id: 'mayus', texto: 'Una mayúscula',                ok: p => /[A-Z]/.test(p) },
+    { id: 'minus', texto: 'Una minúscula',                ok: p => /[a-z]/.test(p) },
+    { id: 'num',   texto: 'Un número',                    ok: p => /\d/.test(p) }
+];
+
+function validarPasswordNueva(nueva, actual) {
+    const faltan = REQUISITOS_PASSWORD.filter(r => !r.ok(nueva));
+    if (faltan.length) return 'La nueva contraseña debe tener: ' + faltan.map(r => r.texto.toLowerCase()).join(', ') + '.';
+    if (actual !== undefined && nueva === actual) return 'La nueva contraseña debe ser distinta a la actual.';
+    return null;
+}
+
+function pintarRequisitos(inputId, listaId) {
+    const val = document.getElementById(inputId).value;
+    document.getElementById(listaId).innerHTML = REQUISITOS_PASSWORD.map(r =>
+        `<li style="color:${r.ok(val) ? '#16a34a' : '#6b7280'}">${r.ok(val) ? '✔' : '○'} ${r.texto}</li>`
+    ).join('');
+}
+
+async function peticionJson(url, metodo, cuerpo) {
+    const res = await fetch(url, {
+        method: metodo,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cuerpo)
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* respuesta sin JSON */ }
+    if (!res.ok) throw new Error(data.error || 'Error en la solicitud (' + res.status + ')');
+    return data;
+}
+
+// Modal "Olvidé mi contraseña" (también se inyecta en login.html)
+function inyectarModalOlvide() {
+    if (document.getElementById('modal-olvide')) return;
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="modal-olvide" class="modal-fondo">
+            <div class="modal-contenido modal-ancho-400">
+                <h3 class="modal-historial-titulo">Recuperar contraseña</h3>
+                <form id="form-olvide">
+                    <p style="font-size:14px;color:#6b7280;margin-bottom:10px;">
+                        Ingresá el correo asociado a tu cuenta y te enviaremos un enlace para crear una nueva contraseña.
+                    </p>
+                    <div class="form-group">
+                        <label>Correo electrónico:</label>
+                        <input type="email" id="input-olvide-email" autocomplete="email" required>
+                    </div>
+                    <div class="form-fila-flex mt-20">
+                        <button type="submit" id="btn-olvide-enviar" class="btn-guardar flex-1">Enviar enlace</button>
+                        <button type="button" onclick="cerrarModalOlvide()" class="btn-cancelar flex-1">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>`);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(localStorage.getItem('usuarioLogueado'));
     if (!user && !window.location.href.includes('login')) {
@@ -12,7 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    if (window.location.href.includes('login')) return;
+    if (window.location.href.includes('login')) {
+        inyectarModalOlvide(); // permite usar abrirModalOlvide() desde login.html
+        return;
+    }
 
     const headerViejo = document.querySelector('header');
     if (headerViejo) headerViejo.remove();
@@ -72,6 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         <input type="password" id="nueva-pass" autocomplete="new-password" placeholder="Contraseña" required>
                     </div>
                     <div class="mb-10">
+                        <input type="email" id="nuevo-usuario-email" autocomplete="email" placeholder="Correo electrónico (para recuperar contraseña)" required style="width:100%;">
+                    </div>
+                    <div class="mb-10">
                         <label>Rol del Sistema:</label>
                         <select id="nuevo-usuario-rol">
                             <option value="repartidor">Repartidor (Acceso solo a Pedidos y Clientes)</option>
@@ -91,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <th>ID</th>
                                 <th>Usuario</th>
                                 <th>Rol</th>
+                                <th>Email</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -105,28 +171,43 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <!-- Modal de Cambiar Contraseña -->
-<div id="modal-password" class="modal-fondo">
-    <div class="modal-contenido modal-ancho-400">
-        <h3 class="modal-historial-titulo">Cambiar Contraseña</h3>
-        <form id="form-password">
-            <!-- Campo de usuario oculto para accesibilidad y gestores de contraseñas -->
-            <input type="text" autocomplete="username" style="display: none;" value="" aria-hidden="true">
+        <div id="modal-password" class="modal-fondo">
+            <div class="modal-contenido modal-ancho-400">
+                <h3 class="modal-historial-titulo">Cambiar Contraseña</h3>
+                <form id="form-password">
+                    <!-- Usuario oculto para gestores de contraseñas -->
+                    <input type="text" id="input-pass-username" autocomplete="username" style="display: none;" value="${user ? escHtml(user.usuario) : ''}" aria-hidden="true">
 
-            <div class="form-group">
-                <label>Nueva Contraseña:</label>
-                <input type="password" id="input-cambiar-pass" autocomplete="new-password" required>
-            </div>
-            <div class="form-fila-flex mt-20">
-                <button type="submit" class="btn-guardar flex-1">Actualizar</button>
-                <button type="button" onclick="cerrarModalRecuperar()" class="btn-cancelar flex-1">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
+                    <div class="form-group">
+                        <label>Contraseña actual:</label>
+                        <input type="password" id="input-pass-actual" autocomplete="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva contraseña:</label>
+                        <input type="password" id="input-cambiar-pass" autocomplete="new-password" oninput="pintarRequisitos('input-cambiar-pass','lista-requisitos')" required>
+                        <ul id="lista-requisitos" style="list-style:none;padding:0;margin:6px 0 0;font-size:13px;"></ul>
+                    </div>
+                    <div class="form-group">
+                        <label>Repetir nueva contraseña:</label>
+                        <input type="password" id="input-pass-confirmar" autocomplete="new-password" required>
+                    </div>
 
+                    <p id="msg-password" style="font-size:13px;color:#dc2626;min-height:18px;margin:6px 0 0;"></p>
+
+                    <div class="form-fila-flex mt-20">
+                        <button type="submit" id="btn-password-guardar" class="btn-guardar flex-1">Actualizar</button>
+                        <button type="button" onclick="cerrarModalRecuperar()" class="btn-cancelar flex-1">Cancelar</button>
+                    </div>
+                    <p style="text-align:center;margin-top:12px;font-size:13px;">
+                        <a href="#" onclick="abrirModalOlvide(); event.preventDefault();">¿Olvidaste tu contraseña?</a>
+                    </p>
+                </form>
+            </div>
+        </div>
     `;
 
     document.body.insertAdjacentHTML('afterbegin', estructuraHeader);
+    inyectarModalOlvide();
 
     if (user && user.usuario) {
         const inicial = user.usuario.charAt(0).toUpperCase();
@@ -188,15 +269,20 @@ window.toggleFormularioNuevoUsuario = function () {
 }
 
 window.cargarPerfilesEnTabla = function () {
-    fetch('/api/usuarios', {
-        method: 'GET',
-        credentials: 'include'
-    })
-        .then(res => {
-            if (!res.ok) throw new Error("No autorizado para ver usuarios");
-            return res.json();
-        })
-        .then(usuarios => {
+    Promise.all([
+        fetch('/api/usuarios', { method: 'GET', credentials: 'include' })
+            .then(res => {
+                if (!res.ok) throw new Error("No autorizado para ver usuarios");
+                return res.json();
+            }),
+        fetch('/api/password/emails', { credentials: 'include' })
+            .then(r => r.ok ? r.json() : [])
+            .catch(() => [])
+    ])
+        .then(([usuarios, emails]) => {
+            const mapaEmails = {};
+            emails.forEach(e => { mapaEmails[Number(e.id)] = e.email; });
+            usuarios = usuarios.map(u => ({ ...u, email: mapaEmails[Number(u.id)] || '' }));
             const tbody = document.getElementById('tabla-cuerpo-perfiles');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -220,6 +306,7 @@ window.cargarPerfilesEnTabla = function () {
                     <td>${Number(u.id)}</td>
                     <td>${escHtml(u.usuario)}</td>
                     <td>${escHtml(u.rol)}</td>
+                    <td>${u.email ? escHtml(u.email) : '<span style="color:#9ca3af">sin email</span>'} <button onclick="editarEmailUsuario(${Number(u.id)})" class="btn-accion" title="Editar email">✉️</button></td>
                     <td class="text-center">${botonesAccion}</td>
                 </tr>`;
             }).join('');
@@ -242,8 +329,12 @@ window.crearNuevoUsuario = function (event) {
     const data = {
         usuario: nombreInput.value,
         password: passInput.value,
-        rol: rolInput.value
+        rol: rolInput.value,
+        email: (document.getElementById('nuevo-usuario-email') || {}).value || ''
     };
+
+    const emailAlta = data.email;
+    const usuarioAlta = data.usuario;
 
     fetch('/api/usuarios', {
         method: 'POST',
@@ -258,7 +349,14 @@ window.crearNuevoUsuario = function (event) {
             if (!res.ok) throw new Error(resultado.error || "Error al crear el usuario");
             return resultado;
         })
-        .then(data => {
+        .then(async data => {
+            if (emailAlta) {
+                try {
+                    await peticionJson('/api/password/email', 'PUT', { usuario: usuarioAlta, email: emailAlta });
+                } catch (e) {
+                    alert("El usuario se creó, pero no se pudo guardar el email: " + e.message);
+                }
+            }
             alert(data.mensaje || "Usuario creado correctamente");
             const form = document.getElementById('form-nuevo-repartidor');
             if (form) form.reset();
@@ -269,6 +367,19 @@ window.crearNuevoUsuario = function (event) {
             console.error("Error al crear usuario:", err);
             alert("No se pudo crear el usuario: " + err.message);
         });
+};
+
+window.editarEmailUsuario = async function (id) {
+    const perfil = perfilesCache.find(x => Number(x.id) === Number(id));
+    if (!perfil) return;
+    const nuevo = prompt(`Email de "${perfil.usuario}" (vacío para quitarlo):`, perfil.email || '');
+    if (nuevo === null) return;
+    try {
+        await peticionJson('/api/password/email', 'PUT', { usuario: perfil.usuario, email: nuevo });
+        cargarPerfilesEnTabla();
+    } catch (err) {
+        alert("No se pudo guardar el email: " + err.message);
+    }
 };
 
 window.toggleBloqueoUsuario = function (id, nuevoEstado, nombreUsuario) {
@@ -332,8 +443,14 @@ window.borrarUsuario = function (id) {
     }
 };
 
+window.pintarRequisitos = pintarRequisitos;
+
 window.abrirModalRecuperar = function () {
-    document.getElementById('input-cambiar-pass').value = '';
+    ['input-pass-actual', 'input-cambiar-pass', 'input-pass-confirmar'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('msg-password').textContent = '';
+    pintarRequisitos('input-cambiar-pass', 'lista-requisitos');
     document.getElementById('modal-password').style.display = 'flex';
 }
 
@@ -341,11 +458,62 @@ window.cerrarModalRecuperar = function () {
     document.getElementById('modal-password').style.display = 'none';
 }
 
-document.addEventListener('submit', (e) => {
+window.abrirModalOlvide = function () {
+    inyectarModalOlvide();
+    const modalPass = document.getElementById('modal-password');
+    if (modalPass) modalPass.style.display = 'none';
+    document.getElementById('input-olvide-email').value = '';
+    document.getElementById('modal-olvide').style.display = 'flex';
+}
+
+window.cerrarModalOlvide = function () {
+    document.getElementById('modal-olvide').style.display = 'none';
+}
+
+document.addEventListener('submit', async (e) => {
+    // ----- Cambiar contraseña (requiere contraseña actual) -----
     if (e.target && e.target.id === 'form-password') {
         e.preventDefault();
-        alert("Contraseña actualizada con éxito.");
-        cerrarModalRecuperar();
+        const msg = document.getElementById('msg-password');
+        const btn = document.getElementById('btn-password-guardar');
+        const actual = document.getElementById('input-pass-actual').value;
+        const nueva = document.getElementById('input-cambiar-pass').value;
+        const confirmar = document.getElementById('input-pass-confirmar').value;
+
+        const errorValidacion = validarPasswordNueva(nueva, actual);
+        if (errorValidacion) { msg.textContent = errorValidacion; return; }
+        if (nueva !== confirmar) { msg.textContent = 'Las contraseñas nuevas no coinciden.'; return; }
+
+        btn.disabled = true;
+        msg.textContent = '';
+        try {
+            await peticionJson('/api/password/cambiar', 'PUT', { actual, nueva });
+            cerrarModalRecuperar();
+            alert('Contraseña actualizada. Por seguridad, volvé a iniciar sesión.');
+            cerrarSesion();
+        } catch (err) {
+            msg.textContent = err.message;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ----- Olvidé mi contraseña (envío de enlace por correo) -----
+    if (e.target && e.target.id === 'form-olvide') {
+        e.preventDefault();
+        const btn = document.getElementById('btn-olvide-enviar');
+        const email = document.getElementById('input-olvide-email').value.trim();
+        btn.disabled = true;
+        try {
+            await peticionJson('/api/password/olvide', 'POST', { email });
+        } catch (err) {
+            console.error('Error en recuperación:', err);
+        } finally {
+            btn.disabled = false;
+        }
+        // Mensaje genérico siempre: no revela si el correo existe o no
+        alert('Si el correo está registrado, te enviamos un enlace para restablecer la contraseña. Revisá también la carpeta de spam. El enlace vence en 30 minutos.');
+        cerrarModalOlvide();
     }
 });
 

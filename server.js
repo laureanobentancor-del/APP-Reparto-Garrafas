@@ -2,10 +2,11 @@ require('dotenv').config();
 
 const express = require('express');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const TursoSessionStore = require('./database/session-store')(session);
 const path = require('path');
 
 const app = express();
+app.set('trust proxy', 1); // detrás de Caddy: IP real del cliente (necesario para el límite de intentos)
 const PORT = process.env.PORT || 80;
 
 const db = require('./database/db'); 
@@ -16,11 +17,7 @@ app.use(express.static(path.join(__dirname, 'pages')));
 app.use(express.static(path.join(__dirname, 'routes')));
 
 app.use(session({
-    store: new SQLiteStore({
-        db: 'database.db', 
-        dir: './',        
-        table: 'sessions'  
-    }),
+    store: new TursoSessionStore(db.client),
     secret: process.env.SESSION_SECRET || 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
     resave: false,
     saveUninitialized: false,
@@ -36,6 +33,9 @@ const authModule = require('./routes/auth')(db);
 app.use('/', authModule.router);
 
 const { verificarAutenticacion, verificarAdminSesion } = authModule;
+
+const passwordRouter = require('./routes/password')(db, verificarAutenticacion, verificarAdminSesion);
+app.use('/', passwordRouter);
 
 const stockRouter = require('./routes/stock')(db, verificarAutenticacion, verificarAdminSesion);
 app.use('/', stockRouter);
@@ -67,6 +67,11 @@ app.post('/api/whatsapp/reiniciar', verificarAutenticacion, verificarAdminSesion
     res.json({ mensaje: "Ok" });
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-    console.log(`🚀 Servidor modular seguro corriendo en http://control-stock-garrafas.local`);
+db.listo.then(() => {
+    app.listen(PORT, '127.0.0.1', () => {
+        console.log(`🚀 Servidor modular seguro corriendo en http://control-stock-garrafas.local`);
+    });
+}).catch(() => {
+    console.error('El servidor no arranca: no se pudo preparar la base de datos en Turso.');
+    process.exit(1);
 });

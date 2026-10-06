@@ -7,36 +7,50 @@
     <link rel="stylesheet" href="/css/style.css">
 
     <script type="speculationrules">
-{
-  "prerender": [
     {
-      "source": "list",
-      "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
-      "eagerness": "conservative"
+      "prerender": [
+        {
+          "source": "list",
+          "urls": ["/pedidos.html", "/clientes.html", "/ventas.html", "/stock.html", "/diario.html"],
+          "eagerness": "conservative"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 </head>
-<body>
+<body class="login-body"> <!-- Se agregó 'login-body' para que el CSS centralice la tarjeta en pantalla -->
 
     <div class="login-card">
         <h2>Garrafas App</h2>
+        
         <form id="form-login">
             <div class="form-group">
-                <label>Usuario:</label>
+                <label for="login-usuario">Usuario:</label>
                 <input type="text" id="login-usuario" placeholder="Ej. admin" required autocomplete="username">
             </div>
+            
             <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" id="login-password" name="password" autocomplete="current-password" required style="width: 100%; padding: 8px;">
-                <button type="submit" class="btn-principal">Ingresar</button>
+                <label for="login-password">Contraseña:</label>
+                <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+            </div>
+            
+            <!-- Botón principal de ingreso -->
+            <button type="submit" class="btn-guardar mt-20">Ingresar</button>
         </form>
+
+        <!-- Enlace para recuperar contraseña fuera del formulario -->
+        <p class="text-center mt-20" style="margin-bottom: 0;">
+            <a href="#" onclick="abrirModalOlvide(); event.preventDefault();" class="link-olvide">
+                ¿Olvidaste tu contraseña?
+            </a>
+        </p>
     </div>
-  <script src="js/utils.js"></script>
-<script src="js/validation.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/app.js"></script>
+
+    <!-- Scripts de la aplicación -->
+    <script src="js/utils.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
 </html>

@@ -1048,3 +1048,27 @@ table tbody tr:hover,
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
+
+
+/* ==========================================
+   ESTILOS ADICIONALES PARA LOGIN Y ENLACES
+   ========================================== */
+.link-olvide {
+    color: #2980b9;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* Efecto visual elegante al pasar el mouse por encima */
+.link-olvide:hover {
+    color: #2471a3;
+    transform: translateY(-1px);
+}
+
+/* Estado activo cuando se hace clic */
+.link-olvide:active {
+    transform: translateY(0);
+}
