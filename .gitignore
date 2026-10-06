@@ -1,11 +1,10 @@
 ﻿database.db
 .env
 local.db
-database.db
 database.sqlite
 auth_info_baileys
 node_modules/
-.env
 .text
 .sh
 .docx
+.pdf
