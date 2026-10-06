@@ -249,3 +249,4 @@ function initPedidos() {
         }, 3000);
     });
 }
+
