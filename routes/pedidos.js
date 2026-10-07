@@ -7,9 +7,9 @@ const { registrarTrazabilidad } = require('../models/trazabilidad');
 module.exports = function(db, verificarAutenticacion) {
    
     // ==========================================
-    // OBTENER TODOS LOS PEDIDOS
+    // OBTENER TODOS LOS PEDIDOS (CORREGIDO: SE AGREGÓ AUTENTICACIÓN)
     // ==========================================
-    router.get('/api/pedidos', (req, res) => {
+    router.get('/api/pedidos', verificarAutenticacion, (req, res) => {
         const sql = `SELECT pedidos.*, 
                      COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
                      clientes.nombre as cliente_nombre, 
@@ -26,9 +26,9 @@ module.exports = function(db, verificarAutenticacion) {
     });
 
     // ==========================================
-    // PEDIDOS DE HOY
+    // PEDIDOS DE HOY (CORREGIDO: SE AGREGÓ AUTENTICACIÓN)
     // ==========================================
-    router.get('/api/pedidos/hoy', (req, res) => {
+    router.get('/api/pedidos/hoy', verificarAutenticacion, (req, res) => {
         const sql = `SELECT pedidos.*, 
                      COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
                      clientes.nombre as cliente_nombre, 
@@ -46,9 +46,9 @@ module.exports = function(db, verificarAutenticacion) {
     });
 
     // ==========================================
-    // FILTRAR PEDIDOS POR FECHA
+    // FILTRAR PEDIDOS POR FECHA (CORREGIDO: SE AGREGÓ AUTENTICACIÓN)
     // ==========================================
-    router.get('/api/pedidos/filtrar', (req, res) => {
+    router.get('/api/pedidos/filtrar', verificarAutenticacion, (req, res) => {
         const { desde, hasta } = req.query;
         const sql = `SELECT pedidos.*, 
                      COALESCE(pedidos.forma_pago, 'Efectivo') as forma_pago, 
@@ -67,9 +67,9 @@ module.exports = function(db, verificarAutenticacion) {
     });
 
    // ==========================================
-    // CREAR NUEVO PEDIDO Y DESCONTAR STOCK
+    // CREAR NUEVO PEDIDO Y DESCONTAR STOCK (CORREGIDO: SE AGREGÓ AUTENTICACIÓN)
     // ==========================================
-    router.post('/api/pedidos', (req, res) => {
+    router.post('/api/pedidos', verificarAutenticacion, (req, res) => {
         let { cliente_id, tipo, cantidad, forma_pago, tipo_venta } = req.body;
         cantidad = parseInt(req.body.cantidad) || 1; 
 
@@ -99,8 +99,6 @@ module.exports = function(db, verificarAutenticacion) {
                         const nuevasVacias = vaciasActuales + cantidad;
 
                         db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
-                            
-                            // CORRECCIÓN: Usar el ID recién creado y el estado correcto
                             registrarTrazabilidad(db, req, 'CREAR_PEDIDO', `Se creó el pedido ID ${pedidoId} con estado: Pendiente`);
                             res.json({ id: pedidoId, mensaje: "Pedido creado y stock actualizado" });
                         });
@@ -129,17 +127,13 @@ module.exports = function(db, verificarAutenticacion) {
     // ACTUALIZAR ESTADO (Pendiente / Completado)
     // ==========================================
     router.put('/api/pedidos/:id/estado', verificarAutenticacion, (req, res) => {
-        // Capturamos el estado de forma segura (por si viene como 'estado' o 'nuevoEstado')
         const nuevoEstado = req.body.estado || req.body.nuevoEstado || 'Desconocido';
         const pedidoId = req.params.id;
 
         db.run("UPDATE pedidos SET estado = ? WHERE id = ?", [nuevoEstado, pedidoId], (err) => {
             if (err) return res.status(500).json({ error: err.message });
 
-            // Construimos los detalles de manera explícita para asegurarnos de que no lleguen vacíos
             const detalles = `Pedido ID \({pedidoId} cambiado a estado:\){nuevoEstado}`;
-            
-            // Registramos la trazabilidad
             registrarTrazabilidad(db, req, 'CAMBIAR_ESTADO', detalles);
 
             res.json({ mensaje: "Ok" });

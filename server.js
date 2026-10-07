@@ -5,6 +5,12 @@ const session = require('express-session');
 const TursoSessionStore = require('./database/session-store')(session);
 const path = require('path');
 
+// Bloqueante: Abortar si falta el secreto de sesión
+if (!process.env.SESSION_SECRET) {
+    console.error('CRÍTICO: Falta SESSION_SECRET en el archivo .env. Abortando arranque por seguridad.');
+    process.exit(1);
+}
+
 const app = express();
 app.set('trust proxy', 1); // detrás de Caddy: IP real del cliente (necesario para el límite de intentos)
 const PORT = process.env.PORT || 80;
@@ -14,11 +20,11 @@ const db = require('./database/db');
 app.use(express.json()); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'pages')));
-app.use(express.static(path.join(__dirname, 'routes')));
+// ELIMINADO: app.use(express.static(path.join(__dirname, 'routes'))); -> Previene exposición de código
 
 app.use(session({
     store: new TursoSessionStore(db.client),
-    secret: process.env.SESSION_SECRET || 'una_clave_secreta_muy_segura_para_firmar_la_cookie',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { 
@@ -58,7 +64,8 @@ app.use('/', vistasRouter);
 const whatsappService = require('./services/whatsapp');
 whatsappService.iniciarWhatsApp(db);
 
-app.get('/api/whatsapp/qr', (req, res) => {
+// CORREGIDO: Ruta protegida para administradores
+app.get('/api/whatsapp/qr', verificarAutenticacion, verificarAdminSesion, (req, res) => {
     res.json({ estado: whatsappService.getEstadoWhatsApp(), qr: whatsappService.getQrCodeActual() });
 });
 
@@ -68,10 +75,11 @@ app.post('/api/whatsapp/reiniciar', verificarAutenticacion, verificarAdminSesion
 });
 
 db.listo.then(() => {
-    app.listen(PORT, '127.0.0.1', () => {
-        console.log(`🚀 Servidor modular seguro corriendo en http://control-stock-garrafas.local`);
+    // Al usar '0.0.0.0', permites que Docker exponga el puerto hacia afuera
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
     });
 }).catch(() => {
-    console.error('El servidor no arranca: no se pudo preparar la base de datos en Turso.');
-    process.exit(1);
+    console.error('El servidor no arranca: no se pudo preparar la base de datos en Turso.'); //[cite: 2]
+    process.exit(1); 
 });

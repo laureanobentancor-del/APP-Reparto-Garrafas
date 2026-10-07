@@ -24,24 +24,22 @@ function fechaLocalISO() {
 }
 
 
-
-
 'use strict';
 
 function escaparHTML(valor) {
+    // CORREGIDO: Mapeo real a entidades HTML seguras
     var mapa = {
-        '&': '&',
-        '<': '<',
-        '>': '>',
-        '"': '"',
-        "'": ''
-};
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
     var textoSeguro = (valor !== null && valor !== undefined) ? String(valor) : '';
     return textoSeguro.replace(/[&<>"']/g, function(c) {
         return mapa[c];
     });
 }
-
 
 function esperar(ms) {
     return new Promise((resolver) => setTimeout(resolver, ms));
