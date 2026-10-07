@@ -22,7 +22,7 @@ function verificarAdminSesion(req, res, next) {
 
 module.exports = function(db) {
 
-    // Rutas de autenticación y usuarios...
+    // 1. LOGOUT
     router.post('/api/logout', verificarAutenticacion, (req, res) => {
         req.session.destroy((err) => {
             if (err) return res.status(500).json({ error: "Error al cerrar la sesión" });
@@ -31,70 +31,100 @@ module.exports = function(db) {
         });
     });
 
-    router.post('/api/login', (req, res) => {
+    // 2. LOGIN
+    router.post('/api/login', async (req, res) => {
         const { usuario, password } = req.body;
-        db.get(`SELECT * FROM usuarios WHERE usuario = ?`, [usuario], (err, user) => {
-            if (err) return res.status(500).json({ error: err.message });
+        try {
+            // Turso utiliza db.execute con parámetros posicionales (?) o nombrados
+            const r = await db.execute({
+                sql: `SELECT * FROM usuarios WHERE usuario = ?`,
+                args: [usuario]
+            });
+            
+            const user = r.rows[0]; // Las filas devueltas están en el array rows
+
             if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
             if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
 
-            bcrypt.compare(password, user.password, (err, esValida) => {
-                if (err) return res.status(500).json({ error: "Error al validar la contraseña" });
-                if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+            // Usamos la versión asíncrona basada en Promesas de bcrypt
+            const esValida = await bcrypt.compare(password, user.password);
+            if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
 
-                req.session.userId = user.id;
-                req.session.usuario = user.usuario;
-                req.session.rol = user.rol;
+            req.session.userId = user.id;
+            req.session.usuario = user.usuario;
+            req.session.rol = user.rol;
 
-                res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
-            });
-        });
+            res.json({ id: user.id, usuario: user.usuario, rol: user.rol });
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
     });
 
-    router.get('/api/usuarios', verificarAutenticacion, verificarAdminSesion, (req, res) => {
-        db.all(`SELECT id, usuario, rol, bloqueado FROM usuarios`, [], (err, rows) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json(rows || []);
-        });
+    // 3. OBTENER USUARIOS
+    router.get('/api/usuarios', verificarAutenticacion, verificarAdminSesion, async (req, res) => {
+        try {
+            const r = await db.execute(`SELECT id, usuario, rol, bloqueado FROM usuarios`);
+            res.json(r.rows || []);
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
     });
 
-    router.post('/api/usuarios', verificarAutenticacion, verificarAdminSesion, (req, res) => {
+    // 4. CREAR USUARIO
+    router.post('/api/usuarios', verificarAutenticacion, verificarAdminSesion, async (req, res) => {
         const { usuario, password, rol } = req.body;
         if (!password) return res.status(400).json({ error: "La contraseña es obligatoria" });
 
-        const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}\$/;
         if (!regexPassword.test(password)) {
             return res.status(400).json({ error: "La contraseña no es segura. Debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y un carácter especial." });
         }
 
-        bcrypt.hash(password, saltRounds, (err, hash) => {
-            if (err) return res.status(500).json({ error: "Error al encriptar la contraseña" });
-            db.run(`INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`, 
-                [usuario, hash, rol || 'repartidor'], 
-                function(err) {
-                    if (err) return res.status(500).json({ error: "El usuario ya existe o hubo un error" });
-                    res.json({ id: this.lastID, mensaje: "Usuario creado con éxito" });
-                }
-            );
-        });
+        try {
+            const hash = await bcrypt.hash(password, saltRounds);
+            
+            const r = await db.execute({
+                sql: `INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`,
+                args: [usuario, hash, rol || 'repartidor']
+            });
+
+            // Turso expone el último ID insertado como un BigInt en lastInsertRowId
+            const lastID = r.lastInsertRowId ? r.lastInsertRowId.toString() : null;
+
+            res.json({ id: lastID, mensaje: "Usuario creado con éxito" });
+        } catch (err) {
+            // Manejo de errores por duplicados (ej: UNIQUE constraint failed)
+            return res.status(500).json({ error: "El usuario ya existe o hubo un error en el servidor" });
+        }
     });
 
-    router.put('/api/usuarios/:id/bloquear', verificarAutenticacion, verificarAdminSesion, (req, res) => {
+    // 5. BLOQUEAR USUARIO
+    router.put('/api/usuarios/:id/bloquear', verificarAutenticacion, verificarAdminSesion, async (req, res) => {
         const { bloqueado } = req.body;
-        db.run(`UPDATE usuarios SET bloqueado = ? WHERE id = ?`, [bloqueado, req.params.id], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
+        try {
+            await db.execute({
+                sql: `UPDATE usuarios SET bloqueado = ? WHERE id = ?`,
+                args: [bloqueado, req.params.id]
+            });
             res.json({ mensaje: "Estado de bloqueo actualizado" });
-        });
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
     });
 
-    router.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdminSesion, (req, res) => {
-        db.run(`DELETE FROM usuarios WHERE id = ?`, [req.params.id], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
+    // 6. ELIMINAR USUARIO
+    router.delete('/api/usuarios/:id', verificarAutenticacion, verificarAdminSesion, async (req, res) => {
+        try {
+            await db.execute({
+                sql: `DELETE FROM usuarios WHERE id = ?`,
+                args: [req.params.id]
+            });
             res.json({ mensaje: "Usuario borrado con éxito" });
-        });
+        } catch (err) {
+            return res.status(500).json({ error: err.message });
+        }
     });
 
-    // Exportamos el router y las funciones de middleware por separado
     return {
         router,
         verificarAutenticacion,
