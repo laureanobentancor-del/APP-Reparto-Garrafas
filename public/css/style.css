@@ -1072,3 +1072,108 @@ table tbody tr:hover,
 .link-olvide:active {
     transform: translateY(0);
 }
+
+
+/* ==========================================
+   ESTILOS UTILIZADOS PARA LA VISTA DE RECUPERACIÓN
+   ========================================== */
+
+/* Contenedor principal centrado en pantalla completa */
+.login-body {
+    background-color: #f4f6f9;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-top: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Tarjeta contenedora del formulario */
+.login-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 380px;
+    box-sizing: border-box;
+    margin: auto;
+}
+
+.login-card h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    text-align: center;
+    font-size: 24px;
+}
+
+/* Campos del formulario */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #34495e;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #27ae60;
+}
+
+/* Botón de acción principal (Verde del sistema) */
+.btn-guardar {
+    padding: 12px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    font-size: 16px;
+}
+.btn-guardar:hover { 
+    background-color: #219653; 
+}
+
+/* Enlace de retorno */
+.link-olvide {
+    color: #2980b9;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+.link-olvide:hover {
+    color: #2471a3;
+    transform: translateY(-1px);
+}
+.link-olvide:active {
+    transform: translateY(0);
+}
+
+/* Clases de utilidad auxiliares */
+.text-center { text-align: center; }
+.text-muted { color: #555; font-size: 12px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-15 { margin-bottom: 15px; }
+.mt-20 { margin-top: 20px; }

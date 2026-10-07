@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Restablecer contraseña - Garrafas App</title>
-<style>
-  body{font-family:system-ui,sans-serif;background:#f3f4f6;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
-  .card{background:#fff;padding:28px;border-radius:12px;width:100%;max-width:380px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
-  h2{margin-top:0}
-  label{display:block;font-size:14px;margin:12px 0 4px}
-  input{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box}
-  button{width:100%;margin-top:18px;padding:11px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px;cursor:pointer}
-  button:disabled{opacity:.6}
-  #msg{font-size:14px;min-height:20px;margin-top:10px;color:#dc2626}
-  #msg.ok{color:#16a34a}
-  ul{list-style:none;padding:0;margin:6px 0 0;font-size:13px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer contraseña - Garrafas App</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body class="login-body">
 <!-- No incluir header.js en esta página -->
-<div class="card">
-  <h2>Nueva contraseña</h2>
-  <form id="form">
-    <label for="nueva">Nueva contraseña</label>
-    <input type="password" id="nueva" autocomplete="new-password" required>
-    <ul id="req"></ul>
-    <label for="confirmar">Repetir contraseña</label>
-    <input type="password" id="confirmar" autocomplete="new-password" required>
-    <p id="msg"></p>
-    <button type="submit" id="btn">Guardar contraseña</button>
-  </form>
-</div>
-
+    <div class="login-card">
+        <h2>Nueva contraseña</h2>
+        <form id="form">
+            <div class="form-group">
+                <label for="nueva">Nueva contraseña:</label>
+                <input type="password" id="nueva" autocomplete="new-password" required>
+                <ul id="req"></ul>
+            </div>
+            <div class="form-group">
+                <label for="confirmar">Repetir contraseña:</label>
+                <input type="password" id="confirmar" autocomplete="new-password" required>
+            </div>
+            <p id="msg"></p>
+            <button type="submit" id="btn" class="btn-guardar mt-20">Guardar contraseña</button>
+        </form>
+    </div>
 <script>
 const token = new URLSearchParams(location.search).get('token');
 const msg = document.getElementById('msg');

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña - Garrafas App</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-card">
+        <h2>¿Olvidaste tu contraseña?</h2>
+        <p class="info">Ingresá el correo asociado a tu cuenta y te enviaremos un enlace para crear una nueva.</p>
+
+        <form id="form">
+            <div class="form-group">
+                <label for="email">Correo electrónico:</label>
+                <input type="email" id="email" autocomplete="email" required>
+            </div>
+            <p id="msg"></p>
+            <button type="submit" id="btn" class="btn-guardar mt-20">Enviar enlace</button>
+        </form>
+
+        <p class="text-center mt-20" style="margin-bottom: 0;">
+            <a href="login.html">Volver al inicio de sesión</a>
+        </p>
+    </div>
+
+<script>
+document.getElementById('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  const msg = document.getElementById('msg');
+  btn.disabled = true; msg.className = ''; msg.textContent = '';
+  try {
+    const res = await fetch('/api/password/olvide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: document.getElementById('email').value })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'No se pudo enviar la solicitud.');
+    msg.className = 'ok';
+    msg.textContent = data.mensaje;
+  } catch (err) {
+    msg.textContent = err.message;
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
