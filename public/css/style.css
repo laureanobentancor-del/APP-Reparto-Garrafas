@@ -1088,6 +1088,20 @@ table tbody tr:hover,
     height: 100vh;
     margin-top: 0;
     font-family: Arial, sans-serif;
+
+
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #0b0f19; /* Color base oscuro profundo */
+    background-image: 
+    radial-gradient(circle at 15% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 45%),  /* Resplandor naranja cálido (gas) */
+    radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 45%), /* Resplandor azul profesional (logística) */
+    radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 0.6) 0%, #030712 100%);     /* Viñeta central profunda */
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+
 }
 
 /* Tarjeta contenedora del formulario */
