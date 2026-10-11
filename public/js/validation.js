@@ -1,5 +1,6 @@
 'use strict';
 
+// Validación general en tiempo real para caracteres (precios, números, nombres)
 document.addEventListener('input', (e) => {
     const input = e.target;
     if (input.tagName !== 'INPUT') return;
@@ -17,6 +18,109 @@ document.addEventListener('input', (e) => {
         if (limpio !== input.value) input.value = limpio;
     }
 });
+
+// Inicialización de validaciones visuales cuando carga el DOM
+document.addEventListener('DOMContentLoaded', () => {
+    initValidacionLogin();
+    initValidacionPassword();
+});
+
+function initValidacionLogin() {
+    const inputUsuario = $('login-usuario');
+    const inputPassword = $('login-password');
+    const errorUsuario = $('error-login-usuario');
+    const errorPassword = $('error-login-password');
+
+    const validarCampo = (input, errorEl, mensajeCustom) => {
+        if (!input) return true;
+        if (!input.value.trim()) {
+            input.style.borderColor = '#e74c3c'; // Rojo error
+            if (errorEl) {
+                errorEl.textContent = mensajeCustom || 'Este campo es obligatorio.';
+                errorEl.style.display = 'block';
+            }
+            return false;
+        } else {
+            input.style.borderColor = '#27ae60'; // Verde éxito
+            if (errorEl) {
+                errorEl.textContent = '';
+                errorEl.style.display = 'none';
+            }
+            return true;
+        }
+    };
+
+    if (inputUsuario) {
+        inputUsuario.addEventListener('blur', () => validarCampo(inputUsuario, errorUsuario, 'Ingresá tu nombre de usuario.'));
+        inputUsuario.addEventListener('input', () => {
+            if (inputUsuario.value.trim()) {
+                inputUsuario.style.borderColor = '#27ae60';
+                if (errorUsuario) errorUsuario.style.display = 'none';
+            }
+        });
+    }
+
+    if (inputPassword) {
+        inputPassword.addEventListener('blur', () => validarCampo(inputPassword, errorPassword, 'Ingresá tu contraseña.'));
+        inputPassword.addEventListener('input', () => {
+            if (inputPassword.value.trim()) {
+                inputPassword.style.borderColor = '#27ae60';
+                if (errorPassword) errorPassword.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Función global que valida campos vacíos antes de enviar
+window.validarFormularioLogin = function() {
+    const inputUsuario = $('login-usuario');
+    const inputPassword = $('login-password');
+    const errorUsuario = $('error-login-usuario');
+    const errorPassword = $('error-login-password');
+
+    let esValido = true;
+
+    if (inputUsuario && !inputUsuario.value.trim()) {
+        inputUsuario.style.borderColor = '#e74c3c';
+        if (errorUsuario) {
+            errorUsuario.textContent = 'Ingresá tu nombre de usuario.';
+            errorUsuario.style.display = 'block';
+        }
+        esValido = false;
+    }
+
+    if (inputPassword && !inputPassword.value.trim()) {
+        inputPassword.style.borderColor = '#e74c3c';
+        if (errorPassword) {
+            errorPassword.textContent = 'Ingresá tu contraseña.';
+            errorPassword.style.display = 'block';
+        }
+        esValido = false;
+    }
+
+    if (!esValido) {
+        if (inputUsuario && !inputUsuario.value.trim()) inputUsuario.focus();
+        else if (inputPassword && !inputPassword.value.trim()) inputPassword.focus();
+    }
+
+    return esValido;
+};
+
+// Función global para que auth_2.js pinte de rojo un input específico cuando el servidor falle
+window.mostrarErrorServidorLogin = function(mensaje) {
+    const inputUsuario = $('login-usuario');
+    const inputPassword = $('login-password');
+    const errorPassword = $('error-login-password');
+
+    // Si el servidor dice que hubo un error de credenciales, pintamos ambos bordes de rojo y ponemos el mensaje abajo
+    if (inputUsuario) inputUsuario.style.borderColor = '#e74c3c';
+    if (inputPassword) inputPassword.style.borderColor = '#e74c3c';
+    
+    if (errorPassword) {
+        errorPassword.textContent = mensaje || 'Usuario o contraseña incorrectos.';
+        errorPassword.style.display = 'block';
+    }
+};
 
 function initValidacionPassword() {
     const passwordInput = $('nueva-pass');

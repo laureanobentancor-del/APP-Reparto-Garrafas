@@ -522,5 +522,5 @@ window.cerrarSesion = function () {
     // Cierra también la sesión del servidor (si la ruta no existe, no pasa nada)
     fetch('/api/logout', { method: 'POST', credentials: 'include' })
         .catch(() => {})
-        .finally(() => { window.location.href = 'login.html'; });
+        .finally(() => { window.location.href = 'index.html'; });
 }

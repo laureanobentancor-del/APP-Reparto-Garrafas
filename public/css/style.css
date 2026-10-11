@@ -1191,3 +1191,35 @@ table tbody tr:hover,
 .mb-10 { margin-bottom: 10px; }
 .mb-15 { margin-bottom: 15px; }
 .mt-20 { margin-top: 20px; }
+
+
+/* ==========================================================================
+   AGREGADO: ESTADOS DINÁMICOS PARA CONTROL DE ERRORES EN INPUTS
+   ========================================================================== */
+
+/* Cuando el input tiene un error (Pinta borde rojo) */
+.input-control-error {
+    border-color: #e74c3c !important;
+    background-color: #fdf2f2 !important;
+}
+
+/* Cuando el input es válido (Pinta borde verde) */
+.input-control-valido {
+    border-color: #27ae60 !important;
+    box-shadow: 0 0 3px rgba(39, 174, 96, 0.2) !important;
+}
+
+/* Estilo base para las etiquetas de texto que muestran el error abajo del input */
+.texto-error-mensaje {
+    color: #e74c3c !important;
+    font-size: 0.85em !important;
+    margin-top: 5px !important;
+    display: none; /* Oculto por defecto */
+    font-weight: 500 !important;
+}
+
+/* Clase que activa el JS para hacer visible el texto del error en pantalla */
+.texto-error-visible {
+    display: block !important;
+}
+
