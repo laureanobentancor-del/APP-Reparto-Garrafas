@@ -14,7 +14,6 @@
     "@libsql/client": "^0.18.0",
     "@whiskeysockets/baileys": "^7.0.0-rc14",
     "bcrypt": "^6.0.0",
-    "connect-sqlite3": "^0.9.18",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.1",

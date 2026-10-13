@@ -32,23 +32,28 @@ module.exports = function(db) {
     });
 
     // 2. LOGIN
-    router.post('/api/login', async (req, res) => {
-        const { usuario, password } = req.body;
-        try {
-            // Turso utiliza db.execute con parámetros posicionales (?) o nombrados
-            const r = await db.execute({
-                sql: `SELECT * FROM usuarios WHERE usuario = ?`,
-                args: [usuario]
-            });
-            
-            const user = r.rows[0]; // Las filas devueltas están en el array rows
+ const alertas = require('../alertas'); // Importás el módulo si lo necesitás aquí
 
-            if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
-            if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
+router.post('/api/login', async (req, res) => {
+    const { usuario, password } = req.body;
+    try {
+        const r = await db.execute({
+            sql: `SELECT * FROM usuarios WHERE usuario = ?`,
+            args: [usuario]
+        });
+        
+        const user = r.rows[0];
 
-            // Usamos la versión asíncrona basada en Promesas de bcrypt
-            const esValida = await bcrypt.compare(password, user.password);
-            if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        if (!user || user.bloqueado === 1) {
+            alertas.loginFallido(req.ip, usuario); // <--- Dispara la alerta de login fallido
+            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        }
+
+        const esValida = await bcrypt.compare(password, user.password);
+        if (!esValida) {
+            alertas.loginFallido(req.ip, usuario); // <--- Dispara la alerta por contraseña errónea
+            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+        }
 
             req.session.userId = user.id;
             req.session.usuario = user.usuario;

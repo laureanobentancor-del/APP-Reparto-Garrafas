@@ -4,6 +4,7 @@ const express = require('express');
 const session = require('express-session');
 const TursoSessionStore = require('./database/session-store')(session);
 const path = require('path');
+const alertas = require('./alertas');
 
 // Bloqueante: Abortar si falta el secreto de sesión
 if (!process.env.SESSION_SECRET) {
@@ -16,6 +17,9 @@ app.set('trust proxy', 1); // detrás de Caddy: IP real del cliente (necesario p
 const PORT = process.env.PORT || 80;
 
 const db = require('./database/db'); 
+
+// 1. Instalar el monitor de alertas ANTES de tus rutas y middlewares principales
+alertas.instalar(app);
 
 app.use(express.json()); 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -61,6 +65,9 @@ app.use('/', diarioRouter);
 const vistasRouter = require('./routes/vistas');
 app.use('/', vistasRouter);
 
+// 2. Colocar el manejador de errores DESPUÉS de todas tus rutas
+app.use(alertas.manejadorErrores);
+
 const whatsappService = require('./services/whatsapp');
 whatsappService.iniciarWhatsApp(db);
 
@@ -80,6 +87,6 @@ db.listo.then(() => {
         console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
     });
 }).catch(() => {
-    console.error('El servidor no arranca: no se pudo preparar la base de datos en Turso.'); //[cite: 2]
+    console.error('El servidor no arranca: no se pudo preparar la base de datos en Turso.');
     process.exit(1); 
 });
