@@ -26,34 +26,30 @@ module.exports = function(db) {
     router.post('/api/logout', verificarAutenticacion, (req, res) => {
         req.session.destroy((err) => {
             if (err) return res.status(500).json({ error: "Error al cerrar la sesión" });
-            res.clearCookie('connect.sid'); 
+            res.clearCookie('connect.sid');
             res.json({ mensaje: "Sesión cerrada con éxito" });
         });
     });
 
     // 2. LOGIN
- const alertas = require('../alertas'); // Importás el módulo si lo necesitás aquí
-
-router.post('/api/login', async (req, res) => {
-    const { usuario, password } = req.body;
-    try {
-        const r = await db.execute({
-            sql: `SELECT * FROM usuarios WHERE usuario = ?`,
-            args: [usuario]
-        });
-        
-        const user = r.rows[0];
-
-        if (!user || user.bloqueado === 1) {
-            alertas.loginFallido(req.ip, usuario); // <--- Dispara la alerta de login fallido
-            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    router.post('/api/login', async (req, res) => {
+        const { usuario, password } = req.body || {};
+        if (typeof usuario !== 'string' || typeof password !== 'string') {
+            return res.status(400).json({ error: "Usuario y contraseña son obligatorios" });
         }
+        try {
+            const r = await db.execute({
+                sql: `SELECT * FROM usuarios WHERE usuario = ?`,
+                args: [usuario]
+            });
 
-        const esValida = await bcrypt.compare(password, user.password);
-        if (!esValida) {
-            alertas.loginFallido(req.ip, usuario); // <--- Dispara la alerta por contraseña errónea
-            return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
-        }
+            const user = r.rows[0];
+
+            if (!user) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+            if (user.bloqueado === 1) return res.status(403).json({ error: "Este usuario se encuentra bloqueado." });
+
+            const esValida = await bcrypt.compare(password, user.password);
+            if (!esValida) return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
 
             req.session.userId = user.id;
             req.session.usuario = user.usuario;
@@ -80,25 +76,24 @@ router.post('/api/login', async (req, res) => {
         const { usuario, password, rol } = req.body;
         if (!password) return res.status(400).json({ error: "La contraseña es obligatoria" });
 
-        const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}\$/;
+        // CORREGIDO: antes terminaba en \$ y exigía un "$" literal al final
+        const regexPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
         if (!regexPassword.test(password)) {
             return res.status(400).json({ error: "La contraseña no es segura. Debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y un carácter especial." });
         }
 
         try {
             const hash = await bcrypt.hash(password, saltRounds);
-            
+
             const r = await db.execute({
                 sql: `INSERT INTO usuarios (usuario, password, rol) VALUES (?, ?, ?)`,
                 args: [usuario, hash, rol || 'repartidor']
             });
 
-            // Turso expone el último ID insertado como un BigInt en lastInsertRowId
             const lastID = r.lastInsertRowId ? r.lastInsertRowId.toString() : null;
 
             res.json({ id: lastID, mensaje: "Usuario creado con éxito" });
         } catch (err) {
-            // Manejo de errores por duplicados (ej: UNIQUE constraint failed)
             return res.status(500).json({ error: "El usuario ya existe o hubo un error en el servidor" });
         }
     });

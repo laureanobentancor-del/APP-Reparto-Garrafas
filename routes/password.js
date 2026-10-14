@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 
 const SALT_ROUNDS = 12;
 const MINUTOS_VALIDEZ_TOKEN = 30;
-const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const sha256 = t => crypto.createHash('sha256').update(t).digest('hex');
 

@@ -1223,3 +1223,22 @@ table tbody tr:hover,
     display: block !important;
 }
 
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-password-wrapper input {
+    width: 100%;
+    padding-right: 40px; /* Deja espacio para el botón del ojo */
+}
+.btn-ver-pass {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    color: #6b7280;
+}

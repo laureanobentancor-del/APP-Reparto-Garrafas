@@ -126,15 +126,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="mb-15 text-right">
                     <button onclick="toggleFormularioNuevoUsuario()" class="btn-nuevo-usuario">+ Nuevo Usuario</button>
                 </div>
-
-                <form id="form-nuevo-repartidor" class="form-panel-secundario" onsubmit="crearNuevoUsuario(event)">
+                  <form id="form-nuevo-repartidor" class="form-panel-secundario" onsubmit="crearNuevoUsuario(event)">
                     <h4>Crear Nueva Cuenta</h4>
                     <div class="form-fila-flex">
-                        <input type="text" id="nuevo-usuario-nombre" autocomplete = "username"  placeholder="Nombre de usuario" required>
-                        <input type="password" id="nueva-pass" autocomplete="new-password" placeholder="Contraseña" required>
-                    </div>
-                    <div class="mb-10">
-                        <input type="email" id="nuevo-usuario-email" autocomplete="email" placeholder="Correo electrónico (para recuperar contraseña)" required style="width:100%;">
+                    <input type="text" id="nuevo-usuario-nombre" autocomplete="username" placeholder="Nombre de usuario" required>
+        
+                      <!-- Aquí metemos el input y un botón compacto al lado para ver la contraseña -->
+                         <div style="display: flex; gap: 5px; align-items: center; flex: 1;">
+                            <input type="password" id="nueva-pass" autocomplete="new-password" placeholder="Contraseña" required style="flex: 1;">
+                          <button type="button" onclick="toggleVerPassword('nueva-pass')" title="Ver/Ocultar contraseña" style="padding: 8px 10px; cursor: pointer; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px;">👁️</button>
+                        </div>
                     </div>
                     <div class="mb-10">
                         <label>Rol del Sistema:</label>
@@ -169,8 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         </div>
-
-        <!-- Modal de Cambiar Contraseña -->
+        
+    <!-- Modal de Cambiar Contraseña -->
         <div id="modal-password" class="modal-fondo">
             <div class="modal-contenido modal-ancho-400">
                 <h3 class="modal-historial-titulo">Cambiar Contraseña</h3>
@@ -180,16 +181,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <div class="form-group">
                         <label>Contraseña actual:</label>
-                        <input type="password" id="input-pass-actual" autocomplete="current-password" required>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="password" id="input-pass-actual" autocomplete="current-password" style="flex: 1;" required>
+                            <button type="button" onclick="toggleVerPassword('input-pass-actual')" title="Ver/Ocultar contraseña" style="padding: 8px 10px; cursor: pointer; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px;">👁️</button>
+                        </div>
                     </div>
+                    
                     <div class="form-group">
                         <label>Nueva contraseña:</label>
-                        <input type="password" id="input-cambiar-pass" autocomplete="new-password" oninput="pintarRequisitos('input-cambiar-pass','lista-requisitos')" required>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="password" id="input-cambiar-pass" autocomplete="new-password" oninput="pintarRequisitos('input-cambiar-pass','lista-requisitos')" style="flex: 1;" required>
+                            <button type="button" onclick="toggleVerPassword('input-cambiar-pass')" title="Ver/Ocultar contraseña" style="padding: 8px 10px; cursor: pointer; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px;">👁️</button>
+                        </div>
                         <ul id="lista-requisitos" style="list-style:none;padding:0;margin:6px 0 0;font-size:13px;"></ul>
                     </div>
+                    
                     <div class="form-group">
                         <label>Repetir nueva contraseña:</label>
-                        <input type="password" id="input-pass-confirmar" autocomplete="new-password" required>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="password" id="input-pass-confirmar" autocomplete="new-password" style="flex: 1;" required>
+                            <button type="button" onclick="toggleVerPassword('input-pass-confirmar')" title="Ver/Ocultar contraseña" style="padding: 8px 10px; cursor: pointer; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 4px;">👁️</button>
+                        </div>
                     </div>
 
                     <p id="msg-password" style="font-size:13px;color:#dc2626;min-height:18px;margin:6px 0 0;"></p>
@@ -320,6 +332,7 @@ window.crearNuevoUsuario = function (event) {
     const nombreInput = document.getElementById('nuevo-usuario-nombre');
     const passInput = document.getElementById('nueva-pass');
     const rolInput = document.getElementById('nuevo-usuario-rol');
+    const emailInput = document.getElementById('nuevo-usuario-email');
 
     if (!nombreInput || !passInput || !rolInput) {
         alert("Error: No se encontraron los campos del formulario en el DOM.");
@@ -330,15 +343,12 @@ window.crearNuevoUsuario = function (event) {
         usuario: nombreInput.value,
         password: passInput.value,
         rol: rolInput.value,
-        email: (document.getElementById('nuevo-usuario-email') || {}).value || ''
+        email: emailInput ? emailInput.value : ''
     };
-
-    const emailAlta = data.email;
-    const usuarioAlta = data.usuario;
 
     fetch('/api/usuarios', {
         method: 'POST',
-        credentials: 'include', // 👈 Indispensable para express-session
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json'
         },
@@ -349,19 +359,12 @@ window.crearNuevoUsuario = function (event) {
             if (!res.ok) throw new Error(resultado.error || "Error al crear el usuario");
             return resultado;
         })
-        .then(async data => {
-            if (emailAlta) {
-                try {
-                    await peticionJson('/api/password/email', 'PUT', { usuario: usuarioAlta, email: emailAlta });
-                } catch (e) {
-                    alert("El usuario se creó, pero no se pudo guardar el email: " + e.message);
-                }
-            }
+        .then(data => {
             alert(data.mensaje || "Usuario creado correctamente");
             const form = document.getElementById('form-nuevo-repartidor');
             if (form) form.reset();
             toggleFormularioNuevoUsuario();
-            cargarPerfilesEnTabla(); // Recarga la tabla de usuarios
+            cargarPerfilesEnTabla();
         })
         .catch(err => {
             console.error("Error al crear usuario:", err);
@@ -524,3 +527,17 @@ window.cerrarSesion = function () {
         .catch(() => {})
         .finally(() => { window.location.href = 'index.html'; });
 }
+
+window.toggleVerPassword = function(idInput, idBoton) {
+    const input = document.getElementById(idInput);
+    const boton = document.getElementById(idBoton);
+    if (!input) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (boton) boton.textContent = '👁️‍🗨️'; // Cambia el ícono a ocultar
+    } else {
+        input.type = 'password';
+        if (boton) boton.textContent = '👁️'; // Cambia el ícono a ver
+    }
+};

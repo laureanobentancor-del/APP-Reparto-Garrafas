@@ -224,3 +224,10 @@ function hayListaAbierta() {
     const activo = document.activeElement;
     return !!(activo && activo.tagName === 'SELECT' && activo.closest('tbody'));
 }
+
+// Función global para alternar la visibilidad de cualquier campo de contraseña
+window.toggleVerPassword = function(idInput) {
+    const input = document.getElementById(idInput);
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+};

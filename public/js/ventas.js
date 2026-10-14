@@ -4,6 +4,13 @@ let ventasGlobales = [];
 let indiceFilaActiva = -1;
 let temporizadorMapa = null;
 
+// Una venta cuenta como COBRADA solo si la forma de pago es una de estas tres.
+// Un pedido Completado con pago pendiente NO suma al dinero.
+function ventaEstaCobrada(v) {
+    const pago = normalizarPago(v.forma_pago);
+    return pago === 'Efectivo' || pago === 'Mercado Pago' || pago === 'Transferencia';
+}
+
 function ventasFiltradas() {
     const texto = ($('buscador-ventas')?.value || '').trim().toLowerCase();
     const desde = $('filtro-ventas-desde')?.value;
@@ -54,6 +61,16 @@ function renderizarVentas(ventas) {
 
 function actualizarMetricasVentasPorCanal(ventas) {
     const canales = acumularCanales(ventas);
+
+    // El monto de cada canal se recalcula para sumar SOLO lo cobrado.
+    Object.keys(canales).forEach((canal) => { canales[canal].monto = 0; });
+    ventas.forEach((v) => {
+        const canal = canales[normalizarCanal(v.tipo_venta)];
+        if (canal && ventaEstaCobrada(v)) {
+            canal.monto += parseFloat(v.total) || 0;
+        }
+    });
+
     Object.keys(canales).forEach((canal) => {
         setTexto(canal + '-cantidad', canales[canal].cantidad + ' un.');
         setTexto(canal + '-monto', dinero(canales[canal].monto));
@@ -162,7 +179,8 @@ function agruparZonas(ventas) {
             zonas[clave] = { clave, direccionOriginal: v.direccion, cantidadTotal: 0, montoTotal: 0, clientes: new Set() };
         }
         zonas[clave].cantidadTotal += parseInt(v.cantidad) || 0;
-        zonas[clave].montoTotal += parseFloat(v.total) || 0;
+        // El monto recaudado de la zona suma solo pedidos cobrados
+        if (ventaEstaCobrada(v)) zonas[clave].montoTotal += parseFloat(v.total) || 0;
         if (v.cliente_nombre) zonas[clave].clientes.add(v.cliente_nombre);
     });
     return Object.values(zonas).sort((a, b) => b.cantidadTotal - a.cantidadTotal);

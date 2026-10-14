@@ -1,4 +1,5 @@
 'use strict';
+// Ejemplo típico en la ruta de creación de usuario
 
 function initLogin() {
     const form = $('form-login');
