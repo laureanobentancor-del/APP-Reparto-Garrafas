@@ -1242,3 +1242,276 @@ table tbody tr:hover,
     padding: 0;
     color: #6b7280;
 }
+
+/* ==========================================================================
+   MODALES DE PEDIDOS (pedido, observación, cliente)
+   Todo en porcentajes: el marco NO scrollea (la ✕ siempre visible),
+   scrollea solo el formulario. Sin anchos fijos en píxeles.
+   ========================================================================== */
+
+#modal-pedido,
+#modal-observacion,
+#modal-cliente {
+    align-items: center;
+    justify-content: center;
+    padding: 2% 3%;
+    box-sizing: border-box;
+}
+
+#modal-pedido .modal-contenido,
+#modal-observacion .modal-contenido,
+#modal-cliente .modal-contenido {
+    width: 100%;
+    max-width: 40rem;            /* tope solo para pantallas grandes */
+    max-height: 100%;            /* nunca más alto que el fondo */
+    margin: 0 auto;
+    padding: 4% 4% 3%;
+    overflow: hidden;            /* el marco no scrollea */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Título: deja lugar a la ✕ */
+#modal-pedido .modal-contenido h2,
+#modal-observacion .modal-contenido h2,
+#modal-cliente .modal-contenido h2 {
+    flex: 0 0 auto;
+    margin: 0 0 3%;
+    padding-right: 12%;
+    font-size: 1.25rem;
+}
+
+/* La ✕ siempre visible, fija arriba a la derecha del marco */
+#modal-pedido .btn-cerrar,
+#modal-observacion .btn-cerrar,
+#modal-cliente .btn-cerrar {
+    position: absolute;
+    top: 2%;
+    right: 3%;
+    z-index: 10;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    line-height: 1;
+    background: #f1f2f6;
+    border-radius: 50%;
+    color: #2c3e50;
+}
+
+/* Solo el formulario scrollea */
+#modal-pedido form,
+#modal-observacion form,
+#modal-cliente form {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 1%;
+}
+
+#modal-pedido .grupo-form,
+#modal-observacion .grupo-form,
+#modal-cliente .grupo-form {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#modal-pedido .grupo-form > *,
+#modal-pedido form > * {
+    flex-shrink: 0;
+}
+
+/* ---- Filas de garrafas y pagos (flex con porcentajes) ---- */
+#modal-pedido .item-pedido,
+#modal-pedido .pago-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2%;
+    row-gap: 0.4rem;
+    width: 100%;
+    margin-bottom: 2%;
+    box-sizing: border-box;
+}
+
+#modal-pedido .item-pedido select,
+#modal-pedido .item-pedido input,
+#modal-pedido .pago-fila select,
+#modal-pedido .pago-fila input {
+    width: auto;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Pantallas anchas: todo en una línea */
+#modal-pedido .item-tipo   { flex: 1 1 36%; }
+#modal-pedido .item-cantidad { flex: 1 1 14%; }
+#modal-pedido .item-precio { flex: 1 1 24%; }
+#modal-pedido .pago-metodo { flex: 1 1 48%; }
+#modal-pedido .pago-monto  { flex: 1 1 30%; }
+
+#modal-pedido .item-pedido .btn-accion,
+#modal-pedido .pago-fila .btn-accion {
+    flex: 0 0 auto;
+}
+
+/* Botones "+ Agregar..." a lo ancho */
+#modal-pedido .grupo-form > button.btn-principal {
+    width: 100%;
+    margin-top: 1%;
+    box-sizing: border-box;
+}
+
+#modal-pedido textarea,
+#modal-observacion textarea {
+    width: 100%;
+    padding: 2.5%;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+/* Guardar siempre visible al pie del formulario */
+#modal-pedido .btn-guardar,
+#modal-observacion .btn-guardar,
+#modal-cliente .btn-guardar {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+    z-index: 2;
+    box-shadow: 0 -0.4rem 0.5rem -0.3rem rgba(0, 0, 0, 0.15);
+}
+
+/* Pantallas angostas: el tipo ocupa toda la línea; cantidad y precio abajo */
+@media screen and (max-width: 560px) {
+    #modal-pedido .item-tipo   { flex: 1 1 100%; }
+    #modal-pedido .item-cantidad { flex: 1 1 28%; }
+    #modal-pedido .item-precio { flex: 1 1 50%; }
+    #modal-pedido .pago-metodo { flex: 1 1 100%; }
+    #modal-pedido .pago-monto  { flex: 1 1 70%; }
+}
+
+/* Anula la regla móvil global div[class*="modal"] que también afectaba al fondo */
+@media screen and (max-width: 768px) {
+    #modal-pedido,
+    #modal-observacion,
+    #modal-cliente {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 2% !important;
+    }
+
+    #modal-pedido .modal-contenido,
+    #modal-observacion .modal-contenido,
+    #modal-cliente .modal-contenido {
+        width: 100% !important;
+        max-width: 40rem !important;
+        margin: 0 auto !important;
+        padding: 4% !important;
+    }
+}
+
+/* ==========================================================================
+   MODAL DE PEDIDO: estilos de filas y botones nuevos (garrafas / pagos)
+   ========================================================================== */
+
+/* Cada fila (garrafa o pago) como una tarjetita */
+#modal-pedido .item-pedido,
+#modal-pedido .pago-fila {
+    background: #f8f9fa;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 2.5%;
+    margin-bottom: 2.5%;
+}
+
+#modal-pedido .item-pedido select,
+#modal-pedido .item-pedido input,
+#modal-pedido .pago-fila select,
+#modal-pedido .pago-fila input {
+    background: #ffffff;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    padding: 0.55rem 0.6rem;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#modal-pedido .item-pedido select:focus,
+#modal-pedido .item-pedido input:focus,
+#modal-pedido .pago-fila select:focus,
+#modal-pedido .pago-fila input:focus {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+}
+
+/* Botón "+ Agregar otra garrafa" / "+ Combinar con otro método" */
+.btn-agregar-fila {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.6rem 1rem;
+    margin-top: 1%;
+    background: #ffffff;
+    color: #27ae60;
+    border: 2px dashed #27ae60;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, transform 0.1s;
+}
+.btn-agregar-fila:hover {
+    background: #27ae60;
+    color: #ffffff;
+    border-style: solid;
+}
+.btn-agregar-fila:active {
+    transform: scale(0.98);
+}
+
+/* Botón de quitar fila (🗑️) */
+.btn-quitar-fila {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    background: #fdecea;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.btn-quitar-fila:hover {
+    background: #f5b7b1;
+}
+.btn-quitar-fila:active {
+    transform: scale(0.92);
+}
+
+/* Resumen de pagos (Total / Asignado / Falta) */
+#modal-pedido #resumen-pagos {
+    display: block;
+    margin-top: 2%;
+    padding: 2% 3%;
+    background: #f1f8f4;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: right;
+}

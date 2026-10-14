@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - Control de Garrafas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <script type="speculationrules">
     {
@@ -36,7 +37,8 @@
                 <div class="whatsapp-info">
                     <div class="whatsapp-header">
                         <span class="whatsapp-title">📱 WhatsApp</span>
-                        <button class="btn-accion btn-eliminar btn-reiniciar-qr" onclick="reiniciarWhatsApp()">🔄 Reiniciar</button>
+                        <button class="btn-accion btn-eliminar btn-reiniciar-qr" onclick="reiniciarWhatsApp()">🔄
+                            Reiniciar</button>
                     </div>
                     <p id="whatsapp-estado" class="whatsapp-status">Verificando estado...</p>
                     <small class="whatsapp-note">Sincronización automática activa.</small>
@@ -47,25 +49,21 @@
 
             <!-- Bloque Derecho: Métricas y Stock -->
             <div class="metrics-grid">
-                <!-- Tarjeta Stock Detallado -->
                 <div class="metric-card">
                     <span class="metric-label">Stock por Tipo</span>
                     <div id="resumen-stock-pedidos" class="metric-stock-text">Cargando...</div>
                 </div>
 
-                <!-- Tarjeta Vendidas Hoy -->
                 <div class="metric-card metric-center">
                     <span class="metric-label">Vendidas (Hoy)</span>
                     <p id="resumen-garrafas-pedidos" class="metric-val text-blue">0 un.</p>
                 </div>
 
-                <!-- Tarjeta Cobrado Hoy -->
                 <div class="metric-card metric-center">
                     <span class="metric-label">Cobrado (Hoy)</span>
                     <p id="resumen-cobrado-pedidos" class="metric-val text-green">$0</p>
                 </div>
 
-                <!-- Tarjeta Pendiente Hoy -->
                 <div class="metric-card metric-center">
                     <span class="metric-label">Pendiente (Hoy)</span>
                     <p id="resumen-pendiente-pedidos" class="metric-val text-orange">$0</p>
@@ -76,11 +74,9 @@
         <!-- Acciones Superiores y Filtros -->
         <div class="acciones-superiores-container">
             <div class="grupo-izquierdo">
-                
                 <button onclick="abrirModalCliente()" class="btn-nuevo-cliente">+ Nuevo Cliente</button>
                 <button class="btn-nuevo" onclick="abrirModalPedido()">+ Nuevo Pedido</button>
                 <button class="btn-principal btn-hoy" onclick="filtrarPedidosHoy()">📅 Pedidos de Hoy</button>
-
             </div>
 
             <div class="grupo-filtros">
@@ -101,15 +97,15 @@
             <table class="tu-tabla-actual">
                 <thead>
                     <tr>
-                       
                         <th>Cliente</th>
-                        <th>Tipo</th>
+                        <th>Garrafas</th>
                         <th>Venta</th>
                         <th>Cantidad</th>
                         <th>Total</th>
                         <th>Pago</th>
                         <th>Fecha</th>
                         <th>Estado</th>
+                        <th>Observación</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -124,23 +120,19 @@
                 <h2 id="titulo-modal-pedido">Nuevo Pedido</h2>
                 <form id="form-pedido">
                     <input type="hidden" id="pedido-id">
+
                     <div class="grupo-form" id="grupo-cliente">
                         <label>Cliente:</label>
                         <select id="pedido-cliente" required></select>
                     </div>
-                    <div class="grupo-form">
-                        <label>Tipo de Garrafa:</label>
-                        <select id="pedido-tipo" required>
-                            <option value="10kg">Garrafa de 10kg</option>
-                            <option value="15kg">Garrafa de 15kg</option>
-                            <option value="30kg">Garrafa de 30kg</option>
-                            <option value="45kg">Garrafa de 45kg</option>
-                        </select>
+
+                    <div class="grupo-form" id="grupo-items">
+                        <label>Garrafas (tipo · cantidad · precio unitario):</label>
+                        <div id="items-pedido"></div>
+                        <button type="button" id="btn-agregar-item" class="btn-agregar-fila"
+                            onclick="agregarItemPedido()">+ Agregar otra garrafa</button>
                     </div>
-                    <div class="grupo-form">
-                        <label>Cantidad:</label>
-                        <input type="number" id="pedido-cantidad" min="1" value="1" required>
-                    </div>
+
                     <div class="grupo-form">
                         <label>Tipo de Venta / Canal:</label>
                         <select id="pedido-tipo-venta" required>
@@ -149,29 +141,34 @@
                             <option value="comercios">Comercios</option>
                         </select>
                     </div>
-                    <div class="grupo-form">
-                        <label>Forma de Pago:</label>
-                        <select id="pedido-forma-pago" required>
-                            <option value="Efectivo">💵 Efectivo</option>
-                            <option value="Mercado Pago">📱 Mercado Pago</option>
-                            <option value="Transferencia">🏦 Transferencia</option>
-                            <option value="Pendiente">⏳ Pendiente de Pago</option>
-                        </select>
+
+                    <div class="grupo-form" id="grupo-pagos">
+                        <label>Forma de pago:</label>
+                        <div id="pagos-pedido"></div>
+                        <button type="button" class="btn-agregar-fila" onclick="agregarPagoPedido()">+ Combinar con otro
+                            método</button>
+                        <div><small id="resumen-pagos"></small></div>
                     </div>
+
+                    <div class="grupo-form" id="grupo-observacion">
+                        <label>Observación:</label>
+                        <textarea id="pedido-observacion" rows="2" maxlength="500" placeholder="Opcional"></textarea>
+                    </div>
+
                     <button type="submit" class="btn-guardar">Guardar</button>
                 </form>
             </div>
         </div>
     </main>
-     <!-- Única Ventana Flotante (Modal) para Nuevo/Editar Cliente -->
+
+    <!-- Modal para Nuevo/Editar Cliente -->
     <div id="modal-cliente" class="modal-fondo">
         <div class="modal-contenido">
             <span class="btn-cerrar" onclick="cerrarModalCliente()">&times;</span>
             <h2 id="titulo-modal-cliente">Registrar Nuevo Cliente</h2>
             <form id="form-cliente">
-                <!-- Este campo oculto guarda el ID cuando editamos -->
                 <input type="hidden" id="cliente-id">
-                
+
                 <div class="grupo-form">
                     <label>Nombre:</label>
                     <input type="text" id="cliente-nombre" required>
@@ -188,15 +185,30 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal para editar la observación -->
+    <div id="modal-observacion" class="modal-fondo" style="display: none;">
+        <div class="modal-contenido">
+            <span class="btn-cerrar" onclick="cerrarModalObservacion()">&times;</span>
+            <h2>Observación</h2>
+            <form id="form-observacion">
+                <input type="hidden" id="observacion-id">
+                <div class="grupo-form">
+                    <textarea id="observacion-texto" rows="4" maxlength="500"></textarea>
+                </div>
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/avisos.js"></script>
+    <script src="js/header.js"></script>
+    <script src="js/pedidos.js"></script>
+    <script src="js/clientes.js"></script>
+    <script src="js/whatsapp.js"></script>
+    <script src="js/app.js"></script>
 </body>
-<script src="js/utils.js"></script>
 
-<script src="js/header.js"></script>
-
-
-<script src="js/pedidos.js"></script>
-<script src="js/clientes.js"></script>
-<script src="js/whatsapp.js"></script>
-
-<script src="js/app.js"></script>
 </html>

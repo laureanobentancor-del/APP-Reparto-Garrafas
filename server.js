@@ -103,7 +103,24 @@ app.post('/api/whatsapp/reiniciar', verificarAutenticacion, verificarAdminSesion
     res.json({ mensaje: "Ok" });
 });
 
-db.listo.then(() => {
+// Columnas nuevas de la tabla pedidos (si ya existen, el error se ignora)
+const COLUMNAS_NUEVAS_PEDIDOS = ['observacion TEXT', 'items TEXT', 'pagos TEXT'];
+
+function agregarColumna(definicion) {
+    return new Promise((resolve) => {
+        db.run('ALTER TABLE pedidos ADD COLUMN ' + definicion, (err) => {
+            if (err && !/duplicate column/i.test(err.message)) {
+                console.error('Aviso al crear columna (' + definicion + '):', err.message);
+            }
+            resolve();
+        });
+    });
+}
+
+db.listo.then(async () => {
+    for (const col of COLUMNAS_NUEVAS_PEDIDOS) {
+        await agregarColumna(col);
+    }
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Servidor modular seguro corriendo en http://control-stock-garrafas.local`);
     });
