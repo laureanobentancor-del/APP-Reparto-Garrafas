@@ -29,11 +29,19 @@
 <body>
 
     <main id="app-view">
-        <!-- Panel superior de WhatsApp y Métricas -->
-        <div class="panel-whatsapp">
+        <!-- Panel de control diario -->
+        <section class="dash-panel">
 
-            <!-- Bloque Izquierdo: WhatsApp y QR -->
-            <div class="whatsapp-container">
+            <header class="dash-header">
+                <div>
+                    <h1 class="dash-titulo">🔥 Panel de Control Diario</h1>
+                    <p class="dash-subtitulo">Resumen unificado de finanzas, ventas y stock</p>
+                </div>
+                <div class="dash-fecha" id="dash-fecha"></div>
+            </header>
+
+            <!-- WhatsApp (ids intactos para whatsapp.js) -->
+            <div class="whatsapp-container dash-whatsapp">
                 <div class="whatsapp-info">
                     <div class="whatsapp-header">
                         <span class="whatsapp-title">📱 WhatsApp</span>
@@ -47,29 +55,46 @@
                 <div id="contenedor-qr" class="qr-box"></div>
             </div>
 
-            <!-- Bloque Derecho: Métricas y Stock -->
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <span class="metric-label">Stock por Tipo</span>
-                    <div id="resumen-stock-pedidos" class="metric-stock-text">Cargando...</div>
-                </div>
+            <div class="dash-grid">
 
-                <div class="metric-card metric-center">
-                    <span class="metric-label">Vendidas (Hoy)</span>
-                    <p id="resumen-garrafas-pedidos" class="metric-val text-blue">0 un.</p>
-                </div>
+                <!-- Finanzas y cobros -->
+                <article class="dash-card">
+                    <h2 class="dash-card-titulo"><span class="dash-ico dash-verde">💰</span> Finanzas y Cobros</h2>
+                    <div class="dash-caja">
+                        <span class="dash-etq">Total Cobrado (Hoy)</span>
+                        <span class="dash-monto dash-verde" id="dash-cobrado">$0</span>
+                    </div>
+                    <div class="dash-trio">
+                        <div class="dash-mini"><span class="dash-etq-mini">Efectivo</span><span class="dash-val-mini" id="dash-efectivo">$0</span></div>
+                        <div class="dash-mini"><span class="dash-etq-mini">Mercado Pago</span><span class="dash-val-mini" id="dash-mp">$0</span></div>
+                        <div class="dash-mini"><span class="dash-etq-mini">Transf.</span><span class="dash-val-mini" id="dash-transf">$0</span></div>
+                    </div>
+                    <div class="dash-alerta">
+                        <span>⏳ Pendiente</span>
+                        <strong id="dash-pendiente">$0</strong>
+                    </div>
+                </article>
 
-                <div class="metric-card metric-center">
-                    <span class="metric-label">Cobrado (Hoy)</span>
-                    <p id="resumen-cobrado-pedidos" class="metric-val text-green">$0</p>
-                </div>
+                <!-- Ventas por tipo -->
+                <article class="dash-card">
+                    <h2 class="dash-card-titulo"><span class="dash-ico dash-naranja">📊</span> Ventas por Tipo</h2>
+                    <div class="dash-caja dash-caja-fila">
+                        <span class="dash-etq">Total Vendidas (Hoy)</span>
+                        <span class="dash-monto-chico dash-naranja" id="dash-vendidas">0 un.</span>
+                    </div>
+                    <div class="dash-duo" id="dash-tipos"></div>
+                    <div class="dash-canales" id="dash-canales"></div>
+                </article>
 
-                <div class="metric-card metric-center">
-                    <span class="metric-label">Pendiente (Hoy)</span>
-                    <p id="resumen-pendiente-pedidos" class="metric-val text-orange">$0</p>
-                </div>
+                <!-- Stock -->
+                <article class="dash-card">
+                    <h2 class="dash-card-titulo"><span class="dash-ico dash-celeste">📦</span> Stock Actual</h2>
+                    <div class="dash-lista" id="dash-stock">Cargando...</div>
+                    <div class="dash-leyenda">🟢 Llenas &nbsp;|&nbsp; 🟠 Vacías</div>
+                </article>
+
             </div>
-        </div>
+        </section>
 
         <!-- Acciones Superiores y Filtros -->
         <div class="acciones-superiores-container">

@@ -1515,3 +1515,191 @@ table tbody tr:hover,
     font-weight: 600;
     text-align: right;
 }
+
+/* ==========================================================================
+   MODALES: dejar libre la zona del header fijo (ya no tapa la ✕)
+   Si todavía se solapa, subí --alto-header; si sobra espacio, bajalo.
+   ========================================================================== */
+:root {
+    --alto-header: 5rem;   /* ~80px: header (~62px) + 10px de aire */
+}
+
+#modal-pedido,
+#modal-observacion,
+#modal-cliente {
+    padding-top: var(--alto-header);
+    align-items: flex-start;   /* el modal arranca justo debajo del header */
+}
+
+@media screen and (max-width: 768px) {
+    #modal-pedido,
+    #modal-observacion,
+    #modal-cliente {
+        padding-top: var(--alto-header) !important;
+    }
+}
+
+/* ==========================================================================
+   PANEL DE CONTROL DIARIO (pedidos) - tema oscuro, todo con clases dash-*
+   No usa Tailwind: no afecta a las demás pantallas.
+   ========================================================================== */
+.dash-panel {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: #f1f5f9;
+}
+
+.dash-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+.dash-titulo { margin: 0; font-size: 1.35rem; font-weight: 700; color: #fb923c; }
+.dash-subtitulo { margin: 0.2rem 0 0; font-size: 0.8rem; color: #94a3b8; }
+.dash-fecha {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    text-transform: capitalize;
+}
+
+/* WhatsApp en tema oscuro (pisa el estilo claro solo dentro del panel) */
+.dash-panel .dash-whatsapp {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-right: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    min-width: 0;
+    box-sizing: border-box;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+.dash-panel .dash-whatsapp .whatsapp-title { color: #cbd5e1; }
+.dash-panel .dash-whatsapp .whatsapp-status { color: #f1f5f9; margin: 0.2rem 0; }
+.dash-panel .dash-whatsapp .whatsapp-note { color: #94a3b8; }
+.dash-panel .dash-whatsapp #contenedor-qr img { max-width: 100%; height: auto; }
+
+/* Grilla responsive sin media queries: se reacomoda sola */
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+.dash-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.dash-card-titulo {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dash-caja {
+    background: #0f172a;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+.dash-caja-fila { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.dash-etq { display: block; font-size: 0.75rem; color: #94a3b8; }
+.dash-caja-fila .dash-etq { color: #cbd5e1; }
+.dash-monto { display: block; font-size: 1.5rem; font-weight: 700; word-break: break-word; }
+.dash-monto-chico { font-size: 0.95rem; font-weight: 700; }
+
+.dash-trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; }
+.dash-duo  { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+
+.dash-mini {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.4);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    min-width: 0;
+}
+.dash-mini-fila { display: flex; justify-content: space-between; align-items: center; gap: 0.25rem; font-size: 0.8rem; }
+.dash-etq-mini { display: block; font-size: 0.65rem; color: #94a3b8; }
+.dash-mini-fila .dash-etq-mini { font-size: 0.8rem; }
+.dash-val-mini { display: block; font-size: 0.8rem; font-weight: 600; color: #e2e8f0; word-break: break-word; }
+
+.dash-alerta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fcd34d;
+}
+.dash-alerta strong { font-size: 0.95rem; color: #fbbf24; }
+
+.dash-canales {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(51, 65, 85, 0.3);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.dash-lista { display: flex; flex-direction: column; gap: 0.5rem; }
+.dash-fila-stock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    background: #0f172a;
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+.dash-tipo { font-weight: 500; color: #cbd5e1; }
+.dash-stock-vals { display: flex; gap: 0.6rem; }
+.dash-leyenda { margin-top: auto; text-align: center; font-size: 0.65rem; color: #64748b; }
+
+.dash-verde   { color: #34d399; }
+.dash-naranja { color: #fb923c; }
+.dash-celeste { color: #22d3ee; }
+
+/* Totales por tipo: unidades arriba, dinero abajo */
+.dash-mini-tipo { display: flex; flex-direction: column; gap: 0.25rem; }
+.dash-mini-tipo .dash-val-mini { text-align: right; }

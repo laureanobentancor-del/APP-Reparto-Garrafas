@@ -49,16 +49,32 @@ async function cargarPreciosStock() {
     stock.forEach((s) => { preciosStock[s.tipo] = s.precio; });
 }
 
-/* ============ Panel de métricas ============ */
+/* ============ Panel de control diario ============ */
+
+const CANALES_PANEL = [['deposito', 'Depósito'], ['reparto', 'Reparto'], ['comercios', 'Comercios']];
 
 async function actualizarResumenPanelPedidos() {
+    const elFecha = $('dash-fecha');
+    if (elFecha) {
+        elFecha.textContent = '📅 ' + new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+
+    let tipos = TIPOS_GARRAFA.slice();
+
     try {
         const stock = await api('/api/stock');
-        const elStock = $('resumen-stock-pedidos');
+        tipos = stock.map((s) => s.tipo);
+        const elStock = $('dash-stock');
         if (elStock) {
-            elStock.innerHTML = stock
-                .map((s) => '<div><strong>' + escaparHTML(s.tipo) + ':</strong> 🟢 ' + s.llenas + ' | 🟠 ' + s.vacias + '</div>')
-                .join('');
+            elStock.innerHTML = stock.map((s) =>
+                '<div class="dash-fila-stock">' +
+                    '<span class="dash-tipo">' + escaparHTML(s.tipo) + '</span>' +
+                    '<span class="dash-stock-vals">' +
+                        '<span class="dash-verde">🟢 ' + escaparHTML(s.llenas) + '</span>' +
+                        '<span class="dash-naranja">🟠 ' + escaparHTML(s.vacias) + '</span>' +
+                    '</span>' +
+                '</div>'
+            ).join('');
         }
     } catch (err) {
         console.error('Error al cargar stock para el panel:', err);
@@ -66,20 +82,67 @@ async function actualizarResumenPanelPedidos() {
 
     try {
         const pedidos = await api('/api/pedidos/hoy');
-        let garrafas = 0, cobrado = 0, pendiente = 0;
+        const porMetodo = { 'Efectivo': 0, 'Mercado Pago': 0, 'Transferencia': 0 };
+        const porTipo = {};
+        const montoPorTipo = {};
+        const porCanal = {};
+        let unidades = 0, cobrado = 0, pendiente = 0;
 
         pedidos.forEach((p) => {
-            garrafas += parseInt(p.cantidad) || 0;
+            const cant = parseInt(p.cantidad) || 0;
+            unidades += cant;
+
+            itemsDePedido(p).forEach((i) => {
+                const cantItem = parseInt(i.cantidad) || 0;
+                porTipo[i.tipo] = (porTipo[i.tipo] || 0) + cantItem;
+                montoPorTipo[i.tipo] = (montoPorTipo[i.tipo] || 0) + cantItem * (parseFloat(i.precio) || 0);
+            });
+
+            const canal = normalizarCanal(p.tipo_venta);
+            porCanal[canal] = porCanal[canal] || { un: 0, total: 0 };
+            porCanal[canal].un += cant;
+            porCanal[canal].total += parseFloat(p.total) || 0;
+
             pagosDePedido(p).forEach((x) => {
                 const monto = parseFloat(x.monto) || 0;
-                if (esPagoPendiente(x.metodo)) pendiente += monto;
-                else cobrado += monto;
+                if (esPagoPendiente(x.metodo)) {
+                    pendiente += monto;
+                } else {
+                    cobrado += monto;
+                    if (porMetodo[x.metodo] !== undefined) porMetodo[x.metodo] += monto;
+                }
             });
         });
 
-        setTexto('resumen-garrafas-pedidos', garrafas + ' un.');
-        setTexto('resumen-cobrado-pedidos', dinero(cobrado));
-        setTexto('resumen-pendiente-pedidos', dinero(pendiente));
+        setTexto('dash-cobrado', dinero(cobrado));
+        setTexto('dash-efectivo', dinero(porMetodo['Efectivo']));
+        setTexto('dash-mp', dinero(porMetodo['Mercado Pago']));
+        setTexto('dash-transf', dinero(porMetodo['Transferencia']));
+        setTexto('dash-pendiente', dinero(pendiente));
+        setTexto('dash-vendidas', unidades + ' un.');
+
+        // tipos del stock + cualquier tipo vendido que no esté en el stock
+        const listaTipos = [...new Set([...tipos, ...Object.keys(porTipo)])];
+        const elTipos = $('dash-tipos');
+        if (elTipos) {
+            elTipos.innerHTML = listaTipos.map((t) =>
+                '<div class="dash-mini dash-mini-tipo">' +
+                    '<div class="dash-mini-fila">' +
+                        '<span class="dash-etq-mini">' + escaparHTML(t) + '</span>' +
+                        '<strong>' + (porTipo[t] || 0) + ' un.</strong>' +
+                    '</div>' +
+                    '<span class="dash-val-mini dash-verde">' + dinero(montoPorTipo[t] || 0) + '</span>' +
+                '</div>'
+            ).join('');
+        }
+
+        const elCanales = $('dash-canales');
+        if (elCanales) {
+            elCanales.innerHTML = CANALES_PANEL.map((c) => {
+                const d = porCanal[c[0]] || { un: 0, total: 0 };
+                return '<span>' + c[1] + ': ' + d.un + ' un. (' + dinero(d.total) + ')</span>';
+            }).join('');
+        }
     } catch (err) {
         console.error('Error al cargar resumen de ventas de hoy:', err);
     }
