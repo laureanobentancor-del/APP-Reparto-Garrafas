@@ -104,7 +104,7 @@ app.post('/api/whatsapp/reiniciar', verificarAutenticacion, verificarAdminSesion
 });
 
 db.listo.then(() => {
-    app.listen(PORT, '127.0.0.1', () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Servidor modular seguro corriendo en http://control-stock-garrafas.local`);
     });
 }).catch(() => {
