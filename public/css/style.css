@@ -1703,3 +1703,735 @@ table tbody tr:hover,
 /* Totales por tipo: unidades arriba, dinero abajo */
 .dash-mini-tipo { display: flex; flex-direction: column; gap: 0.25rem; }
 .dash-mini-tipo .dash-val-mini { text-align: right; }
+
+/* ==========================================================
+   ESTILOS MODERNOS PARA LA TABLA DE PEDIDOS (Acorde al Panel)
+   ========================================================== */
+
+.tabla-pedidos-moderna {
+    width: 100%;
+    background-color: #ffffff;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tabla-pedidos-moderna thead th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.tabla-pedidos-moderna tbody td {
+    padding: 14px 10px;
+    font-size: 0.92rem;
+    color: #212529;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.tabla-pedidos-moderna tbody tr:hover {
+    background-color: #fcfcfc;
+}
+
+.tabla-pedidos-moderna tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ==========================================
+   ESTILOS MODERNOS PARA LA TABLA DE PEDIDOS
+   (Acorde a Gas Dashboard)
+   ========================================== */
+
+/* Contenedor principal de la tabla si usas la tarjeta */
+.dash-card .table-responsive {
+    background-color: transparent;
+}
+
+/* Estilos generales de la tabla moderna */
+.tabla-pedidos-moderna {
+    color: #f1f5f9 !important;
+    background-color: transparent !important;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+/* Encabezado de la tabla */
+.tabla-pedidos-moderna thead tr {
+    background-color: #0f172a !important; /* Fondo oscuro tipo slate-900 */
+    border-bottom: 2px solid #334155 !important;
+}
+
+.tabla-pedidos-moderna th {
+    background-color: #0f172a !important;
+    color: #cbd5e1 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+/* Cuerpo de la tabla y celdas */
+.tabla-pedidos-moderna tbody td {
+    background-color: #1e293b !important; /* Fondo slate-800 para evitar blancos */
+    color: #e2e8f0 !important;
+    padding: 12px 16px !important;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #334155 !important;
+    vertical-align: middle;
+}
+
+/* Efecto hover en las filas de la tabla */
+.tabla-pedidos-moderna tbody tr:hover td {
+    background-color: #334155 !important; /* Tono slate-700 al pasar el mouse */
+}
+
+/* Bordes redondeados sutiles para la primera y última celda del encabezado */
+.tabla-pedidos-moderna thead th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+.tabla-pedidos-moderna thead th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+/* ==========================================
+   MEJORA DE CONTRASTE: FECHA Y PAGO
+   ========================================== */
+
+/* Si la fecha y el pago están dentro de celdas específicas o tienen clases/etiquetas particulares */
+.tabla-pedidos-moderna td:nth-child(5), /* Columna de Pago (ajustá el número si difiere) */
+.tabla-pedidos-moderna td:nth-child(6)  /* Columna de Fecha (ajustá el número si difiere) */ {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+/* Selector universal para asegurar que cualquier texto de fecha, hora o pago dentro de la tabla sea blanco */
+.tabla-pedidos-moderna td span,
+.tabla-pedidos-moderna td small,
+.tabla-pedidos-moderna td time {
+    color: #ffffff !important;
+}
+
+
+/* ==========================================
+   ESTILOS PARA ACCIONES SUPERIORES Y FILTROS
+   (Acorde a Gas Dashboard)
+   ========================================== */
+
+.acciones-superiores-container {
+    background-color: #1e293b !important; /* Fondo slate-800 idéntico al dashboard */
+    border: 1px solid #334155 !important;    /* Borde sutil slate-700 */
+    border-radius: 0.75rem !important;      /* Bordes redondeados de 12px */
+    padding: 16px 20px !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Alineación de los grupos internos */
+.acciones-superiores-container .grupo-izquierdo,
+.acciones-superiores-container .grupo-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Etiquetas de los filtros dentro del contenedor */
+.acciones-superiores-container .filtro-campo label {
+    color: #cbd5e1 !important; /* Texto claro legible */
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-right: 5px;
+}
+
+/* Inputs de fecha y buscadores dentro del contenedor */
+.acciones-superiores-container .input-buscador {
+    background-color: #0f172a !important; /* Fondo oscuro slate-900 */
+    border: 1px solid #475569 !important;
+    color: #f1f5f9 !important;
+    border-radius: 0.5rem;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.acciones-superiores-container .input-buscador:focus {
+    border-color: #f97316 !important; /* Acento naranja acorde al tema */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+}
+
+/* ==========================================
+   FONDO GENERAL DEL BODY (PÁGINA DE PEDIDOS)
+   ========================================== */
+
+body {
+    background-color: #0f172a !important; /* Fondo oscuro unificado (slate-900) */
+    color: #f1f5f9 !important;          /* Texto general claro para legibilidad */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* ==========================================
+   CORRECCIÓN DEFINITIVA: CONTENEDOR WHATSAPP Y QR
+   ========================================== */
+
+/* Forzar que el contenedor de WhatsApp actúe como un panel flexible ordenado */
+.whatsapp-container.dash-whatsapp {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0.75rem !important;
+    padding: 20px !important;
+}
+
+/* La sección de texto e info a la izquierda */
+.whatsapp-container .whatsapp-info {
+    flex: 1 1 250px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Encabezado interno del bloque de WhatsApp */
+.whatsapp-container .whatsapp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Caja del QR aislada a la derecha, limpia y sin solaparse */
+#contenedor-qr {
+    flex: 0 0 auto !important;
+    width: 120px !important;
+    height: 120px !important;
+    background-color: #0f172a !important; /* Fondo oscuro interno para el QR */
+    border: 1px solid #475569 !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 auto !important;
+}
+
+/* Asegurar que la imagen o canvas del QR respete el espacio del contenedor */
+#contenedor-qr img,
+#contenedor-qr canvas,
+#contenedor-qr svg {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* Responsivo para celulares: si la pantalla es chica, se apilan ordenadamente uno debajo del otro sin taparse */
+@media (max-width: 576px) {
+    .whatsapp-container.dash-whatsapp {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+    }
+    .whatsapp-container .whatsapp-header {
+        justify-content: center;
+        gap: 10px;
+    }
+}
+/* ==========================================
+   CORRECCIÓN DEFINITIVA DE DISEÑO: HEADER Y QR
+   ========================================== */
+
+/* 1. Ajustar el margen superior general del body para que no pise la barra fija */
+body {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    margin-top: 70px !important; /* Altura exacta compensada para la barra fija */
+}
+
+/* 2. Unificar y estructurar correctamente el contenedor de WhatsApp */
+.whatsapp-container.dash-whatsapp {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 0.75rem !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+    box-sizing: border-box !important;
+}
+
+/* Bloque izquierdo de texto y botones de WhatsApp */
+.whatsapp-container .whatsapp-info {
+    flex: 1 1 260px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* Fila superior interna del bloque de WhatsApp */
+.whatsapp-container .whatsapp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* 3. Caja del QR compacta y aislada (evita que crezca de más o se solape) */
+#contenedor-qr {
+    flex: 0 0 auto !important;
+    width: 110px !important;
+    height: 110px !important;
+    background-color: #0f172a !important;
+    border: 1px solid #475569 !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+}
+
+/* Forzar que el código QR interno se adapte perfectamente a su caja reducida */
+#contenedor-qr img,
+#contenedor-qr canvas,
+#contenedor-qr svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 98px !important;
+    max-height: 98px !important;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+/* 4. Adaptabilidad para celulares (se apilan ordenadamente sin pisarse) */
+@media screen and (max-width: 576px) {
+    .whatsapp-container.dash-whatsapp {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+    }
+    .whatsapp-container .whatsapp-header {
+        justify-content: center;
+        gap: 10px;
+    }
+}
+
+
+/* ==========================================================
+   CORRECCIÓN DE CONTRASTE EN MODALES DE PEDIDOS
+   ========================================================== */
+
+/* Asegurar fondo blanco y texto oscuro legible en todos los modales de la app */
+.modal-contenido,
+#modal-pedido .modal-contenido,
+#modal-observacion .modal-contenido,
+#modal-cliente .modal-contenido,
+#modal-detalle-pedido .modal-contenido,
+#modal-confirmar-borrar .modal-content,
+#modal-cambiar-pago .modal-content {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}
+
+/* Encabezados y títulos dentro de los modales */
+.modal-contenido h2,
+.modal-contenido h5,
+.modal-content h2,
+.modal-content h5,
+.modal-contenido label,
+.modal-content label {
+    color: #1e293b !important;
+}
+
+/* Textos descriptivos, párrafos y labels de formularios en modales */
+.modal-contenido p,
+.modal-contenido span,
+.modal-content p,
+.modal-content span {
+    color: #334155;
+}
+
+/* Inputs, selects y textareas dentro de los modales para que se contrasten bien */
+.modal-contenido input,
+.modal-contenido select,
+.modal-contenido textarea,
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.modal-contenido input:focus,
+.modal-contenido select:focus,
+.modal-contenido textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+
+/* ==========================================
+   Estilos para el Recuadro de Aviso del QR / Reinicio
+   ========================================== */
+.qr-aviso-modal, 
+.swal2-popup, /* Por si utilizas librerías como SweetAlert para los avisos */
+.modal-reinicio-qr {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    font-family: inherit;
+}
+
+/* Título del aviso */
+.qr-aviso-titulo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+/* Texto descriptivo del aviso */
+.qr-aviso-texto {
+    font-size: 0.95rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+/* Botones de acción dentro del recuadro (Confirmar / Cancelar) */
+.qr-aviso-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.qr-aviso-btn-confirmar {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.qr-aviso-btn-confirmar:hover {
+    background-color: #1d4ed8;
+}
+
+.qr-aviso-btn-cancelar {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.qr-aviso-btn-cancelar:hover {
+    background-color: #e2e8f0;
+}
+
+/* ==========================================
+   Personalización del Recuadro de Alertas / Toasts
+   ========================================== */
+
+/* Posicionamiento y diseño del contenedor general en la esquina superior derecha */
+#contenedor-avisos {
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 99999;
+}
+
+/* Estilo general de la caja de aviso (el recuadro alert) */
+#contenedor-avisos .toast {
+    background-color: #1e293b !important; /* Fondo oscuro elegante acorde al sistema */
+    color: #f8fafc !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 4px 8px;
+    font-family: inherit;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Cuerpo interno del mensaje del aviso */
+#contenedor-avisos .toast-body {
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botón de cierre (la "X") dentro del recuadro alert */
+#contenedor-avisos .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+#contenedor-avisos .btn-close:hover {
+    opacity: 1;
+}
+
+/* Variaciones opcionales según el tipo de aviso (éxito, error, advertencia) */
+#contenedor-avisos .toast.text-bg-success {
+    border-left: 4px solid #22c55e !important;
+}
+
+#contenedor-avisos .toast.text-bg-danger {
+    border-left: 4px solid #ef4444 !important;
+}
+
+#contenedor-avisos .toast.text-bg-warning {
+    border-left: 4px solid #f59e0b !important;
+}
+
+#contenedor-avisos .toast.text-bg-info {
+    border-left: 4px solid #3b82f6 !important;
+}
+
+
+/* Fondo oscuro translúcido que cubre la pantalla */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+}
+
+/* La caja o recuadro del aviso */
+.custom-modal-box {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e2e8f0;
+    font-family: inherit;
+    text-align: left;
+    animation: zoomIn 0.2s ease-in-out;
+}
+
+.custom-modal-box h3 {
+    font-size: 1.15rem;
+    color: #1e293b;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.custom-modal-box p {
+    font-size: 0.92rem;
+    color: #64748b;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+/* Botones dentro del recuadro */
+.custom-modal-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-custom-secundario {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-custom-secundario:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-custom-primario {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-custom-primario:hover {
+    background-color: #1d4ed8;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+
+/* ==========================================
+   Modal Bootstrap: reinicio de WhatsApp
+   Tema oscuro del panel (#1e293b / #334155).
+   Usa #id para ganarle a las reglas globales de .modal-content (!important)
+   y a las del media query móvil (div[class*="modal"]).
+   ========================================== */
+#modal-reinicio-whatsapp .modal-content {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+}
+
+#modal-reinicio-whatsapp .modal-header,
+#modal-reinicio-whatsapp .modal-footer {
+    border-color: #334155;
+    padding: 0.9rem 1.25rem;
+}
+
+#modal-reinicio-whatsapp .modal-body { padding: 1.1rem 1.25rem; }
+
+#modal-reinicio-whatsapp .modal-title {
+    color: #f1f5f9 !important;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#modal-reinicio-whatsapp .wa-reinicio-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    background: rgba(251, 191, 36, 0.15);
+    font-size: 1rem;
+}
+
+#modal-reinicio-whatsapp .wa-reinicio-texto {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0 0 0.85rem;
+}
+
+#modal-reinicio-whatsapp .wa-reinicio-aviso {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-left: 4px solid #fbbf24;
+    border-radius: 0.5rem;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+}
+
+/* La "X" de Bootstrap en blanco sobre fondo oscuro */
+#modal-reinicio-whatsapp .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.7;
+}
+#modal-reinicio-whatsapp .btn-close:hover { opacity: 1; }
+
+#modal-reinicio-whatsapp .btn-wa-cancelar,
+#modal-reinicio-whatsapp .btn-wa-confirmar {
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+#modal-reinicio-whatsapp .btn-wa-cancelar { background: #334155; color: #e2e8f0; }
+#modal-reinicio-whatsapp .btn-wa-cancelar:hover { background: #475569; color: #fff; }
+#modal-reinicio-whatsapp .btn-wa-confirmar { background: #c0392b; color: #fff; }
+#modal-reinicio-whatsapp .btn-wa-confirmar:hover { background: #a93226; color: #fff; }
+#modal-reinicio-whatsapp .btn-wa-cancelar:active,
+#modal-reinicio-whatsapp .btn-wa-confirmar:active { transform: scale(0.97); }
+#modal-reinicio-whatsapp .btn:focus-visible { box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.35); }
+
+/* Anula el media query móvil global (div[class*="modal"] { width:95% !important; ... }) */
+@media screen and (max-width: 768px) {
+    #modal-reinicio-whatsapp.modal {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    #modal-reinicio-whatsapp .modal-dialog {
+        width: calc(100% - 2rem) !important;
+        max-width: 26rem !important;
+        margin: 1rem auto !important;
+        padding: 0 !important;
+    }
+    #modal-reinicio-whatsapp .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    #modal-reinicio-whatsapp .modal-header,
+    #modal-reinicio-whatsapp .modal-footer {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0.9rem 1.25rem !important;
+    }
+    #modal-reinicio-whatsapp .modal-body {
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 1.1rem 1.25rem !important;
+    }
+}
+@media screen and (min-width: 769px) {
+    #modal-reinicio-whatsapp .modal-dialog { max-width: 26rem; }
+}

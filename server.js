@@ -1,5 +1,8 @@
 require('dotenv').config();
 
+// Zona horaria de Argentina para todo lo que haga Node con fechas
+process.env.TZ = 'America/Argentina/Buenos_Aires';
+
 const express = require('express');
 const session = require('express-session');
 const rateLimit = require('express-rate-limit');

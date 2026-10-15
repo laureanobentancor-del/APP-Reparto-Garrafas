@@ -149,58 +149,107 @@ async function actualizarResumenPanelPedidos() {
 }
 
 /* ============ Tabla ============ */
-
 function renderizarPedidos(pedidos) {
     const tbody = $('cuerpo-tabla-pedidos');
     if (!tbody) return;
 
     if (pedidos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No se encontraron pedidos.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron pedidos registrados.</td></tr>';
         return;
     }
 
     const ordenados = [...pedidos].sort(compararPendientesPrimero);
 
     tbody.innerHTML = ordenados.map((p) => {
-        // Las acciones SIEMPRE están disponibles, esté Pendiente o Completado
-        const botonesAccion = '<button class="btn-accion btn-editar" title="Editar pedido" onclick="editarPedido(' + p.id + ')">✏️</button>' +
-                              '<button class="btn-accion btn-eliminar" title="Borrar pedido" onclick="borrarPedido(' + p.id + ')">🗑️</button>';
+        // 1. Botones de acción más pequeños y limpios
+        const botonesAccion = 
+            '<div class="btn-group btn-group-sm" role="group">' +
+                '<button class="btn btn-outline-secondary py-0 px-1" title="Ver Detalle" onclick="verDetallePedido(' + p.id + ')">👁️</button>' +
+                '<button class="btn btn-outline-primary py-0 px-1" title="Editar" onclick="editarPedido(' + p.id + ')">✏️</button>' +
+                '<button class="btn btn-outline-danger py-0 px-1" title="Borrar" onclick="borrarPedido(' + p.id + ')">🗑️</button>' +
+            '</div>';
 
-        // El estado se puede alternar en ambos sentidos con un clic
+        // 2. Estado interactivo compacto
         const esCompletado = p.estado === 'Completado';
-        const columnaEstado = '<span onclick="cambiarEstado(' + p.id + ', \'' + escaparHTML(p.estado) + '\')" ' +
-            'style="cursor:pointer; font-weight:bold; color:' + (esCompletado ? '#27ae60' : '#e67e22') + ';" ' +
-            'title="' + (esCompletado ? 'Hacer clic para volver a Pendiente' : 'Hacer clic para completar') + '">' +
-            escaparHTML(p.estado) + '</span>';
+        const columnaEstado = '<span class="badge ' + (esCompletado ? 'bg-success' : 'bg-warning text-dark') + '" ' +
+            'style="cursor:pointer; font-size: 0.75rem;" ' +
+            'onclick="cambiarEstado(' + p.id + ', \'' + escaparHTML(p.estado) + '\')" ' +
+            'title="Hacer clic para cambiar estado">' +
+            (esCompletado ? '✔ OK' : '⏳ Pend.') + '</span>';
 
-        const detalleItems = itemsDePedido(p).map((i) =>
-            escaparHTML(i.cantidad + ' x ' + i.tipo) + ' <small>(' + dinero(i.precio) + ' c/u)</small>'
-        ).join('<br>');
+        // 3. Resumen de items compacto
+        const items = itemsDePedido(p);
+        const resumenItemsTxt = items.map(i => i.cantidad + 'x ' + i.tipo).join(', ');
 
+       // 4. Íconos y estados inteligentes para formas de pago y pendientes parciales
         const pagos = pagosDePedido(p);
-        const celdaPago = pagos.length > 1
-            ? pagos.map((x) => escaparHTML(x.metodo) + ' <small>' + dinero(x.monto) + '</small>').join('<br>')
-            : celdaFormaPago(p);
+        let htmlPago = '';
+        
+        if (pagos.length > 1) {
+            // Verificar si dentro del pago mixto hay algún monto pendiente
+            const tienePendiente = pagos.some(x => esPagoPendiente(x.metodo));
+            if (tienePendiente) {
+                const montoPendiente = pagos.filter(x => esPagoPendiente(x.metodo)).reduce((a, b) => a + b.monto, 0);
+                htmlPago = '<span class="badge bg-warning text-dark" title="Pago Mixto con Saldo Pendiente">⚠️ Mixto (Debe ' + dinero(montoPendiente) + ')</span>';
+            } else {
+                htmlPago = '<span class="badge bg-info text-dark" title="Pago Mixto Completado">🔀 Mixto</span>';
+            }
+        } else {
+            const metodo = (p.forma_pago || 'Efectivo').trim();
+            const iconosPagoMap = {
+                'Efectivo': '<span title="Efectivo">💵</span>',
+                'Mercado Pago': '<span title="Mercado Pago">📱</span>',
+                'Transferencia': '<span title="Transferencia">🏦</span>',
+                'Pendiente': '<span title="Pendiente de Pago">⏳</span>'
+            };
+            htmlPago = (iconosPagoMap[metodo] || '💵') + ' <small class="text-muted">' + escaparHTML(metodo) + '</small>';
+        }
 
-        return '<tr style="' + estiloFila(p) + '">' +
-            '<td><strong>' + (escaparHTML(p.cliente_nombre) || 'Desconocido') + '</strong>' +
-                (p.direccion ? '<br><small>📍 ' + escaparHTML(p.direccion) + '</small>' : '') +
-                (p.cliente_telefono ? '<br><small>📞 ' + escaparHTML(p.cliente_telefono) + '</small>' : '') +
+        // 5. Canal de venta solo con Íconos (Depósito, Reparto, Comercios)
+        const canalNorm = normalizarCanal(p.tipo_venta);
+        const iconosCanalMap = {
+            'deposito': '<span style="font-size: 1.1rem;" title="Depósito">🏭</span>',
+            'reparto': '<span style="font-size: 1.1rem;" title="Reparto">🛵</span>',
+            'comercios': '<span style="font-size: 1.1rem;" title="Comercios">🏪</span>'
+        };
+        const htmlCanal = iconosCanalMap[canalNorm] || '<span title="' + canalNorm + '">📦</span>';
+
+        // 6. Fecha acortada
+        let fechaCorta = '';
+        if (p.fecha) {
+            const fechaStr = p.fecha.substring(0, 10);
+            const horaStr = p.fecha.substring(11, 16);
+            const hoyStr = new Date().toISOString().substring(0, 10);
+            fechaCorta = fechaStr === hoyStr ? 'Hoy ' + horaStr : fechaStr.substring(5) + ' ' + horaStr;
+        }
+
+        // 7. Observación oculta tras un botón si existe
+        const tieneObs = p.observacion && p.observacion.trim() !== '';
+        const botonObs = tieneObs 
+            ? '<button class="btn btn-sm btn-link p-0 ms-1 text-warning" title="Ver / Editar observación: ' + escaparHTML(p.observacion) + '" onclick="editarObservacion(' + p.id + ')">💬</button>' 
+            : '<button class="btn btn-sm btn-link p-0 ms-1 text-muted" title="Agregar observación" onclick="editarObservacion(' + p.id + ')">➕</button>';
+
+        return '<tr style="' + estiloFila(p) + '" class="align-middle">' +
+            // Cliente + Teléfono
+            '<td><strong>' + escaparHTML(p.cliente_nombre || 'Sin cliente') + '</strong>' +
+                (p.cliente_telefono ? '<br><small class="text-muted">📞 ' + escaparHTML(p.cliente_telefono.split(',')[0]) + '</small>' : '') +
             '</td>' +
-            '<td>' + detalleItems + '</td>' +
-            '<td>' + badgeCanal(normalizarCanal(p.tipo_venta)) + '</td>' +
-            '<td>' + p.cantidad + '</td>' +
-            '<td>' + dinero(p.total) + '</td>' +
-            '<td>' + celdaPago + '</td>' +
-            '<td>' + formatoFechaHora(p.fecha) + '</td>' +
-            '<td>' + columnaEstado + '</td>' +
-            '<td>' + (p.observacion ? escaparHTML(p.observacion) : '<small style="color:#999">—</small>') +
-                '<br><button class="btn-accion btn-editar" title="Editar observación" onclick="editarObservacion(' + p.id + ')">📝</button></td>' +
-            '<td>' + botonesAccion + '</td>' +
+            // Items
+            '<td><span class="text-truncate d-inline-block" style="max-width: 150px;" title="' + escaparHTML(resumenItemsTxt) + '">' + escaparHTML(resumenItemsTxt) + '</span>' + botonObs + '</td>' +
+            // Canal (Solo Ícono con Tooltip)
+            '<td class="text-center">' + htmlCanal + '</td>' +
+            // Total
+            '<td><strong>' + dinero(p.total) + '</strong></td>' +
+            // Pago con íconos
+            '<td>' + htmlPago + '</td>' +
+            // Fecha acortada
+            '<td><small class="text-muted">' + fechaCorta + '</small></td>' +
+            // Estado y Acciones
+            '<td class="text-center">' + columnaEstado + '</td>' +
+            '<td class="text-end">' + botonesAccion + '</td>' +
         '</tr>';
     }).join('');
 }
-
 async function cargarPedidos() {
     if (!$('cuerpo-tabla-pedidos')) return;
 
@@ -380,7 +429,12 @@ window.abrirModalPedido = async function () {
     $('titulo-modal-pedido').textContent = 'Nuevo Pedido';
     $('form-pedido').reset();
     $('pedido-id').value = '';
+    
+    // Al ser nuevo, el cliente es obligatorio
+    const selectCliente = $('pedido-cliente');
+    if (selectCliente) selectCliente.required = true;
     $('grupo-cliente').style.display = 'block';
+
     $('grupo-observacion').style.display = '';
     $('btn-agregar-item').style.display = '';
     $('items-pedido').innerHTML = '';
@@ -389,7 +443,7 @@ window.abrirModalPedido = async function () {
     try {
         await cargarPreciosStock();
         const clientes = await api('/api/clientes');
-        $('pedido-cliente').innerHTML = clientes
+        selectCliente.innerHTML = clientes
             .map((c) => '<option value="' + c.id + '">' + escaparHTML(c.nombre) + ' (' + escaparHTML(c.telefono) + ')</option>')
             .join('');
         window.agregarItemPedido();
@@ -398,6 +452,38 @@ window.abrirModalPedido = async function () {
     } catch (err) {
         mostrarAviso(err.message, 'danger');
     }
+};
+
+window.editarPedido = async function (id) {
+    const p = pedidosGlobales.find((x) => x.id === id);
+    if (!p) return;
+
+    try {
+        await cargarPreciosStock();
+    } catch (err) {
+        mostrarAviso(err.message, 'danger');
+        return;
+    }
+
+    $('titulo-modal-pedido').textContent = 'Editar Pedido #' + id;
+    $('pedido-id').value = id;
+
+    // Al editar, el cliente no se cambia, quitamos el required para evitar el error de validación
+    const selectCliente = $('pedido-cliente');
+    if (selectCliente) selectCliente.required = false;
+    $('grupo-cliente').style.display = 'none';
+
+    $('grupo-observacion').style.display = 'none'; // la observación se edita con el botón 📝
+    $('btn-agregar-item').style.display = '';
+    $('pedido-tipo-venta').value = normalizarCanal(p.tipo_venta);
+
+    $('items-pedido').innerHTML = '';
+    itemsDePedido(p).forEach((i) => window.agregarItemPedido(i.tipo, i.cantidad, i.precio));
+
+    $('pagos-pedido').innerHTML = '';
+    pagosDePedido(p).forEach((x) => window.agregarPagoPedido(x.metodo, x.monto));
+
+    mostrarModal('modal-pedido');
 };
 
 window.editarPedido = async function (id) {
@@ -430,15 +516,21 @@ window.editarPedido = async function (id) {
 window.cerrarModalPedido = function () {
     ocultarModal('modal-pedido');
 };
-
 window.editarObservacion = function (id) {
     const p = pedidosGlobales.find((x) => x.id === id);
     if (!p) return;
+    
+    // Asigna el ID al input oculto y carga el texto actual (si tiene) en el textarea
     $('observacion-id').value = id;
     $('observacion-texto').value = p.observacion || '';
+    
+    // Muestra el modal de observación
     mostrarModal('modal-observacion');
 };
 
+window.cerrarModalObservacion = function () {
+    ocultarModal('modal-observacion');
+};
 window.cerrarModalObservacion = function () {
     ocultarModal('modal-observacion');
 };
@@ -483,14 +575,23 @@ function initPedidos() {
         contPagos.addEventListener('input', actualizarResumenPagos);
     }
 
-    const form = $('form-pedido');
+  const form = $('form-pedido');
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = $('pedido-id').value;
+            const cliente_id = $('pedido-cliente').value;
+            
+            // Si es un pedido nuevo y no seleccionó cliente, avisamos y detenemos
+            if (!id && !cliente_id) {
+                mostrarAviso('Por favor selecciona un cliente', 'warning');
+                return;
+            }
+
             const tipo_venta = $('pedido-tipo-venta').value;
             const items = leerItemsPedido();
             const pagos = leerPagosPedido();
+        
 
             if (items.some((it) => !Number.isInteger(it.cantidad) || it.cantidad < 1)) {
                 mostrarAviso('Revisá las cantidades', 'warning');
@@ -536,14 +637,17 @@ function initPedidos() {
     if (formObs) {
         formObs.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const id = $('observacion-id').value;
+            const observacion = $('observacion-texto').value;
+
             try {
-                await api('/api/pedidos/' + $('observacion-id').value + '/observacion', {
+                await api('/api/pedidos/' + id + '/observacion', {
                     method: 'PUT',
-                    body: { observacion: $('observacion-texto').value }
+                    body: { observacion }
                 });
-                mostrarAviso('Observación guardada', 'success');
+                mostrarAviso('Observación actualizada correctamente', 'success');
                 window.cerrarModalObservacion();
-                cargarPedidos();
+                cargarPedidos(); // Recarga la tabla para reflejar el cambio al instante
             } catch (err) {
                 mostrarAviso(err.message, 'danger');
             }
@@ -556,4 +660,182 @@ function initPedidos() {
             if (!document.hidden && !hayListaAbierta()) cargarPedidos();
         }, 3000);
     });
+}
+
+
+let pedidoIdAEliminar = null;
+
+// Reemplaza el confirm nativo al hacer clic en borrar
+window.borrarPedido = function (id) {
+    pedidoIdAEliminar = id;
+    const modalEl = document.getElementById('modal-confirmar-borrar');
+    if (modalEl) modalEl.style.display = 'flex'; // o el método que uses para mostrar tus modales
+};
+
+window.cerrarModalBorrar = function () {
+    const modalEl = document.getElementById('modal-confirmar-borrar');
+    if (modalEl) modalEl.style.display = 'none';
+    pedidoIdAEliminar = null;
+};
+
+// Función al confirmar dentro del modal de borrado
+window.confirmarBorradoPedido = async function () {
+    if (!pedidoIdAEliminar) return;
+    try {
+        await api('/api/pedidos/' + pedidoIdAEliminar, { method: 'DELETE' });
+        mostrarAviso('Pedido eliminado correctamente', 'success');
+        cerrarModalBorrar();
+        cargarPedidos();
+    } catch (err) {
+        mostrarAviso(err.message, 'danger');
+    }
+};
+
+// Para cambiar el pago de forma rápida con un modal simple
+window.cambiarTipoPagoModal = function (id, formaActual) {
+    // Si ya tienes un modal o un selector flotante, puedes asignarle el id aquí
+    const nuevoPago = prompt("Selecciona nueva forma de pago (Efectivo, Mercado Pago, Transferencia, Pendiente):", formaActual);
+    if (!nuevoPago) return;
+    
+    api('/api/pedidos/' + id + '/pago', {
+        method: 'PUT',
+        body: { forma_pago: nuevoPago }
+    }).then(() => {
+        mostrarAviso('Forma de pago actualizada con éxito', 'success');
+        cargarPedidos();
+    }).catch(err => {
+        mostrarAviso(err.message, 'danger');
+    });
+};
+
+window.verObservacion = function(id) {
+    const p = pedidosGlobales.find(x => x.id === id);
+    if (p && p.observacion) {
+        mostrarAviso('Observación: ' + p.observacion, 'info');
+    }
+};
+
+window.verDetallePedido = function(id) {
+    const p = pedidosGlobales.find(x => x.id === id);
+    if (!p) return;
+    const items = itemsDePedido(p).map(i => '• ' + i.cantidad + 'x ' + i.tipo + ' ($' + i.precio + ' c/u)').join('\n');
+    alert('Detalle del Pedido #' + p.id + '\n\n' + items + '\n\nObservación: ' + (p.observacion || 'Ninguna'));
+};
+
+
+// ============ Modal de Detalle y Ticket ============
+
+window.verDetallePedido = function (id) {
+    const p = pedidosGlobales.find((x) => x.id === id);
+    if (!p) return;
+
+// Rellenar datos básicos
+    $('det-cliente').textContent = p.cliente_nombre || 'Desconocido';
+    $('det-telefono').textContent = p.cliente_telefono || 'No especificado';
+    $('det-direccion').textContent = p.direccion || 'Sin dirección';
+    $('det-total').textContent = dinero(p.total);
+    $('ticket-fecha-hora').textContent = formatoFechaHora(p.fecha);
+
+    // Rellenar items (garrafas)
+    const items = itemsDePedido(p);
+    const contenedorItems = $('det-lista-items');
+    contenedorItems.innerHTML = items.map(i => 
+        `<div style="display: flex; justify-content: space-between;">
+            <span>${i.cantidad}x ${i.tipo} (${dinero(i.precio)} c/u)</span>
+            <span>${dinero(i.cantidad * i.precio)}</span>
+        </div>`
+    ).join('');
+
+    // Rellenar pagos (soportando pagos mixtos o simples)
+    const pagos = pagosDePedido(p);
+    const contenedorPagos = $('det-lista-pagos');
+    contenedorPagos.innerHTML = pagos.map(pg => 
+        `<div style="display: flex; justify-content: space-between;">
+            <span>• ${pg.metodo}</span>
+            <span>${dinero(pg.monto)}</span>
+        </div>`
+    ).join('');
+
+    // Observación si existe
+    const obsContainer = $('ticket-observacion-container');
+    if (p.observacion && p.observacion.trim() !== '') {
+        $('det-observacion').textContent = p.observacion;
+        obsContainer.style.display = 'block';
+    } else {
+        obsContainer.style.display = 'none';
+    }
+
+    mostrarModal('modal-detalle-pedido');
+};
+
+window.cerrarModalDetalle = function () {
+    ocultarModal('modal-detalle-pedido');
+};
+
+window.imprimirTicketPedido = function () {
+    const contenidoTicket = $('ticket-imprimible').innerHTML;
+    const ventanaImpresion = window.open('', '_blank', 'width=400,height=600');
+    
+    ventanaImpresion.document.write(`
+        <html>
+            <head>
+                <title>Imprimir Ticket</title>
+                <style>
+                    body { font-family: monospace; padding: 20px; color: #000; }
+                    div { margin-bottom: 5px; }
+                </style>
+            </head>
+            <body>
+                ${contenidoTicket}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.close();
+                    }
+                </script>
+            </body>
+        </html>
+    `);
+    ventanaImpresion.document.close();
+};
+
+
+function mostrarConfirmacionPersonalizada(titulo, mensaje, onAceptar) {
+    const modal = document.getElementById('modal-personalizado');
+    document.getElementById('modal-titulo').textContent = titulo;
+    document.getElementById('modal-mensaje').textContent = mensaje;
+    
+    modal.style.display = 'flex';
+
+    const btnAceptar = document.getElementById('modal-btn-aceptar');
+    const btnCancelar = document.getElementById('modal-btn-cancelar');
+
+    // Limpiar eventos anteriores clonando los botones
+    const nuevoBtnAceptar = btnAceptar.cloneNode(true);
+    const nuevoBtnCancelar = btnCancelar.cloneNode(true);
+    btnAceptar.parentNode.replaceChild(nuevoBtnAceptar, btnAceptar);
+    btnCancelar.parentNode.replaceChild(nuevoBtnCancelar, btnCancelar);
+
+    // Acción al cancelar
+    document.getElementById('modal-btn-cancelar').onclick = function() {
+        modal.style.display = 'none';
+    };
+
+    // Acción al aceptar
+    document.getElementById('modal-btn-aceptar').onclick = function() {
+        modal.style.display = 'none';
+        if (onAceptar) onAceptar();
+    };
+}
+
+// Cuando el usuario hace clic en el botón Reiniciar:
+function clickReiniciarWhatsApp() {
+    mostrarConfirmacionPersonalizada(
+        "🔄 Reiniciar WhatsApp", 
+        "¿Estás seguro de que deseas reiniciar la sesión? Se borrará el estado actual y se generará un nuevo QR.", 
+        function() {
+            // Aquí llamas a tu función real de reinicio
+            reiniciarWhatsApp(); 
+        }
+    );
 }

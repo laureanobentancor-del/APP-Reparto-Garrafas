@@ -214,37 +214,47 @@ function iniciarWhatsApp(db) {
 }
 
 function procesarPedidoFinal(db, cliente, tipo, cantidad, formaPago, jid) {
-    db.get("SELECT precio, llenas, vacias FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
-        if (stock) {
-            const llenasActuales = parseInt(stock.llenas) || 0;
-            const vaciasActuales = parseInt(stock.vacias) || 0;
-            
-            if (llenasActuales < cantidad) {
-                if (sockGlobal && jid) {
-                    sockGlobal.sendMessage(jid, { text: `Hola \({cliente.nombre}, recibimos tu pedido pero lamentablemente no tenemos stock suficiente de garrafas de\){tipo} (Disponibles: ${llenasActuales}).` });
-                }
-                return;
-            }
+    const enviar = (texto) => { if (sockGlobal && jid) sockGlobal.sendMessage(jid, { text: texto }); };
 
-            const total = (parseFloat(stock.precio) || 0) * cantidad;
-            db.serialize(() => {
-                db.run(`INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, fecha) 
-                        VALUES (?, ?, ?, ?, 'Pendiente', ?, DATETIME('now', 'localtime'))`, 
-                        [cliente.id, tipo, cantidad, total, formaPago], function(err) {
-                    if (!err) {
-                        const nuevasLlenas = llenasActuales - cantidad;
-                        const nuevasVacias = vaciasActuales + cantidad;
-                        db.run("UPDATE stock SET llenas = ?, vacias = ? WHERE tipo = ?", [nuevasLlenas, nuevasVacias, tipo], () => {
-                            if (sockGlobal && jid) {
-                                sockGlobal.sendMessage(jid, { 
-                                    text: `📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*\({cantidad}x Garrafa(s) de\){tipo}*\n💰 Total a pagar: $\({total}\n💳 Forma de pago:\){formaPago}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨` 
-                                });
-                            }
-                        });
+    db.get("SELECT precio, llenas FROM stock WHERE tipo = ?", [tipo], (err, stock) => {
+        if (err || !stock) return;
+
+        const precio = parseFloat(stock.precio) || 0;
+        const total = Math.round(precio * cantidad * 100) / 100;
+
+        // Descuento atómico: la condición "llenas >= cantidad" va dentro del propio UPDATE,
+        // así dos pedidos simultáneos no pueden dejar el stock en negativo.
+        db.run(
+            "UPDATE stock SET llenas = llenas - ?, vacias = vacias + ? WHERE tipo = ? AND llenas >= ?",
+            [cantidad, cantidad, tipo, cantidad],
+            function (errStock) {
+                if (errStock) return;
+
+                if (this.changes === 0) {
+                    const disponibles = parseInt(stock.llenas) || 0;
+                    enviar(`Hola ${cliente.nombre}, recibimos tu pedido pero lamentablemente no tenemos stock suficiente de garrafas de ${tipo} (Disponibles: ${disponibles}).`);
+                    return;
+                }
+
+                const items = JSON.stringify([{ tipo, cantidad, precio }]);
+                db.run(
+                    `INSERT INTO pedidos (cliente_id, tipo, cantidad, total, estado, forma_pago, items, fecha)
+                     VALUES (?, ?, ?, ?, 'Pendiente', ?, ?, DATETIME('now', '-3 hours'))`,
+                    [cliente.id, tipo, cantidad, total, formaPago, items],
+                    function (errPedido) {
+                        if (errPedido) {
+                            // Si no se pudo guardar el pedido, se devuelve el stock descontado
+                            db.run(
+                                "UPDATE stock SET llenas = llenas + ?, vacias = MAX(vacias - ?, 0) WHERE tipo = ?",
+                                [cantidad, cantidad, tipo]
+                            );
+                            return;
+                        }
+                        enviar(`📝 *TICKET DE PEDIDO*\n\nTomamos tu pedido exitosamente:\n*${cantidad}x Garrafa(s) de ${tipo}*\n💰 Total a pagar: $${total}\n💳 Forma de pago: ${formaPago}\n\n¡En breve sale el repartidor hacia tu domicilio! 🚚💨`);
                     }
-                });
-            });
-        }
+                );
+            }
+        );
     });
 }
 

@@ -116,28 +116,30 @@
                 <button class="btn-limpiar" onclick="limpiarFiltrosFecha()">Limpiar</button>
             </div>
         </div>
-
-        <!-- Tabla de Pedidos -->
-        <div class="table-responsive">
-            <table class="tu-tabla-actual">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Garrafas</th>
-                        <th>Venta</th>
-                        <th>Cantidad</th>
-                        <th>Total</th>
-                        <th>Pago</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Observación</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpo-tabla-pedidos"></tbody>
-            </table>
+        <!-- Tabla de Pedidos Estilizada acorde al Header y Panel Diario -->
+        <div class="dash-card my-4" style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 class="dash-card-titulo" style="margin: 0;"><span class="dash-ico dash-celeste">📋</span> Listado de Pedidos</h2>
+                <span style="font-size: 0.85rem; color: #94a3b8;">Gestión y control</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table tabla-pedidos-moderna align-middle mb-0" style="color: #f1f5f9; background-color: transparent;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #334155;">
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase;">Cliente</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase;">Garrafas</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase; text-align: center;" title="Canal de Venta">Canal</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase;">Total</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase;">Pago</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase;">Fecha</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase; text-align: center;">Estado</th>
+                            <th style="background: #0f172a; color: #cbd5e1; font-size: 0.8rem; text-transform: uppercase; text-align: end;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-pedidos"></tbody>
+                </table>
+            </div>
         </div>
-
         <!-- Modal de Pedido -->
         <div id="modal-pedido" class="modal-fondo" style="display: none;">
             <div class="modal-contenido">
@@ -148,7 +150,7 @@
 
                     <div class="grupo-form" id="grupo-cliente">
                         <label>Cliente:</label>
-                        <select id="pedido-cliente" required></select>
+                        <select id="pedido-cliente"></select>
                     </div>
 
                     <div class="grupo-form" id="grupo-items">
@@ -223,6 +225,108 @@
                 </div>
                 <button type="submit" class="btn-guardar">Guardar</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Borrado Simple -->
+    <div id="modal-confirmar-borrar" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
+        <div class="modal-content" style="background:#fff; padding:20px; border-radius:8px; width:300px; text-align:center;">
+            <h5>⚠️ Confirmar Borrado</h5>
+            <p>¿Estás seguro de que deseas eliminar este pedido?</p>
+            <div style="margin-top:20px; display:flex; justify-content:space-around;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModalBorrar()">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarBorradoPedido()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Detalle y Ticket de Pedido -->
+<div id="modal-detalle-pedido" class="modal-fondo" style="display: none;">
+    <div class="modal-contenido" style="max-width: 450px;">
+        <span class="btn-cerrar" onclick="cerrarModalDetalle()">&times;</span>
+        <h2 class="mb-3">🧾 Detalle del Pedido</h2>
+        
+        <!-- Ticket Imprimible Optimizado -->
+<div id="ticket-imprimible" style="background: #fff; padding: 12px; max-width: 320px; margin: 0 auto; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #000; line-height: 1.2;">
+    
+    <!-- LOGO CREADO CON CSS (Ideal para tickets térmicos) -->
+    <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
+        <div style="font-size: 24px; font-weight: bold; font-family: sans-serif; letter-spacing: -1px; margin-bottom: 2px;">
+            <span style="background: #000; color: #ffcc00; padding: 0 4px; border-radius: 3px;">A</span>MARILLA<span style="font-weight: 300;">GAS</span>
+        </div>
+        <div style="font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #333; margin-bottom: 4px;">
+            LÓPEZ GAS NOGOYÁ
+        </div>
+        <div style="font-size: 10px; color: #222;">
+            📱 3435-619706 &nbsp;|&nbsp; 📞 422516
+        </div>
+    </div>
+
+    <!-- Datos del Ticket -->
+    <div style="text-align: center; margin-bottom: 6px;">
+        <strong>TICKET DE PEDIDO</strong><br>
+        <small id="ticket-fecha-hora">-</small>
+    </div>
+    <hr style="border: none; border-top: 1px dashed #bbb; margin: 6px 0;">
+
+    <div id="ticket-info-cliente">
+        <strong>Cliente:</strong> <span id="det-cliente">-</span><br>
+        <strong>Teléfono:</strong> <span id="det-telefono">-</span><br>
+        <strong>Dirección:</strong> <span id="det-direccion">-</span>
+    </div>
+    
+    <hr style="border: none; border-top: 1px dashed #bbb; margin: 6px 0;">
+    <div>
+        <strong>Items:</strong>
+        <div id="det-lista-items" style="margin: 4px 0;"></div>
+    </div>
+
+    <hr style="border: none; border-top: 1px dashed #bbb; margin: 6px 0;">
+    <div>
+        <strong>Pago:</strong>
+        <div id="det-lista-pagos" style="margin: 4px 0;"></div>
+    </div>
+
+    <hr style="border: none; border-top: 1px dashed #bbb; margin: 6px 0;">
+    <div id="ticket-observacion-container" style="display:none; margin-bottom: 4px;">
+        <strong>Obs:</strong> <span id="det-observacion">-</span>
+    </div>
+
+    <div style="text-align: right; font-size: 14px; margin-top: 8px; border-top: 1px solid #000; padding-top: 4px;">
+        <strong>TOTAL: <span id="det-total">$0</span></strong>
+    </div>
+
+    <div style="text-align: center; margin-top: 12px; font-size: 10px; color: #555;">
+        ¡Gracias por su compra!
+    </div>
+</div>
+
+        <!-- Botones de acción del modal -->
+        <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+            <button type="button" class="btn btn-primary" onclick="imprimirTicketPedido()">🖨️ Imprimir Ticket</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Bootstrap: confirmar reinicio de WhatsApp -->
+    <div class="modal fade" id="modal-reinicio-whatsapp" tabindex="-1" aria-labelledby="titulo-reinicio-whatsapp" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="titulo-reinicio-whatsapp">
+                        <span class="wa-reinicio-ico" aria-hidden="true">⚠️</span> <span class="wa-titulo-txt">Reiniciar WhatsApp</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="wa-reinicio-texto">¿Estás seguro de que deseas reiniciar la sesión? Esto borrará el estado actual y generará un nuevo código QR para escanear.</p>
+                    <div class="wa-reinicio-aviso">📱 Vas a tener que volver a vincular WhatsApp desde tu celular.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-wa-cancelar" data-bs-dismiss="modal" data-accion="cancelar">Cancelar</button>
+                    <button type="button" class="btn btn-wa-confirmar" data-accion="confirmar">🔄 Sí, reiniciar</button>
+                </div>
+            </div>
         </div>
     </div>
 
